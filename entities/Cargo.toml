@@ -1,0 +1,14 @@
+[package]
+name = "entities"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+name = "entities"
+path = "src/mod.rs"
+
+[dependencies]
+chrono = { workspace = true }
+sea-orm = { workspace = true }
+serde = { workspace = true, features = ["derive"] }

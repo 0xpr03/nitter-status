@@ -1,0 +1,6 @@
+/target
+/sqlite.db
+/scanner/test_db.db
+/.env
+/sqlite.db-journal
+/out.txt

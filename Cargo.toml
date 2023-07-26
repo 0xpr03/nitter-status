@@ -1,0 +1,48 @@
+[package]
+name = "nitter-status"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+members = ["migration","entities", "server", "scanner"]
+
+[workspace.dependencies]
+tokio = "1.20.1"
+thiserror = "1.0.39"
+chrono = "0.4.22"
+serde = "1.0.144"
+sea-orm-migration = "0.11.0"
+sea-orm = "0.11.0"
+futures = "0.3"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+reqwest = "0.11"
+error-stack = "0.3.1"
+miette = "5.10"
+regex = "1.9"
+
+tracing-test = "0.2"
+
+[dependencies]
+clap = "4.0.9"
+miette = { workspace = true, features = ["fancy"] }
+tokio = { workspace = true }
+chrono = { workspace = true }
+dotenvy = "^0.15.5"
+sea-orm = { workspace = true, features = ["sqlx-sqlite", "runtime-tokio-native-tls"] }
+error-stack = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
+
+[dependencies.entities]
+path = "./entities"
+
+[dependencies.migration]
+path = "./migration"
+
+[dependencies.server]
+path = "./server"
+
+[dependencies.scanner]
+path = "./scanner"

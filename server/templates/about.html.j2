@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link href="/static/bootstrap.min.css" rel="stylesheet">
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>About Nitter Instance Health</title>
+  </head>
+  <body>
+    <div class="container">
+    <h1>Nitter instance uptime & health tracker</h1>
+    <p><a href="/">Home</a></p>
+    <p>Uptime check interval: {{uptime_interval_s}}s.</p>
+    <p>Instance re-fetching interval, including RSS & version check: {{wiki_interval_s}}s.</p>
+
+    <p>The following paths are checked per instance:</p>
+    <ul>
+      {% for path in checked_paths %}
+        <li><code>{{path}}</code></li>
+      {% endfor %}
+    </ul>
+
+    <p>The same data can also be fetched as JSON from <code>/api/v1/instances</code></p>
+
+    <p>Explanations</p>
+    <ul>
+      <li><code>Healthy</code> stands for hosts which are reachable and pass a content check.</li>
+      <li><code>Ping AVG</code> is the ping average over the last {{ping_avg_interval_h}} hours.
+        Note that this is the time in ms it took for an instance to respond with content. This is not a network ping.</li>
+      <li><code>RSS</code> whether the host has RSS feeds enabled.</li>
+      <li><code>Version</code> which nitter version the host reports.</li>
+      <li><code>Points</code> an instance score based on the availability over the last 30 and 120 days, together with the version.</li>
+      <li>(api only) <code>Ping</code> last health check response time (ms).</li>
+    </ul>
+  </body>
+</html>

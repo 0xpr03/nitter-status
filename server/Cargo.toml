@@ -1,0 +1,28 @@
+[package]
+name = "server"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+
+[dependencies]
+axum = { version = "0.6.4", features = ["json", "macros", "query", "headers", "multipart"] }
+axum-extra = { version = "0.7.5" }
+sea-orm = { workspace = true, features = [ "sqlx-sqlite", "runtime-tokio-native-tls", "macros" ] }
+hyper = { version = "0.14.20", features = ["full"] }
+tower = "0.4"
+tower-http = { version = "0.4.2", features = ["full"] }
+tokio = { workspace = true, features = ["full"] }
+chrono = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
+serde = { workspace = true, features = ["derive"] }
+
+thiserror = { workspace = true }
+
+# templating
+tera = "1.19.0"
+
+[dependencies.entities]
+path = "../entities"

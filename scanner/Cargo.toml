@@ -1,0 +1,22 @@
+[package]
+name = "scanner"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = { workspace = true, features = ["deflate","gzip","brotli","cookies"] }
+sea-orm = { workspace = true, features = [ "sqlx-sqlite", "runtime-tokio-native-tls", "macros" ] }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+scraper = "0.17.1"
+chrono = { workspace = true }
+regex = { workspace = true }
+
+[dev-dependencies]
+tracing-test = { workspace = true }
+
+[dependencies.entities]
+path = "../entities"

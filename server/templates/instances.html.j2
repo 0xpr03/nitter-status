@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link href="/static/bootstrap.min.css" rel="stylesheet">
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nitter Instance Health</title>
+  </head>
+  <body>
+  <div class="container">
+    <h1>Nitter Instance Uptime & Health</h1>
+    <p><a href="/about">About</a></p>
+    <p>Last Updated {{last_updated}} <a href="https://time.is/UTC">UTC</a>.</p>
+    <div class="table-responsive">
+      <table class="table">
+      <thead>
+          <tr>
+          <th scope="col">Instance</th>
+          <th scope="col">Healthy</th>
+          <th scope="col">Ping</th>
+          <th scope="col">Average</th>
+          <th scope="col">RSS</th>
+          <th scope="col">Version</th>
+          <th scope="col">Points</th>
+          </tr>
+      </thead>
+      <tbody>
+          {% for host in instances %}
+          <tr>
+          <td><a href="{{host.url}}">{{host.domain}}</a></td>
+          <td>{% if host.healthy%} ✅ {% else %} ❌ {% endif %}</td>
+          <td>
+            {% if host.recent_pings|length > 0 %}
+              {% set height = 57 %}
+              {% set width = 182 %}
+              {% set amount = host.recent_pings|length  %}
+              {% set width_bar = width / amount  %}
+              {% set offset = 5  %}
+              {% set step_size = (host.ping_max - host.ping_min)/(height-offset) %}
+              <svg viewBox="0 0 182 56" width="{{width - 1}}" height="{{height - 1}}">
+                {% set avg_pos = (height-(host.ping_avg - host.ping_min )/step_size) - offset %}
+                <line x1="1" x2="181" y1="{{avg_pos}}" y2="{{avg_pos}}" stroke="black" stroke-width="0.72727275" stroke-linecap="butt" stroke-opacity="0.3"><title>Average</title></line>
+                {% for ping in host.recent_pings %}
+                  {% set height_bar = (ping - host.ping_min )/step_size + offset%}
+                  <rect x="{{loop.index * width_bar}}" y="{{height - height_bar - offset}}" width="{{width_bar}}" height="{{height_bar}}" fill="#a09df2" fill-opacity="0.95"><title>{{ping}}</title></rect>
+                {% endfor %}
+              </svg>
+            {% endif %}
+          </td>
+          <td>{{host.ping_avg}}</td>
+          <td>{% if host.rss%} ✅ {% else %} ❌ {% endif %}</td>
+          <td>{{host.version}}</td>
+          <td>{{host.points}}</td>
+          </tr>
+          {% endfor %}
+      </tbody>
+      </table>
+    </div>
+  </div>
+      <script src="/static/bootstrap.min.js"></script>
+  </body>
+</html>
