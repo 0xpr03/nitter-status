@@ -19,7 +19,6 @@ pub async fn instances(
         context.insert("instances", &guard.hosts);
         let time = guard.last_update.format("%Y.%m.%d %H:%M").to_string();
         context.insert("last_updated", &time);
-
         let res = Html(template.render("instances.html.j2", &context)?).into_response();
         drop(guard);
         res

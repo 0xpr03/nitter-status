@@ -39,10 +39,12 @@ pub struct LastPingsQuery {
     ping: i32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct LastPings {
-    avg: i32,
-    pings: Vec<i32>,
+    avg: Option<i32>,
+    min: Option<i32>,
+    max: Option<i32>,
+    pings: Vec<Option<i32>>,
 }
 
 #[derive(Debug, FromQueryResult)]
@@ -123,9 +125,9 @@ impl Scanner {
                 rss: host.rss,
                 version: host.version,
                 healthy: last_check.healthy,
-                ping_max: host_ping_data.as_ref().and_then(|v|v.pings.iter().max().cloned()).unwrap_or(0i32),
-                ping_min: host_ping_data.as_ref().and_then(|v|v.pings.iter().min().cloned()).unwrap_or(0i32),
-                ping_avg: host_ping_data.as_ref().map(|v|v.avg),
+                ping_max: host_ping_data.as_ref().and_then(|v|v.max),
+                ping_min: host_ping_data.as_ref().and_then(|v|v.min),
+                ping_avg: host_ping_data.as_ref().and_then(|v|v.avg),
                 recent_pings: host_ping_data.map(|v|v.pings).unwrap_or_default(),
             })
         }
@@ -149,15 +151,15 @@ impl Scanner {
         #[derive(Debug, FromQueryResult, Default)]
         struct PingEntry {
             host: i32,
-            ping: i32,
+            ping: Option<i32>,
         }
         let last_pings = PingEntry::find_by_statement(Statement::from_sql_and_values(
             DbBackend::Sqlite,
             r#"
-            SELECT u.host,u.resp_time as ping FROM update_check u
+            SELECT u.host,(CASE u.healthy WHEN true THEN u.resp_time ELSE null END) as ping FROM update_check u
             JOIN host h ON h.id = u.host
-            WHERE h.enabled = true AND u.healthy = true AND u.time >= $1
-            ORDER BY u.host,u.time DESC
+            WHERE h.enabled = true AND u.time >= $1
+            ORDER BY u.host,u.time ASC
             "#,
             [age.into()],
         ))
@@ -169,31 +171,37 @@ impl Scanner {
             None => {return Ok(HashMap::new());},
             Some(v) => v,
         };
-        let mut current_entry = LastPings {
-            pings: Vec::new(),// TODO: optimize capacity
-            avg: 0,
-        };
+        let mut current_entry = LastPings::default();
         let mut last_host = first.host;
+        let mut non_null_entries = first.ping.as_ref().map_or(0, |_|1);
         current_entry.pings.push(first.ping);
         for ping in iter {
             if last_host != ping.host {
-                let mut new_entry = LastPings{
-                    avg: 0,
-                    pings: Vec::new(),
-                };
+                let mut new_entry = LastPings::default();
                 // will overflow only if we hit > 1500 days of backlog
                 // when having 5 minutes interval and only 5000ms response times
-                current_entry.avg = (current_entry.pings.iter().copied().sum::<i32>() / (current_entry.pings.len() as i32) ) as i32;
+                if let Some(sum) = current_entry.avg {
+                    current_entry.avg = Some(sum / non_null_entries);
+                }
+                non_null_entries = 0;
                 std::mem::swap(&mut new_entry, &mut current_entry);
                 // insert back the old (swapped) entry
                 assert_eq!(map.insert(last_host, new_entry).is_some(),false);
                 last_host = ping.host;
             }
+            if let Some(ping) = ping.ping.as_ref() {
+                current_entry.avg = Some(current_entry.avg.unwrap_or(0) + ping);
+                non_null_entries += 1;
+                current_entry.min = Some(current_entry.min.map_or(*ping,|v|v.min(*ping)));
+                current_entry.max = Some(current_entry.max.map_or(*ping,|v|v.max(*ping)));
+            }
             current_entry.pings.push(ping.ping);
         }
-        // Insert last one
-        current_entry.avg = (current_entry.pings.iter().copied().sum::<i32>() / (current_entry.pings.len() as i32) ) as i32;
-        map.insert(last_host, current_entry);
+        // Insert last entry
+        if let Some(sum) = current_entry.avg {
+            current_entry.avg = Some(sum / non_null_entries);
+        }
+        assert_eq!(map.insert(last_host, current_entry).is_some(),false);
         Ok(map)
     }
 
