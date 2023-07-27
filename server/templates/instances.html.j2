@@ -43,7 +43,7 @@
                 <line x1="1" x2="181" y1="{{avg_pos}}" y2="{{avg_pos}}" stroke="black" stroke-width="0.72727275" stroke-linecap="butt" stroke-opacity="0.3"><title>Average</title></line>
                 {% for ping in host.recent_pings %}
                   {% set height_bar = (ping - host.ping_min )/step_size + offset%}
-                  <rect x="{{loop.index * width_bar}}" y="{{height - height_bar - offset}}" width="{{width_bar}}" height="{{height_bar}}" fill="#a09df2" fill-opacity="0.95"><title>{{ping}}</title></rect>
+                  <rect x="{{(loop.index-1) * width_bar}}" y="{{height - height_bar - offset}}" width="{{width_bar}}" height="{{height_bar}}" fill="#a09df2" fill-opacity="0.95"><title>{{ping}}</title></rect>
                 {% endfor %}
               </svg>
             {% endif %}
