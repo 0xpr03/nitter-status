@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 //! Instance health/uptime checking code
 use std::time::Instant;
 

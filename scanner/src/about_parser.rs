@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 use regex::{Regex, RegexBuilder};
 use scraper::{Html, Selector};
 use thiserror::Error;

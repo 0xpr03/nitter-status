@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 use std::{borrow::Cow, net::SocketAddr, sync::Arc};
 
 use axum::{extract::DefaultBodyLimit, http::HeaderValue, response::Html, routing::get, Router};

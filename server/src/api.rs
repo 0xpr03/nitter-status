@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 use crate::{Result, ServerError};
 use axum::response::IntoResponse;
 use axum::{extract::State, Json};
