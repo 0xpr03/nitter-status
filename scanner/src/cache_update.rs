@@ -25,19 +25,6 @@ pub struct HostStats {
 pub struct LatestCheck {
     host: i32,
     healthy: bool,
-    resp_time: Option<i32>,
-}
-
-#[derive(Debug, FromQueryResult, Default)]
-pub struct PingAvg {
-    host: i32,
-    ping_avg: i32,
-}
-
-#[derive(Debug, FromQueryResult, Default)]
-pub struct LastPingsQuery {
-    host: i32,
-    ping: i32,
 }
 
 #[derive(Debug, Default)]
@@ -206,22 +193,6 @@ impl Scanner {
         Ok(map)
     }
 
-    async fn query_ping_avg(&self, age: DateTimeUtc) -> Result<Vec<PingAvg>> {
-        let upte_checks = PingAvg::find_by_statement(Statement::from_sql_and_values(
-            DbBackend::Sqlite,
-            r#"
-            SELECT u.host,CAST(AVG(u.resp_time) AS INT) as ping_avg FROM update_check u
-            JOIN host h ON h.id = u.host
-            WHERE h.enabled = true AND u.healthy = true AND u.time >= $1
-            GROUP BY u.host
-            "#,
-            [age.into()],
-        ))
-        .all(&self.inner.db)
-        .await?;
-        Ok(upte_checks)
-    }
-
     async fn query_latest_check(&self) -> Result<Vec<LatestCheck>> {
         let upte_checks = LatestCheck::find_by_statement(Statement::from_sql_and_values(
             DbBackend::Sqlite,
@@ -230,7 +201,7 @@ impl Scanner {
                 SELECT u.host,MAX(u.time) as time FROM update_check u
                 GROUP BY u.host
             )
-            SELECT u.host,u.time,resp_time,healthy FROM update_check u
+            SELECT u.host,u.time,healthy FROM update_check u
             JOIN host h ON h.id = u.host
             JOIN latest l ON l.host = u.host AND l.time = u.time
             WHERE h.enabled = true

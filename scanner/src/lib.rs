@@ -5,7 +5,7 @@ use std::{
 };
 
 use about_parser::AboutParser;
-use chrono::{Utc, Duration};
+use chrono::Utc;
 use entities::{
     host,
     prelude::*,

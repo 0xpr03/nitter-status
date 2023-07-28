@@ -55,7 +55,7 @@ async fn _main() -> miette::Result<()> {
 
     let server_config = read_server_config(scanner_config.instance_check_interval.as_secs() as _)?;
 
-    test_init(&pool, &server_config).await?;
+    test_init(&pool).await?;
 
     tracing::info!("migrating db");
     migration::Migrator::up(&pool, None)
@@ -120,7 +120,7 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
     }))
 }
 
-async fn test_init(db: &DatabaseConnection, conf: &server::Config) -> miette::Result<()> {
+async fn test_init(db: &DatabaseConnection) -> miette::Result<()> {
     let res = db
         .query_one(sea_orm::Statement::from_string(
             DatabaseBackend::Postgres,
