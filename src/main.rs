@@ -105,8 +105,8 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
     let referer = require_env_str("REFERER")?;
 
     Ok(Arc::new(entities::state::scanner::Config {
-        list_fetch_interval: Duration::from_secs(instance_ping_interval),
-        instance_check_interval: Duration::from_secs(instance_list_interval),
+        list_fetch_interval: Duration::from_secs(instance_list_interval),
+        instance_check_interval: Duration::from_secs(instance_ping_interval),
         instance_list_url: nitter_instancelist,
         profile_path,
         rss_path,
