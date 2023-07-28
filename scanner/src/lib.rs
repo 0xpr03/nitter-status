@@ -308,6 +308,10 @@ impl Scanner {
             if code == CAPTCHA_CODE && body_text.contains(CAPTCHA_TEXT) {
                 return Err(FetchError::Captcha);
             }
+            if code == 403 && body_text.contains("You have been blocked") {
+                // cloudflare block
+                return Err(FetchError::KnownHttpResponseStatus(code, message));
+            }
             if code == 404 {
                 // don't spam the body on 404s
                 return Err(FetchError::KnownHttpResponseStatus(code, message));
