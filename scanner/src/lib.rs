@@ -19,7 +19,7 @@ use reqwest::{
 };
 use sea_orm::{
     sea_query::OnConflict, ActiveModelTrait, ActiveValue, ColumnTrait, DatabaseConnection,
-    EntityTrait, QueryFilter, TransactionTrait,
+    EntityTrait, QueryFilter, TransactionTrait, FromQueryResult, Statement, DbBackend, ConnectionTrait,
 };
 use thiserror::Error;
 use tokio::{task::JoinSet, time::sleep};
@@ -74,6 +74,20 @@ pub enum FetchError {
     Captcha,
 }
 
+impl FetchError {
+    /// Returns the http status code, if applicable
+    fn http_status_code(&self) -> Option<u16> {
+        match self {
+            FetchError::Reqwest(e) => {
+                e.status().map(|v|v.as_u16())
+            },
+            FetchError::HttpResponseStatus(code, _, _) => Some(*code),
+            FetchError::KnownHttpResponseStatus(code, _) => Some(*code),
+            FetchError::Captcha | FetchError::RetrievingBody(_, _) => None,
+        }
+    }
+}
+
 pub fn run_scanner(db: DatabaseConnection, config: ScannerConfig, cache: Cache, disable_startup_scan: bool) -> Result<()> {
     let scanner = Scanner::new(db, config, cache);
 
@@ -100,6 +114,13 @@ struct InnerScanner {
     last_uptime_check: Mutex<Instant>,
     health_check_regex: Regex,
     rss_check_regex: Regex,
+}
+
+#[derive(Debug, FromQueryResult, Default)]
+pub struct LatestCheck {
+    pub host: i32,
+    pub healthy: bool,
+    pub domain: String,
 }
 
 impl Scanner {
@@ -229,19 +250,29 @@ impl Scanner {
         }
         // now update/insert the existing ones
         let found_instances: usize = parsed_instances.len();
+        // find last update checks to detect spam
+        let last_status = self.query_latest_check(&transaction).await?;
         let mut join_set = JoinSet::new();
         for (_, instance) in parsed_instances {
             // TODO: parallelize this!
             let scanner_c = self.clone();
+            // detect already offline host and prevent log spam
+            let muted_host = match self.inner.config.auto_mute {
+                false => false,
+                true => last_status.iter().find(|v|v.domain == instance.domain).map_or(false,|check|!check.healthy),
+            };
+            // tracing::trace!(muted_host,instance=?instance,last_status=?last_status);
             join_set.spawn(async move {
                 let (rss, version) = match Url::parse(&instance.url) {
                     Err(_) => {
-                        tracing::info!(url = instance.url, "Instance URL invalid");
+                        if !muted_host {
+                            tracing::info!(url = instance.url, "Instance URL invalid");
+                        }
                         (false, None)
                     }
                     Ok(mut url) => {
-                        let rss = scanner_c.has_rss(&mut url).await;
-                        let version = scanner_c.nitter_version(&mut url).await;
+                        let rss = scanner_c.has_rss(&mut url, muted_host).await;
+                        let version = scanner_c.nitter_version(&mut url, muted_host).await;
                         (rss, version)
                     }
                 };
@@ -333,6 +364,26 @@ impl Scanner {
             .map_err(|e| FetchError::RetrievingBody(url.to_owned(), e))?;
 
         Ok((code, body))
+    }
+
+    pub async fn query_latest_check<T: ConnectionTrait>(&self, connection: &T) -> Result<Vec<LatestCheck>> {
+        let update_checks = LatestCheck::find_by_statement(Statement::from_sql_and_values(
+            DbBackend::Sqlite,
+            r#"
+            WITH latest AS(
+                SELECT u.host,MAX(u.time) as time FROM update_check u
+                GROUP BY u.host
+            )
+            SELECT u.host,healthy,h.domain FROM update_check u
+            JOIN host h ON h.id = u.host
+            JOIN latest l ON l.host = u.host AND l.time = u.time
+            WHERE h.enabled = true
+            "#,
+            [],
+        ))
+        .all(connection)
+        .await?;
+        Ok(update_checks)
     }
 }
 

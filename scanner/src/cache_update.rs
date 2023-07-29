@@ -12,6 +12,7 @@ use sea_orm::QueryFilter;
 use sea_orm::QueryOrder;
 use sea_orm::{prelude::DateTimeUtc, DbBackend, FromQueryResult, Statement};
 
+use crate::LatestCheck;
 use crate::{Result, Scanner};
 
 #[derive(Debug, FromQueryResult)]
@@ -19,12 +20,6 @@ pub struct HostStats {
     host: i32,
     good: u32,
     total: u32,
-}
-
-#[derive(Debug, FromQueryResult, Default)]
-pub struct LatestCheck {
-    host: i32,
-    healthy: bool,
 }
 
 #[derive(Debug, Default)]
@@ -72,7 +67,7 @@ impl Scanner {
             stats_120d.into_iter().map(|v| (v.host, v)).collect();
 
         let version_points = self.query_versions(time_30d).await?;
-        let latest_check = self.query_latest_check().await?;
+        let latest_check = self.query_latest_check(&self.inner.db).await?;
         let latest_check: HashMap<i32, LatestCheck> =
             latest_check.into_iter().map(|v| (v.host, v)).collect();
 
@@ -191,26 +186,6 @@ impl Scanner {
         }
         assert_eq!(map.insert(last_host, current_entry).is_some(),false);
         Ok(map)
-    }
-
-    async fn query_latest_check(&self) -> Result<Vec<LatestCheck>> {
-        let upte_checks = LatestCheck::find_by_statement(Statement::from_sql_and_values(
-            DbBackend::Sqlite,
-            r#"
-            WITH latest AS(
-                SELECT u.host,MAX(u.time) as time FROM update_check u
-                GROUP BY u.host
-            )
-            SELECT u.host,u.time,healthy FROM update_check u
-            JOIN host h ON h.id = u.host
-            JOIN latest l ON l.host = u.host AND l.time = u.time
-            WHERE h.enabled = true
-            "#,
-            [],
-        ))
-        .all(&self.inner.db)
-        .await?;
-        Ok(upte_checks)
     }
 
     async fn query_versions(&self, age: DateTimeUtc) -> Result<HashMap<String, f64>> {

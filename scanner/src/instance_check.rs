@@ -29,10 +29,13 @@ impl Scanner {
 
         let mut join_set = JoinSet::new();
 
+        let last_check = self.query_latest_check(&self.inner.db).await?;
+
         for model in hosts.into_iter() {
             let scanner = self.clone();
+            let muted_host = last_check.iter().find(|v|v.host == model.id).map_or(false,|check|!check.healthy);
             join_set.spawn(async move {
-                scanner.update_check_host(model).await;
+                scanner.update_check_host(model, muted_host).await;
             });
         }
         // wait till all of them are finished, preventing DoS
@@ -46,11 +49,13 @@ impl Scanner {
     }
 
     #[instrument]
-    async fn update_check_host(&self, host: host::Model) {
+    async fn update_check_host(&self, host: host::Model, muted: bool) {
         let now = Utc::now();
         let mut url = match Url::parse(&host.url) {
             Err(e) => {
-                tracing::error!(error=?e, url=host.url,"failed to parse instance URL");
+                if !muted {
+                    tracing::error!(error=?e, url=host.url,"failed to parse instance URL");
+                }
                 self.insert_failed_update_check(host.id, now, None, None)
                     .await;
                 return;
@@ -64,11 +69,13 @@ impl Scanner {
         let took_ms = end.saturating_duration_since(start).as_millis();
         match fetch_res {
             Err(e) => {
-                tracing::info!(
-                    host = host.url,
-                    took = took_ms,
-                    "couldn't ping host: {e}, marking as dead"
-                );
+                if !muted {
+                    tracing::info!(
+                        host = host.url,
+                        took = took_ms,
+                        "couldn't ping host: {e}, marking as dead"
+                    );
+                }
                 let (http_code, resp_time) = match e {
                     FetchError::HttpResponseStatus(code, _, _) => {
                         (Some(code as _), Some(took_ms as _))
@@ -79,13 +86,17 @@ impl Scanner {
                     .await;
             }
             Ok((http_code, content)) => {
-                tracing::trace!(host = host.url, took = took_ms);
+                if !muted {
+                    tracing::trace!(host = host.url, took = took_ms);
+                }
                 // check for valid profile
                 if !self.inner.health_check_regex.is_match(&content) {
-                    tracing::info!(
-                        content = content,
-                        "host doesn't contain expected profile content"
-                    );
+                    if !muted {
+                        tracing::info!(
+                            content = content,
+                            "host doesn't contain expected profile content"
+                        );
+                    }
                     self.insert_failed_update_check(
                         host.id,
                         now,
@@ -113,36 +124,45 @@ impl Scanner {
     }
 
     /// Check if rss is available
-    pub(crate) async fn has_rss(&self, url: &mut Url) -> bool {
+    pub(crate) async fn has_rss(&self, url: &mut Url, mute: bool) -> bool {
         url.set_path(&self.inner.config.rss_path);
         match self.fetch_url(url.as_str()).await {
             Ok((code, content)) => match self.inner.rss_check_regex.is_match(&content) {
                 true => return true,
                 false => {
-                    tracing::debug!(code = code, content = content, "rss content not found");
+                    if !mute {
+                        // 404 = disabled
+                        tracing::debug!(url=url.as_str(), code = code, content = content, "rss content not found");
+                    }
                     return false;
                 }
             },
             Err(e) => {
-                tracing::debug!(error=?e,"fetching rss feed failed");
+                if !mute && e.http_status_code() != Some(404) {
+                    tracing::debug!(error=?e,url=url.as_str(),"fetching rss feed failed");
+                }
                 return false;
             }
         }
     }
 
     /// Check nitter version
-    pub(crate) async fn nitter_version(&self, url: &mut Url) -> Option<String> {
+    pub(crate) async fn nitter_version(&self, url: &mut Url, mute: bool) -> Option<String> {
         url.set_path(&self.inner.config.about_path);
         match self.fetch_url(url.as_str()).await {
             Ok((code, content)) => match self.inner.about_parser.parse_about_version(&content) {
                 Ok(v) => Some(v),
                 Err(e) => {
-                    tracing::debug!(url=url.as_str(),code,content,error=?e,"failed parsing version from about page");
+                    if !mute {
+                        tracing::debug!(url=url.as_str(),code,content,error=?e,"failed parsing version from about page");
+                    }
                     None
                 }
             },
             Err(e) => {
-                tracing::debug!(url=url.as_str(),error=?e,"failed fetching about page");
+                if !mute {
+                    tracing::debug!(url=url.as_str(),error=?e,"failed fetching about page");
+                }
                 None
             }
         }

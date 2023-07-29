@@ -104,6 +104,7 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
         .map(|v| v.trim().to_owned())
         .collect();
     let referer = require_env_str("REFERER")?;
+    let auto_mute = require_env_str("AUTO_MUTE")? == "true";
 
     Ok(Arc::new(entities::state::scanner::Config {
         list_fetch_interval: Duration::from_secs(instance_list_interval),
@@ -117,6 +118,7 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
         additional_hosts,
         referer,
         ping_range: chrono::Duration::hours(ping_range as _),
+        auto_mute,
     }))
 }
 

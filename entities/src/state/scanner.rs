@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 use std::{sync::Arc, time::Duration};
 pub type ScannerConfig = Arc<Config>;
 pub struct Config {
@@ -23,6 +24,8 @@ pub struct Config {
     pub referer: String,
     /// Duration to average the ping/response times over
     pub ping_range: chrono::Duration,
+    /// don't emit errors for hosts which are already listed as down
+    pub auto_mute: bool,
 }
 
 impl Config {
@@ -39,6 +42,7 @@ impl Config {
             additional_hosts: vec![String::from("https://nitter.net")],
             referer: String::from(""),
             ping_range: chrono::Duration::hours(3),
+            auto_mute: true,
         })
     }
 }
