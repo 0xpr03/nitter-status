@@ -4,10 +4,10 @@ use sea_orm::entity::prelude::*;
 use serde::Serialize;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize)]
-#[sea_orm(table_name = "update_check")]
+#[sea_orm(table_name = "health_check")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
-    pub time: DateTimeUtc,
+    pub time: i64,
     #[sea_orm(primary_key, auto_increment = false)]
     pub host: i32,
     pub resp_time: Option<i32>,

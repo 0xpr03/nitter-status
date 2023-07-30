@@ -3,7 +3,7 @@
 use std::time::Instant;
 
 use chrono::Utc;
-use entities::update_check;
+use entities::health_check;
 use entities::{host, prelude::*};
 use reqwest::Url;
 use sea_orm::prelude::DateTimeUtc;
@@ -35,7 +35,7 @@ impl Scanner {
             let scanner = self.clone();
             let muted_host = last_check.iter().find(|v|v.host == model.id).map_or(false,|check|!check.healthy);
             join_set.spawn(async move {
-                scanner.update_check_host(model, muted_host).await;
+                scanner.health_check_host(model, muted_host).await;
             });
         }
         // wait till all of them are finished, preventing DoS
@@ -49,14 +49,14 @@ impl Scanner {
     }
 
     #[instrument]
-    async fn update_check_host(&self, host: host::Model, muted: bool) {
+    async fn health_check_host(&self, host: host::Model, muted: bool) {
         let now = Utc::now();
         let mut url = match Url::parse(&host.url) {
             Err(e) => {
                 if !muted {
                     tracing::error!(error=?e, url=host.url,"failed to parse instance URL");
                 }
-                self.insert_failed_update_check(host.id, now, None, None)
+                self.insert_failed_health_check(host.id, now, None, None)
                     .await;
                 return;
             }
@@ -82,7 +82,7 @@ impl Scanner {
                     }
                     _ => (None, None),
                 };
-                self.insert_failed_update_check(host.id, now, resp_time, http_code)
+                self.insert_failed_health_check(host.id, now, resp_time, http_code)
                     .await;
             }
             Ok((http_code, content)) => {
@@ -97,7 +97,7 @@ impl Scanner {
                             "host doesn't contain expected profile content"
                         );
                     }
-                    self.insert_failed_update_check(
+                    self.insert_failed_health_check(
                         host.id,
                         now,
                         Some(took_ms as _),
@@ -107,8 +107,8 @@ impl Scanner {
                 }
 
                 // create successfull uptime entry
-                if let Err(e) = (update_check::ActiveModel {
-                    time: ActiveValue::Set(now),
+                if let Err(e) = (health_check::ActiveModel {
+                    time: ActiveValue::Set(now.timestamp()),
                     host: ActiveValue::Set(host.id),
                     resp_time: ActiveValue::Set(Some(took_ms as _)),
                     response_code: ActiveValue::Set(Some(http_code as _)),
@@ -168,15 +168,15 @@ impl Scanner {
         }
     }
 
-    async fn insert_failed_update_check(
+    async fn insert_failed_health_check(
         &self,
         host: i32,
         time: DateTimeUtc,
         resp_time: Option<i32>,
         http_code: Option<i32>,
     ) {
-        if let Err(e) = (update_check::ActiveModel {
-            time: ActiveValue::Set(time),
+        if let Err(e) = (health_check::ActiveModel {
+            time: ActiveValue::Set(time.timestamp()),
             host: ActiveValue::Set(host),
             resp_time: ActiveValue::Set(resp_time),
             healthy: ActiveValue::Set(false),

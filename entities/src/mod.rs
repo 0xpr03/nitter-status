@@ -3,7 +3,7 @@
 pub mod prelude;
 
 pub mod host;
-pub mod update_check;
+pub mod health_check;
 
 // has to be re-added
 pub mod state;

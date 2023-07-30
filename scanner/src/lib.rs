@@ -240,7 +240,7 @@ impl Scanner {
                 host::ActiveModel {
                     id: ActiveValue::Set(host.id),
                     enabled: ActiveValue::Set(false),
-                    updated: ActiveValue::Set(time),
+                    updated: ActiveValue::Set(time.timestamp()),
                     ..Default::default()
                 }
                 .update(&transaction)
@@ -283,7 +283,7 @@ impl Scanner {
                     enabled: ActiveValue::Set(true),
                     version: ActiveValue::Set(version),
                     rss: ActiveValue::Set(rss),
-                    updated: ActiveValue::Set(time),
+                    updated: ActiveValue::Set(time.timestamp()),
                 }
             });
         }
@@ -367,14 +367,14 @@ impl Scanner {
     }
 
     pub async fn query_latest_check<T: ConnectionTrait>(&self, connection: &T) -> Result<Vec<LatestCheck>> {
-        let update_checks = LatestCheck::find_by_statement(Statement::from_sql_and_values(
+        let health_checks = LatestCheck::find_by_statement(Statement::from_sql_and_values(
             DbBackend::Sqlite,
             r#"
             WITH latest AS(
-                SELECT u.host,MAX(u.time) as time FROM update_check u
+                SELECT u.host,MAX(u.time) as time FROM health_check u
                 GROUP BY u.host
             )
-            SELECT u.host,healthy,h.domain FROM update_check u
+            SELECT u.host,healthy,h.domain FROM health_check u
             JOIN host h ON h.id = u.host
             JOIN latest l ON l.host = u.host AND l.time = u.time
             WHERE h.enabled = true
@@ -383,7 +383,7 @@ impl Scanner {
         ))
         .all(connection)
         .await?;
-        Ok(update_checks)
+        Ok(health_checks)
     }
 }
 

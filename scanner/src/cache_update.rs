@@ -139,12 +139,12 @@ impl Scanner {
         let last_pings = PingEntry::find_by_statement(Statement::from_sql_and_values(
             DbBackend::Sqlite,
             r#"
-            SELECT u.host,(CASE u.healthy WHEN true THEN u.resp_time ELSE null END) as ping FROM update_check u
+            SELECT u.host,(CASE u.healthy WHEN true THEN u.resp_time ELSE null END) as ping FROM health_check u
             JOIN host h ON h.id = u.host
             WHERE h.enabled = true AND u.time >= $1
             ORDER BY u.host,u.time ASC
             "#,
-            [age.into()],
+            [age.timestamp().into()],
         ))
         .all(&self.inner.db)
         .await?;
@@ -157,6 +157,12 @@ impl Scanner {
         let mut current_entry = LastPings::default();
         let mut last_host = first.host;
         let mut non_null_entries = first.ping.as_ref().map_or(0, |_|1);
+        if let Some(ping) = first.ping.as_ref() {
+            current_entry.avg = Some(*ping);
+            non_null_entries += 1;
+            current_entry.min = Some(*ping);
+            current_entry.max = Some(*ping);
+        }
         current_entry.pings.push(first.ping);
         for ping in iter {
             if last_host != ping.host {
@@ -192,11 +198,11 @@ impl Scanner {
         let stats = Version::find_by_statement(Statement::from_sql_and_values(
             DbBackend::Sqlite,
             r#"SELECT version FROM host h
-            JOIN update_check u ON u.host = h.id
+            JOIN health_check u ON u.host = h.id
             WHERE h.enabled = true AND u.time >= $1 AND version IS NOT NULL
             GROUP BY version
             ORDER BY version ASC"#,
-            [age.into()],
+            [age.timestamp().into()],
         ))
         .all(&self.inner.db)
         .await?;
@@ -219,11 +225,11 @@ impl Scanner {
     ) -> Result<Vec<HostStats>> {
         let stats: Vec<HostStats> = HostStats::find_by_statement(Statement::from_sql_and_values(
             DbBackend::Sqlite,
-            r#"SELECT u.host, COUNT(CASE WHEN healthy = true THEN 1 END) as good,COUNT(*) as total FROM update_check u
+            r#"SELECT u.host, COUNT(CASE WHEN healthy = true THEN 1 END) as good,COUNT(*) as total FROM health_check u
             JOIN host h ON h.id = u.host
             WHERE h.enabled = true AND u.time BETWEEN $1 AND $2
             GROUP BY u.host "#,
-            [from.into(), to.into()],
+            [from.timestamp().into(), to.timestamp().into()],
         ))
         .all(&self.inner.db)
         .await?;

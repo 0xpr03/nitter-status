@@ -29,7 +29,7 @@ async fn _main() -> miette::Result<()> {
         .with(tracing_subscriber::EnvFilter::new(
             var("RUST_LOG").unwrap_or_else(|_| {
                 format!(
-                    "warn,tower_http=debug,scanner=trace,server=debug,{}=debug",
+                    "warn,tower_http=debug,migration=debug,scanner=trace,server=debug,{}=debug",
                     env!("CARGO_PKG_NAME")
                 )
                 .into()
