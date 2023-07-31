@@ -37,4 +37,5 @@ pub struct CacheHost {
     pub ping_avg: Option<i32>,
     pub version: Option<String>,
     pub healthy: bool,
+    pub last_healthy: Option<DateTimeUtc>,
 }

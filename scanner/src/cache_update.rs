@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 use std::collections::HashMap;
 
+use chrono::TimeZone;
 use chrono::{Days, Utc};
 use entities::host;
 use entities::prelude::*;
@@ -56,15 +57,15 @@ impl Scanner {
         }
 
         let time_now = Utc::now();
+        let time_3h = time_now.checked_sub_days(Days::new(30)).unwrap();
         let time_30d = time_now.checked_sub_days(Days::new(30)).unwrap();
         let time_120d = time_now.checked_sub_days(Days::new(120)).unwrap();
 
+        let stats_3h = self.query_stats_range(time_3h, time_now).await?;
         let stats_30d = self.query_stats_range(time_30d, time_now).await?;
-        let stats_30d: HashMap<i32, HostStats> =
-            stats_30d.into_iter().map(|v| (v.host, v)).collect();
         let stats_120d = self.query_stats_range(time_120d, time_30d).await?;
-        let stats_120d: HashMap<i32, HostStats> =
-            stats_120d.into_iter().map(|v| (v.host, v)).collect();
+
+        let mut last_healthy_check = self.query_last_healthy().await?;
 
         let version_points = self.query_versions(time_30d).await?;
         let latest_check = self.query_latest_check(&self.inner.db).await?;
@@ -76,32 +77,27 @@ impl Scanner {
         let mut host_statistics = Vec::with_capacity(hosts.len());
         let default_health_check = LatestCheck::default();
         for host in hosts {
-            let points_30d: f64 = 0.4
-                * match stats_30d.get(&host.id) {
-                    None => 0.0,
-                    Some(stats) => stats.good as f64 / stats.total as f64,
-                };
-            let points_120d: f64 = 0.3
-                * match stats_120d.get(&host.id) {
-                    None => 0.0,
-                    Some(stats) => stats.good as f64 / stats.total as f64,
-                };
+            let points_3h: f64 = 0.3 * stats_3h.get(&host.id).map_or(0.0, |stats|stats.good as f64 / stats.total as f64);
+            let points_30d: f64 = 0.2 * stats_30d.get(&host.id).map_or(0.0, |stats|stats.good as f64 / stats.total as f64);
+            let points_120d: f64 = 0.2 * stats_120d.get(&host.id).map_or(0.0, |stats|stats.good as f64 / stats.total as f64);
             let points_version = 0.1
                 * host
                     .version
                     .as_ref()
                     .map_or(0.0, |version| *version_points.get(version).unwrap_or(&0.0));
-            let points = points_30d + points_120d + points_version;
+            let points = points_30d + points_120d + points_version + points_3h;
 
             let last_check = latest_check.get(&host.id).unwrap_or(&default_health_check);
-            // don't rank currently down instances highly
-            let points = match last_check.healthy {
-                true => (points * 100.0) as i32,
-                false => 0,
-            };
+            // // don't rank currently down instances highly
+            // let points = match last_check.healthy {
+            //     true => (points * 100.0) as i32,
+            //     false => 0,
+            // };
+            let points = (points * 100.0) as i32;
 
             let host_ping_data = ping_data.remove(&host.id);
             host_statistics.push(CacheHost {
+                last_healthy: last_healthy_check.remove(&host.id),
                 url: host.url,
                 domain: host.domain,
                 points,
@@ -148,6 +144,11 @@ impl Scanner {
         ))
         .all(&self.inner.db)
         .await?;
+        // this is pretty verbose, but allows to
+        // - calculate the avg
+        // - map by host
+        // - get a list of all past entries
+        // in one go and with one DB request
         let mut map = HashMap::with_capacity(100);
         let mut iter = last_pings.iter();
         let first = match iter.next() {
@@ -217,12 +218,35 @@ impl Scanner {
         Ok(stats_rated)
     }
 
+    /// Timestamp of last healthy host check
+    async fn query_last_healthy(&self) -> Result<HashMap<i32,DateTimeUtc>> {
+        #[derive(Debug, FromQueryResult)]
+        struct LastHealthyEntry {
+            host: i32,
+            time: i64,
+        }
+        let last_healthy_times = LastHealthyEntry::find_by_statement(Statement::from_sql_and_values(
+            DbBackend::Sqlite,
+            r#"
+            SELECT u.host,MAX(u.time) as time FROM health_check u
+            JOIN host h ON h.id = u.host
+            WHERE h.enabled = true AND u.healthy = true
+            GROUP BY u.host
+            "#,
+            [],
+        ))
+        .all(&self.inner.db)
+        .await?;
+        let last_healthy_times: HashMap<_,_> = last_healthy_times.into_iter().map(|v| (v.host, Utc.timestamp_opt(v.time, 0).unwrap())).collect();
+        Ok(last_healthy_times)
+    }
+
     /// Query uptime statistics per host
     async fn query_stats_range(
         &self,
         from: DateTimeUtc,
         to: DateTimeUtc,
-    ) -> Result<Vec<HostStats>> {
+    ) -> Result<HashMap<i32,HostStats>> {
         let stats: Vec<HostStats> = HostStats::find_by_statement(Statement::from_sql_and_values(
             DbBackend::Sqlite,
             r#"SELECT u.host, COUNT(CASE WHEN healthy = true THEN 1 END) as good,COUNT(*) as total FROM health_check u
@@ -233,6 +257,7 @@ impl Scanner {
         ))
         .all(&self.inner.db)
         .await?;
+        let stats: HashMap<_,_> = stats.into_iter().map(|v| (v.host, v)).collect();
         Ok(stats)
     }
 }

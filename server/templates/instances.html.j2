@@ -19,7 +19,7 @@
           <tr>
           <th scope="col">Instance</th>
           <th scope="col">Healthy</th>
-          <th scope="col">Ping</th>
+          <th scope="col">Response Time</th>
           <th scope="col">Average</th>
           <th scope="col">RSS</th>
           <th scope="col">Version</th>
@@ -53,26 +53,37 @@
               {# <!-- step size {{step_size}} -->
               <!-- ping_max {{host.ping_max}} -->
               <!-- ping_min {{host.ping_min}} --> #}
-              <svg viewBox="0 0 182 56" width="{{width - 1}}" height="{{height - 1}}">
-                {% if host.ping_avg and host.ping_min -%}
-                  {% set avg_pos = (height-(host.ping_avg - host.ping_min )/step_size) - offset -%}
-                  <line x1="1" x2="181" y1="{{avg_pos}}" y2="{{avg_pos}}" stroke="black" stroke-width="0.72727275" stroke-linecap="butt" stroke-opacity="0.3"><title>Average</title></line>
+              {% if host.ping_min -%}
+                <svg viewBox="0 0 182 56" width="{{width - 1}}" height="{{height - 1}}">
+                  {% if host.ping_avg and host.ping_min -%}
+                    {% set avg_pos = (height-(host.ping_avg - host.ping_min )/step_size) - offset -%}
+                    <line x1="1" x2="181" y1="{{avg_pos}}" y2="{{avg_pos}}" stroke="black" stroke-width="0.72727275" stroke-linecap="butt" stroke-opacity="0.3"><title>Average</title></line>
+                  {% endif -%}
+                  {% for ping in host.recent_pings -%}
+                    {% if ping -%}
+                      {% set height_bar = (ping - host.ping_min )/step_size + offset -%}
+                      {% set color_bar = "#a09df2" -%}
+                    {% else %}
+                      {% set height_bar = error_size -%}
+                      {% set color_bar = "#cc0000" -%}
+                    {% endif %}
+                    <rect x="{{(loop.index-1) * width_bar}}" y="{{height - height_bar - offset}}" width="{{width_bar}}" height="{{height_bar}}" fill="{{color_bar}}" fill-opacity="0.95"><title>{{ping | default(value="unhealthy") }}</title></rect>
+                  {% endfor -%}
+                </svg>
+              {% else -%}
+                {# <!-- no healthy entries, show last time host was seen healthy --> #}
+                {% if host.last_healthy -%}
+                Last seen healthy: {{host.last_healthy | truncate(length=10, end="") | replace(from="-", to=".")}}
+                {% else -%}
+                Never seen healthy.
                 {% endif -%}
-                {% for ping in host.recent_pings -%}
-                  {% if ping -%}
-                    {% set height_bar = (ping - host.ping_min )/step_size + offset -%}
-                    {% set color_bar = "#a09df2" -%}
-                  {% else %}
-                    {% set height_bar = error_size -%}
-                    {% set color_bar = "#cc0000" -%}
-                  {% endif %}
-                  <rect x="{{(loop.index-1) * width_bar}}" y="{{height - height_bar - offset}}" width="{{width_bar}}" height="{{height_bar}}" fill="{{color_bar}}" fill-opacity="0.95"><title>{{ping | default(value="unhealthy") }}</title></rect>
-                {% endfor -%}
-              </svg>
-            {% endif %}
+              {% endif -%}
+            {% else -%}
+              No recent data!
+            {% endif -%}
           </td>
           <td>{{host.ping_avg}}</td>
-          <td>{% if host.rss -%} ✅ {% else %} ❌ {% endif %}</td>
+          <td>{% if host.rss -%} ✅ {% else -%} ❌ {% endif -%}</td>
           <td>{{host.version}}</td>
           <td>{{host.points}}</td>
           </tr>
