@@ -31,6 +31,7 @@ mod about_parser;
 mod cache_update;
 mod instance_check;
 mod instance_parser;
+mod version_check;
 
 const CAPTCHA_TEXT: &'static str = "Enable JavaScript and cookies to continue";
 const CAPTCHA_CODE: u16 = 403;
@@ -58,6 +59,10 @@ pub enum ScannerError {
     InstanceParse(#[from] instance_parser::InstaceListError),
     #[error("Failed to fetch URL: {0}")]
     FetchError(#[from] FetchError),
+    #[error("Failed fetcing git: {0}")]
+    GitFetch(#[from] git2::Error),
+    #[error("Couldn't find git branch")]
+    GitBranch,
 }
 
 #[derive(Error, Debug)]
@@ -263,25 +268,29 @@ impl Scanner {
             };
             // tracing::trace!(muted_host,instance=?instance,last_status=?last_status);
             join_set.spawn(async move {
-                let (rss, version) = match Url::parse(&instance.url) {
+                let (rss, version, version_url) = match Url::parse(&instance.url) {
                     Err(_) => {
                         if !muted_host {
                             tracing::info!(url = instance.url, "Instance URL invalid");
                         }
-                        (false, None)
+                        (false, None, None)
                     }
                     Ok(mut url) => {
                         let rss = scanner_c.has_rss(&mut url, muted_host).await;
-                        let version = scanner_c.nitter_version(&mut url, muted_host).await;
-                        (rss, version)
+                        match scanner_c.nitter_version(&mut url, muted_host).await {
+                            Some(version) => (rss,Some(version.version_name),Some(version.url)),
+                            None => (rss,None,None),
+                        }
                     }
                 };
+                
                 host::ActiveModel {
                     id: ActiveValue::NotSet,
                     domain: ActiveValue::Set(instance.domain),
                     url: ActiveValue::Set(instance.url),
                     enabled: ActiveValue::Set(true),
                     version: ActiveValue::Set(version),
+                    version_url: ActiveValue::Set(version_url),
                     rss: ActiveValue::Set(rss),
                     updated: ActiveValue::Set(time.timestamp()),
                 }

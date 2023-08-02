@@ -32,6 +32,7 @@ pub async fn instances(
 }
 
 pub async fn about(
+    State(ref cache): State<Cache>,
     State(ref template): State<Arc<tera::Tera>>,
     State(ref scanner_config): State<ScannerConfig>,
 ) -> Result<axum::response::Response> {
@@ -53,6 +54,10 @@ pub async fn about(
         "ping_avg_interval_h",
         &scanner_config.ping_range.num_hours(),
     );
+    {
+        let guard = cache.read().map_err(|_| ServerError::MutexFailure)?;
+        context.insert("latest_commit", &guard.latest_commit);
+    }
 
     let mut res = Html(template.render("about.html.j2", &context)?).into_response();
     res.headers_mut().insert(

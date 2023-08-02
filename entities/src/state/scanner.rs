@@ -26,6 +26,10 @@ pub struct Config {
     pub ping_range: chrono::Duration,
     /// don't emit errors for hosts which are already listed as down
     pub auto_mute: bool,
+    /// Git URL for source fetching
+    pub source_git_url: String,
+    /// Git branch to fetch the current commit from
+    pub source_git_branch: String,
 }
 
 impl Config {
@@ -43,6 +47,8 @@ impl Config {
             referer: String::from(""),
             ping_range: chrono::Duration::hours(3),
             auto_mute: true,
+            source_git_branch: String::from("master"),
+            source_git_url: String::from("https://github.com/zedeus/nitter.git"),
         })
     }
 }

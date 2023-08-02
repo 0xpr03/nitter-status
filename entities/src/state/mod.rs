@@ -16,6 +16,7 @@ pub fn new() -> Cache {
     Arc::new(RwLock::new(CacheData {
         hosts: vec![],
         last_update: Utc::now(),
+        latest_commit: String::new(),
     }))
 }
 
@@ -23,6 +24,7 @@ pub fn new() -> Cache {
 pub struct CacheData {
     pub hosts: Vec<CacheHost>,
     pub last_update: DateTimeUtc,
+    pub latest_commit: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -36,6 +38,11 @@ pub struct CacheHost {
     pub ping_min: Option<i32>,
     pub ping_avg: Option<i32>,
     pub version: Option<String>,
+    pub version_url: Option<String>,
     pub healthy: bool,
     pub last_healthy: Option<DateTimeUtc>,
+    /// Whether the source is from the normal upstream repo
+    pub is_upstream: bool,
+    /// Whether the source is from the latest upstream commit
+    pub is_latest_version: bool,
 }

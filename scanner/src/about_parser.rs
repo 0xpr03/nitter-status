@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 use regex::{Regex, RegexBuilder};
+use reqwest::Url;
 use scraper::{Html, Selector};
 use thiserror::Error;
 
@@ -15,6 +16,8 @@ pub enum AboutParseError {
     NoCommitLinkFound,
     #[error("Missing test! Found '{0}'")]
     InvalidCommitFormat(String),
+    #[error("No valid href!")]
+    NoValidHref,
 }
 
 pub(crate) struct AboutParser {
@@ -23,9 +26,14 @@ pub(crate) struct AboutParser {
     regex: Regex,
 }
 
+pub struct AboutParsed {
+    pub version_name: String,
+    pub url: String,
+}
+
 impl AboutParser {
     /// Returns the text of the version <a> element of nitters about site
-    pub fn parse_about_version(&self, html: &str) -> Result<String> {
+    pub fn parse_about_version(&self, html: &str) -> Result<AboutParsed> {
         let fragment = Html::parse_fragment(html);
         // get all <p> elements
         let p_elem = fragment
@@ -35,6 +43,8 @@ impl AboutParser {
 
         let mut a_elems = p_elem.select(&self.selector_a);
         let link = a_elems.next().ok_or(AboutParseError::NoCommitLinkFound)?;
+        let url = link.value().attr("href").map(|v|v.trim().to_owned())
+            .ok_or(AboutParseError::NoValidHref)?;
         let link_text = link.text().fold(String::new(), |mut acc, text| {
             acc.push_str(text);
             acc
@@ -42,7 +52,10 @@ impl AboutParser {
         if !self.regex.is_match(&link_text) {
             return Err(AboutParseError::InvalidCommitFormat(link_text));
         }
-        Ok(link_text)
+        Ok(AboutParsed {
+            url,
+            version_name: link_text
+        })
     }
 
     pub fn new() -> Self {
@@ -64,6 +77,7 @@ mod test {
         let html = include_str!("../test_data/about.html");
         let parser = AboutParser::new();
         let res = parser.parse_about_version(html).unwrap();
-        assert_eq!(&res, "2023.07.22-72d8f35");
+        assert_eq!(&res.version_name, "2023.07.22-72d8f35");
+        assert_eq!(res.url, String::from("https://github.com/zedeus/nitter/commit/72d8f35"));
     }
 }

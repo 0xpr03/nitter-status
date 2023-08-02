@@ -3,6 +3,7 @@ pub use sea_orm_migration::prelude::*;
 mod m20220101_000001_create_table;
 mod m20230729_010231_datetime_rowid;
 mod m20230729_230909_datetime_int_host;
+mod m20230803_154714_version_url;
 
 pub struct Migrator;
 
@@ -13,6 +14,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20220101_000001_create_table::Migration),
             Box::new(m20230729_010231_datetime_rowid::Migration),
             Box::new(m20230729_230909_datetime_int_host::Migration),
+            Box::new(m20230803_154714_version_url::Migration),
         ]
     }
 }

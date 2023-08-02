@@ -22,6 +22,7 @@ pub struct Model {
     pub enabled: bool,
     pub rss: bool,
     pub version: Option<String>,
+    pub version_url: Option<String>,
     /// Last time the url and enabled were updated, *not* the rss
     pub updated: i64,
 }
@@ -32,6 +33,7 @@ pub enum Column {
     Domain,
     Url,
     Version,
+    VersionUrl,
     Enabled,
     Rss,
     Updated,
@@ -62,6 +64,7 @@ impl ColumnTrait for Column {
             Self::Domain => ColumnType::String(None).def(),
             Self::Url => ColumnType::String(None).def(),
             Self::Version => ColumnType::String(None).def().null(),
+            Self::VersionUrl => ColumnType::String(None).def().null(),
             Self::Enabled => ColumnType::Integer.def(),
             Self::Rss => ColumnType::Integer.def(),
             Self::Updated => ColumnType::Integer.def(),

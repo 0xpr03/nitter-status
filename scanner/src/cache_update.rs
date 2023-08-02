@@ -14,6 +14,7 @@ use sea_orm::QueryOrder;
 use sea_orm::{prelude::DateTimeUtc, DbBackend, FromQueryResult, Statement};
 
 use crate::LatestCheck;
+use crate::version_check::fetch_git_state;
 use crate::{Result, Scanner};
 
 #[derive(Debug, FromQueryResult)]
@@ -49,10 +50,15 @@ impl Scanner {
     /// Generate host stats and returns a new CacheData
     pub(crate) async fn generate_cache_data(&self) -> Result<CacheData> {
         let hosts = self.query_hosts_enabled().await?;
+        let config_c = self.inner.config.clone();
+        let current_version = tokio::task::spawn_blocking(move || {
+            fetch_git_state(config_c)
+        }).await.unwrap()?;
         if hosts.is_empty() {
             return Ok(CacheData {
-                hosts: vec![],
+                hosts: Vec::new(),
                 last_update: Utc::now(),
+                latest_commit: current_version.version,
             });
         }
 
@@ -95,6 +101,9 @@ impl Scanner {
             // };
             let points = (points * 100.0) as i32;
 
+            let latest_version = host.version_url.as_ref().map_or(false, |url|current_version.is_same_version(&url));
+            let is_upstream = host.version_url.as_ref().map_or(false, |url|current_version.is_same_repo(&url));
+
             let host_ping_data = ping_data.remove(&host.id);
             host_statistics.push(CacheHost {
                 last_healthy: last_healthy_check.remove(&host.id),
@@ -108,6 +117,9 @@ impl Scanner {
                 ping_min: host_ping_data.as_ref().and_then(|v|v.min),
                 ping_avg: host_ping_data.as_ref().and_then(|v|v.avg),
                 recent_pings: host_ping_data.map(|v|v.pings).unwrap_or_default(),
+                is_latest_version: latest_version,
+                is_upstream,
+                version_url: host.version_url,
             })
         }
         host_statistics.sort_unstable_by_key(|k| k.points);
@@ -115,6 +127,7 @@ impl Scanner {
         Ok(CacheData {
             hosts: host_statistics,
             last_update: time_now,
+            latest_commit: current_version.version,
         })
     }
 

@@ -17,6 +17,7 @@ use tracing::instrument;
 use crate::FetchError;
 use crate::Result;
 use crate::Scanner;
+use crate::about_parser::AboutParsed;
 
 impl Scanner {
     /// Check uptime for host and create a new uptime entry in the database
@@ -147,7 +148,7 @@ impl Scanner {
     }
 
     /// Check nitter version
-    pub(crate) async fn nitter_version(&self, url: &mut Url, mute: bool) -> Option<String> {
+    pub(crate) async fn nitter_version(&self, url: &mut Url, mute: bool) -> Option<AboutParsed> {
         url.set_path(&self.inner.config.about_path);
         match self.fetch_url(url.as_str()).await {
             Ok((code, content)) => match self.inner.about_parser.parse_about_version(&content) {

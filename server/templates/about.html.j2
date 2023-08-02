@@ -14,12 +14,13 @@
     <p><a href="/">Home</a></p>
     <p>Uptime check interval: {{uptime_interval_s}}s.</p>
     <p>Instance re-fetching interval, including RSS & version check: {{wiki_interval_s}}s.</p>
+    <p>Fetched latest commit: {{latest_commit}}</p>
 
     <p>The following paths are checked per instance:</p>
     <ul>
-      {% for path in checked_paths %}
+      {%- for path in checked_paths %}
         <li><code>{{path}}</code></li>
-      {% endfor %}
+      {%- endfor %}
     </ul>
 
     <p>The same data can also be fetched as JSON from <code>/api/v1/instances</code></p>
