@@ -10,6 +10,13 @@ use std::sync::Arc;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 fn main() -> miette::Result<()> {
+    #[cfg(debug_assertions)]
+    let build_mode = "debug mode";
+    #[cfg(not(debug_assertions))]
+    let build_mode = "release mode";
+    println!("Starting {} {} licensed under {}, {build_mode}",
+        env!("CARGO_PKG_NAME"),env!("CARGO_PKG_VERSION"),
+        env!("CARGO_PKG_LICENSE"));
     dotenvy::dotenv()
         .into_diagnostic()
         .wrap_err_with(|| "Failed to load .env file!")?;

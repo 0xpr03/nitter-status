@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 use std::sync::Arc;
+use std::time::Instant;
 
 use crate::Result;
 use crate::ServerError;
@@ -20,8 +21,12 @@ pub async fn instances(
         context.insert("instances", &guard.hosts);
         let time = guard.last_update.format("%Y.%m.%d %H:%M").to_string();
         context.insert("last_updated", &time);
+        let start = Instant::now();
         let res = Html(template.render("instances.html.j2", &context)?).into_response();
+        let end = Instant::now();
         drop(guard);
+        let templating_time = end - start;
+        tracing::trace!(templating_time=templating_time.as_millis());
         res
     };
     res.headers_mut().insert(
