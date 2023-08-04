@@ -14,7 +14,7 @@
     <p><a href="/about">About</a></p>
     <p>Last Updated {{last_updated}} <a href="https://time.is/UTC">UTC</a>.</p>
     <div class="table-responsive">
-      <table class="table">
+      <table class="table sortable">
       <thead>
           <tr>
           <th scope="col">Instance</th>
@@ -84,7 +84,18 @@
           </td>
           <td>{{host.ping_avg}}</td>
           <td>{% if host.rss -%} ✅ {%- else -%} ❌ {%- endif -%}</td>
-          <td>
+          {%- if host.healthy and not host.version -%}
+            {%- set version = "Dmissing" -%}
+          {%- elif host.version and not host.is_upstream -%}
+            {%- set version = "Aforeign" -%}
+          {%- elif host.is_latest_version -%}
+            {%- set version = "Blatest" -%}
+          {%- elif host.version and not host.is_latest_version -%}
+            {%- set version = "Coutdated" -%}
+          {%- else -%}
+            {%- set version = "Eunknown" -%}
+          {%- endif -%}
+          <td data-sort="{{version}}{{host.version | default(value='')}}">
           {%- if host.version_url -%}
             <a href="{{host.version_url}}">
             {{host.version | default(value="missing version")}}
@@ -92,13 +103,13 @@
           {%- else -%}
             <a href="{{host.url ~ '/about'}}">missing version</a>
           {%- endif -%}
-            {%- if host.healthy and not host.version -%}
+            {%- if version == "Dmissing" -%}
                 <span class="ms-1 badge bg-warning">missing</span>
-              {%- elif host.version and not host.is_upstream -%}
+              {%- elif version == "Aforeign" -%}
                 <span class="ms-1 badge bg-secondary">foreign repo</span>
-              {%- elif host.is_latest_version -%}
+              {%- elif version == "Blatest" -%}
                 <span class="ms-1 badge bg-success">latest</span>
-              {%- elif host.version and not host.is_latest_version -%}
+              {%- elif version == "Coutdated" -%}
                 <span class="ms-1 badge bg-info">outdated</span>
               {%- endif -%}
           </td>
@@ -110,5 +121,7 @@
     </div>
   </div>
       <script src="/static/bootstrap.min.js"></script>
+      <link href="/static/sorting.css" rel="stylesheet" />
+      <script src="/static/sortable.min.js"></script>
   </body>
 </html>
