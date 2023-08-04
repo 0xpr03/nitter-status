@@ -306,6 +306,7 @@ impl Scanner {
                             host::Column::Url,
                             host::Column::Rss,
                             host::Column::Version,
+                            host::Column::VersionUrl,
                         ])
                         .to_owned(),
                 )
