@@ -13,8 +13,8 @@ use sea_orm::QueryFilter;
 use sea_orm::QueryOrder;
 use sea_orm::{prelude::DateTimeUtc, DbBackend, FromQueryResult, Statement};
 
-use crate::LatestCheck;
 use crate::version_check::fetch_git_state;
+use crate::LatestCheck;
 use crate::{Result, Scanner};
 
 #[derive(Debug, FromQueryResult)]
@@ -51,9 +51,9 @@ impl Scanner {
     pub(crate) async fn generate_cache_data(&self) -> Result<CacheData> {
         let hosts = self.query_hosts_enabled().await?;
         let config_c = self.inner.config.clone();
-        let current_version = tokio::task::spawn_blocking(move || {
-            fetch_git_state(config_c)
-        }).await.unwrap()?;
+        let current_version = tokio::task::spawn_blocking(move || fetch_git_state(config_c))
+            .await
+            .unwrap()?;
         if hosts.is_empty() {
             return Ok(CacheData {
                 hosts: Vec::new(),
@@ -78,14 +78,25 @@ impl Scanner {
         let latest_check: HashMap<i32, LatestCheck> =
             latest_check.into_iter().map(|v| (v.host, v)).collect();
 
-        let mut ping_data = self.query_pings(time_now - self.inner.config.ping_range).await?;
-        
+        let mut ping_data = self
+            .query_pings(time_now - self.inner.config.ping_range)
+            .await?;
+
         let mut host_statistics = Vec::with_capacity(hosts.len());
         let default_health_check = LatestCheck::default();
         for host in hosts {
-            let points_3h: f64 = 0.3 * stats_3h.get(&host.id).map_or(0.0, |stats|stats.good as f64 / stats.total as f64);
-            let points_30d: f64 = 0.2 * stats_30d.get(&host.id).map_or(0.0, |stats|stats.good as f64 / stats.total as f64);
-            let points_120d: f64 = 0.2 * stats_120d.get(&host.id).map_or(0.0, |stats|stats.good as f64 / stats.total as f64);
+            let points_3h: f64 = 0.3
+                * stats_3h
+                    .get(&host.id)
+                    .map_or(0.0, |stats| stats.good as f64 / stats.total as f64);
+            let points_30d: f64 = 0.2
+                * stats_30d
+                    .get(&host.id)
+                    .map_or(0.0, |stats| stats.good as f64 / stats.total as f64);
+            let points_120d: f64 = 0.2
+                * stats_120d
+                    .get(&host.id)
+                    .map_or(0.0, |stats| stats.good as f64 / stats.total as f64);
             let points_version = 0.1
                 * host
                     .version
@@ -101,10 +112,17 @@ impl Scanner {
             // };
             let points = (points * 100.0) as i32;
 
-            let latest_version = host.version_url.as_ref().map_or(false, |url|current_version.is_same_version(&url));
-            let is_upstream = host.version_url.as_ref().map_or(false, |url|current_version.is_same_repo(&url));
-            
-            let is_bad_host = (!last_check.healthy) && self.inner.config.bad_hosts.contains(&host.domain);
+            let latest_version = host
+                .version_url
+                .as_ref()
+                .map_or(false, |url| current_version.is_same_version(&url));
+            let is_upstream = host
+                .version_url
+                .as_ref()
+                .map_or(false, |url| current_version.is_same_repo(&url));
+
+            let is_bad_host =
+                (!last_check.healthy) && self.inner.config.bad_hosts.contains(&host.domain);
 
             let host_ping_data = ping_data.remove(&host.id);
             host_statistics.push(CacheHost {
@@ -115,10 +133,10 @@ impl Scanner {
                 rss: host.rss,
                 version: host.version,
                 healthy: last_check.healthy,
-                ping_max: host_ping_data.as_ref().and_then(|v|v.max),
-                ping_min: host_ping_data.as_ref().and_then(|v|v.min),
-                ping_avg: host_ping_data.as_ref().and_then(|v|v.avg),
-                recent_pings: host_ping_data.map(|v|v.pings).unwrap_or_default(),
+                ping_max: host_ping_data.as_ref().and_then(|v| v.max),
+                ping_min: host_ping_data.as_ref().and_then(|v| v.min),
+                ping_avg: host_ping_data.as_ref().and_then(|v| v.avg),
+                recent_pings: host_ping_data.map(|v| v.pings).unwrap_or_default(),
                 is_latest_version: latest_version,
                 is_upstream,
                 version_url: host.version_url,
@@ -142,7 +160,7 @@ impl Scanner {
             .await?)
     }
 
-    async fn query_pings(&self, age: DateTimeUtc) -> Result<HashMap<i32,LastPings>> {
+    async fn query_pings(&self, age: DateTimeUtc) -> Result<HashMap<i32, LastPings>> {
         #[derive(Debug, FromQueryResult, Default)]
         struct PingEntry {
             host: i32,
@@ -168,12 +186,14 @@ impl Scanner {
         let mut map = HashMap::with_capacity(100);
         let mut iter = last_pings.iter();
         let first = match iter.next() {
-            None => {return Ok(HashMap::new());},
+            None => {
+                return Ok(HashMap::new());
+            }
             Some(v) => v,
         };
         let mut current_entry = LastPings::default();
         let mut last_host = first.host;
-        let mut non_null_entries = first.ping.as_ref().map_or(0, |_|1);
+        let mut non_null_entries = first.ping.as_ref().map_or(0, |_| 1);
         if let Some(ping) = first.ping.as_ref() {
             current_entry.avg = Some(*ping);
             non_null_entries += 1;
@@ -192,14 +212,14 @@ impl Scanner {
                 non_null_entries = 0;
                 std::mem::swap(&mut new_entry, &mut current_entry);
                 // insert back the old (swapped) entry
-                assert_eq!(map.insert(last_host, new_entry).is_some(),false);
+                assert_eq!(map.insert(last_host, new_entry).is_some(), false);
                 last_host = ping.host;
             }
             if let Some(ping) = ping.ping.as_ref() {
                 current_entry.avg = Some(current_entry.avg.unwrap_or(0) + ping);
                 non_null_entries += 1;
-                current_entry.min = Some(current_entry.min.map_or(*ping,|v|v.min(*ping)));
-                current_entry.max = Some(current_entry.max.map_or(*ping,|v|v.max(*ping)));
+                current_entry.min = Some(current_entry.min.map_or(*ping, |v| v.min(*ping)));
+                current_entry.max = Some(current_entry.max.map_or(*ping, |v| v.max(*ping)));
             }
             current_entry.pings.push(ping.ping);
         }
@@ -207,7 +227,7 @@ impl Scanner {
         if let Some(sum) = current_entry.avg {
             current_entry.avg = Some(sum / non_null_entries);
         }
-        assert_eq!(map.insert(last_host, current_entry).is_some(),false);
+        assert_eq!(map.insert(last_host, current_entry).is_some(), false);
         Ok(map)
     }
 
@@ -235,25 +255,29 @@ impl Scanner {
     }
 
     /// Timestamp of last healthy host check
-    async fn query_last_healthy(&self) -> Result<HashMap<i32,DateTimeUtc>> {
+    async fn query_last_healthy(&self) -> Result<HashMap<i32, DateTimeUtc>> {
         #[derive(Debug, FromQueryResult)]
         struct LastHealthyEntry {
             host: i32,
             time: i64,
         }
-        let last_healthy_times = LastHealthyEntry::find_by_statement(Statement::from_sql_and_values(
-            DbBackend::Sqlite,
-            r#"
+        let last_healthy_times =
+            LastHealthyEntry::find_by_statement(Statement::from_sql_and_values(
+                DbBackend::Sqlite,
+                r#"
             SELECT u.host,MAX(u.time) as time FROM health_check u
             JOIN host h ON h.id = u.host
             WHERE h.enabled = true AND u.healthy = true
             GROUP BY u.host
             "#,
-            [],
-        ))
-        .all(&self.inner.db)
-        .await?;
-        let last_healthy_times: HashMap<_,_> = last_healthy_times.into_iter().map(|v| (v.host, Utc.timestamp_opt(v.time, 0).unwrap())).collect();
+                [],
+            ))
+            .all(&self.inner.db)
+            .await?;
+        let last_healthy_times: HashMap<_, _> = last_healthy_times
+            .into_iter()
+            .map(|v| (v.host, Utc.timestamp_opt(v.time, 0).unwrap()))
+            .collect();
         Ok(last_healthy_times)
     }
 
@@ -262,7 +286,7 @@ impl Scanner {
         &self,
         from: DateTimeUtc,
         to: DateTimeUtc,
-    ) -> Result<HashMap<i32,HostStats>> {
+    ) -> Result<HashMap<i32, HostStats>> {
         let stats: Vec<HostStats> = HostStats::find_by_statement(Statement::from_sql_and_values(
             DbBackend::Sqlite,
             r#"SELECT u.host, COUNT(CASE WHEN healthy = true THEN 1 END) as good,COUNT(*) as total FROM health_check u
@@ -273,7 +297,7 @@ impl Scanner {
         ))
         .all(&self.inner.db)
         .await?;
-        let stats: HashMap<_,_> = stats.into_iter().map(|v| (v.host, v)).collect();
+        let stats: HashMap<_, _> = stats.into_iter().map(|v| (v.host, v)).collect();
         Ok(stats)
     }
 }

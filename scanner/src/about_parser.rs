@@ -43,7 +43,10 @@ impl AboutParser {
 
         let mut a_elems = p_elem.select(&self.selector_a);
         let link = a_elems.next().ok_or(AboutParseError::NoCommitLinkFound)?;
-        let url = link.value().attr("href").map(|v|v.trim().to_owned())
+        let url = link
+            .value()
+            .attr("href")
+            .map(|v| v.trim().to_owned())
             .ok_or(AboutParseError::NoValidHref)?;
         let link_text = link.text().fold(String::new(), |mut acc, text| {
             acc.push_str(text);
@@ -54,7 +57,7 @@ impl AboutParser {
         }
         Ok(AboutParsed {
             url,
-            version_name: link_text
+            version_name: link_text,
         })
     }
 
@@ -78,6 +81,9 @@ mod test {
         let parser = AboutParser::new();
         let res = parser.parse_about_version(html).unwrap();
         assert_eq!(&res.version_name, "2023.07.22-72d8f35");
-        assert_eq!(res.url, String::from("https://github.com/zedeus/nitter/commit/72d8f35"));
+        assert_eq!(
+            res.url,
+            String::from("https://github.com/zedeus/nitter/commit/72d8f35")
+        );
     }
 }

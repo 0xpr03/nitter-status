@@ -1,5 +1,5 @@
 use entities::state::scanner::ScannerConfig;
-use git2::{Remote, Direction};
+use git2::{Direction, Remote};
 
 use crate::{Result, ScannerError};
 
@@ -19,20 +19,21 @@ impl CurrentVersion {
     pub fn is_same_version(&self, url: &str) -> bool {
         // look for last path segment (don't parse) and look if that matches
         // from the start
-        self.is_same_repo(url) && match url.split('/').last() {
-            Some(other_version) => {
-                if other_version.len() == self.version.len() {
-                    // we get the long version
-                    other_version.starts_with(&self.version)
-                } else if other_version.len() == SHORT_COMMIT_LEN {
-                    other_version.starts_with(&self.version[..SHORT_COMMIT_LEN])
-                } else {
-                    // everything else is no short commit id..
-                    false
+        self.is_same_repo(url)
+            && match url.split('/').last() {
+                Some(other_version) => {
+                    if other_version.len() == self.version.len() {
+                        // we get the long version
+                        other_version.starts_with(&self.version)
+                    } else if other_version.len() == SHORT_COMMIT_LEN {
+                        other_version.starts_with(&self.version[..SHORT_COMMIT_LEN])
+                    } else {
+                        // everything else is no short commit id..
+                        false
+                    }
                 }
+                None => false,
             }
-            None => false
-        }
     }
 }
 
@@ -41,13 +42,21 @@ pub(crate) fn fetch_git_state(config: ScannerConfig) -> Result<CurrentVersion> {
 
     remote.connect(Direction::Fetch)?;
 
-    let reference = format!("refs/heads/{}",config.source_git_branch);
-    let commit = remote.list()?.into_iter().find(|v|v.name() == &reference)
-        .map(|v|v.oid().to_string());
+    let reference = format!("refs/heads/{}", config.source_git_branch);
+    let commit = remote
+        .list()?
+        .into_iter()
+        .find(|v| v.name() == &reference)
+        .map(|v| v.oid().to_string());
 
     remote.disconnect()?;
 
-    Ok(commit.map(|commit|CurrentVersion { version: commit, config }).ok_or(ScannerError::GitBranch)?)
+    Ok(commit
+        .map(|commit| CurrentVersion {
+            version: commit,
+            config,
+        })
+        .ok_or(ScannerError::GitBranch)?)
 }
 
 #[cfg(test)]

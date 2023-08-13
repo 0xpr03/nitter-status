@@ -2,8 +2,8 @@
 
 pub mod prelude;
 
-pub mod host;
 pub mod health_check;
+pub mod host;
 
 // has to be re-added
 pub mod state;

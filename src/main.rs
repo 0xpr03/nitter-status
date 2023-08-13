@@ -14,9 +14,12 @@ fn main() -> miette::Result<()> {
     let build_mode = "debug mode";
     #[cfg(not(debug_assertions))]
     let build_mode = "release mode";
-    println!("Starting {} {} licensed under {}, {build_mode}",
-        env!("CARGO_PKG_NAME"),env!("CARGO_PKG_VERSION"),
-        env!("CARGO_PKG_LICENSE"));
+    println!(
+        "Starting {} {} licensed under {}, {build_mode}",
+        env!("CARGO_PKG_NAME"),
+        env!("CARGO_PKG_VERSION"),
+        env!("CARGO_PKG_LICENSE")
+    );
     dotenvy::dotenv()
         .into_diagnostic()
         .wrap_err_with(|| "Failed to load .env file!")?;
@@ -74,9 +77,14 @@ async fn _main() -> miette::Result<()> {
 
     let disable_startup_scan = require_env_str("DISABLE_STARTUP_SCAN")? == "true";
 
-    scanner::run_scanner(pool.clone(), scanner_config.clone(), cache.clone(),disable_startup_scan)
-        .into_diagnostic()
-        .wrap_err("Failed starting background scanner")?;
+    scanner::run_scanner(
+        pool.clone(),
+        scanner_config.clone(),
+        cache.clone(),
+        disable_startup_scan,
+    )
+    .into_diagnostic()
+    .wrap_err("Failed starting background scanner")?;
 
     let addr = std::net::SocketAddr::from(([127, 0, 0, 1], port));
     server::start(&addr, pool, server_config, scanner_config, cache)

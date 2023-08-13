@@ -14,10 +14,10 @@ use sea_orm::{ActiveModelTrait, ActiveValue};
 use tokio::task::JoinSet;
 use tracing::instrument;
 
+use crate::about_parser::AboutParsed;
 use crate::FetchError;
 use crate::Result;
 use crate::Scanner;
-use crate::about_parser::AboutParsed;
 
 impl Scanner {
     /// Check uptime for host and create a new uptime entry in the database
@@ -34,7 +34,10 @@ impl Scanner {
 
         for model in hosts.into_iter() {
             let scanner = self.clone();
-            let muted_host = last_check.iter().find(|v|v.host == model.id).map_or(false,|check|!check.healthy);
+            let muted_host = last_check
+                .iter()
+                .find(|v| v.host == model.id)
+                .map_or(false, |check| !check.healthy);
             join_set.spawn(async move {
                 scanner.health_check_host(model, muted_host).await;
             });
@@ -133,7 +136,12 @@ impl Scanner {
                 false => {
                     if !mute {
                         // 404 = disabled
-                        tracing::debug!(url=url.as_str(), code = code, content = content, "rss content not found");
+                        tracing::debug!(
+                            url = url.as_str(),
+                            code = code,
+                            content = content,
+                            "rss content not found"
+                        );
                     }
                     return false;
                 }

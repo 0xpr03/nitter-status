@@ -26,7 +26,7 @@ pub async fn instances(
         let end = Instant::now();
         drop(guard);
         let templating_time = end - start;
-        tracing::trace!(templating_time=templating_time.as_millis());
+        tracing::trace!(templating_time = templating_time.as_millis());
         res
     };
     res.headers_mut().insert(
