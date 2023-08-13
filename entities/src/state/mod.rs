@@ -45,4 +45,6 @@ pub struct CacheHost {
     pub is_upstream: bool,
     /// Whether the source is from the latest upstream commit
     pub is_latest_version: bool,
+    /// Whether this host is known to be bad (ip blocking)
+    pub is_bad_host: bool,
 }

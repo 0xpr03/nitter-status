@@ -30,7 +30,14 @@
           {% for host in instances -%}
           <tr>
           <td><a href="{{host.url}}">{{host.domain}}</a></td>
-          <td>{% if host.healthy -%} ✅ {%- else -%} ❌ {%- endif -%}</td>
+          <td>
+          {%- if host.is_bad_host -%}
+            <div title="Host known for blocking healthchecks">❓</div>
+          {%- elif host.healthy -%}
+            ✅
+          {%- else -%}
+            ❌
+          {%- endif -%}</td>
           <td>
             {%- if host.recent_pings|length > 0 -%}
               {%- set height = 57 -%}

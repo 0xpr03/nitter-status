@@ -134,7 +134,7 @@ impl Scanner {
         for header in HEADERS {
             headers.insert(header[0], HeaderValue::from_static(header[1]));
         }
-        headers.insert("Referer", HeaderValue::from_str(&config.referer).unwrap());
+        headers.insert("Referer", HeaderValue::from_str(&config.referrer).unwrap());
         let http_client = Client::builder()
             .cookie_store(true)
             .brotli(true)

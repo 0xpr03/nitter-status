@@ -103,6 +103,8 @@ impl Scanner {
 
             let latest_version = host.version_url.as_ref().map_or(false, |url|current_version.is_same_version(&url));
             let is_upstream = host.version_url.as_ref().map_or(false, |url|current_version.is_same_repo(&url));
+            
+            let is_bad_host = (!last_check.healthy) && self.inner.config.bad_hosts.contains(&host.domain);
 
             let host_ping_data = ping_data.remove(&host.id);
             host_statistics.push(CacheHost {
@@ -120,6 +122,7 @@ impl Scanner {
                 is_latest_version: latest_version,
                 is_upstream,
                 version_url: host.version_url,
+                is_bad_host,
             })
         }
         host_statistics.sort_unstable_by_key(|k| k.points);

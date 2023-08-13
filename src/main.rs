@@ -105,12 +105,9 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
     let about_path = require_env_str("ABOUT_PATH")?;
     let profile_content = require_env_str("PROFILE_CONTENT")?;
     let rss_content = require_env_str("RSS_CONTENT")?;
-    let additional_hosts: Vec<String> = require_env_str("ADDITIONAL_HOSTS")?
-        .trim()
-        .split(",")
-        .map(|v| v.trim().to_owned())
-        .collect();
-    let referer = require_env_str("REFERER")?;
+    let additional_hosts: Vec<String> = require_env_vec_str("ADDITIONAL_HOSTS")?;
+    let bad_hosts: Vec<String> = require_env_vec_str("BAD_HOSTS")?;
+    let referrer = require_env_str("REFERER")?;
     let auto_mute = require_env_str("AUTO_MUTE")? == "true";
     let source_git_branch = require_env_str("ORIGIN_SOURCE_GIT_BRANCH")?;
     let source_git_url = require_env_str("ORIGIN_SOURCE_GIT_URL")?;
@@ -125,11 +122,12 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
         profile_content,
         rss_content,
         additional_hosts,
-        referer,
+        referrer,
         ping_range: chrono::Duration::hours(ping_range as _),
         auto_mute,
         source_git_branch,
         source_git_url,
+        bad_hosts,
     }))
 }
 
@@ -155,6 +153,14 @@ fn read_server_config(instance_ping_interval: usize) -> miette::Result<server::C
         site_url,
         max_age: instance_ping_interval,
     })
+}
+
+fn require_env_vec_str(name: &str) -> miette::Result<Vec<String>> {
+    Ok(require_env_str(name)?
+        .trim()
+        .split(",")
+        .map(|v| v.trim().to_owned())
+        .collect())
 }
 
 fn require_env_str(name: &str) -> miette::Result<String> {

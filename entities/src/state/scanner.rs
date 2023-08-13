@@ -21,7 +21,7 @@ pub struct Config {
     /// List of additional hosts to include during health checks
     pub additional_hosts: Vec<String>,
     /// Referer to use
-    pub referer: String,
+    pub referrer: String,
     /// Duration to average the ping/response times over
     pub ping_range: chrono::Duration,
     /// don't emit errors for hosts which are already listed as down
@@ -30,6 +30,8 @@ pub struct Config {
     pub source_git_url: String,
     /// Git branch to fetch the current commit from
     pub source_git_branch: String,
+    /// Hosts known to be bad (ip block), domain per entry
+    pub bad_hosts: Vec<String>,
 }
 
 impl Config {
@@ -44,11 +46,12 @@ impl Config {
             profile_content: String::from(r#"jack.?\(@jack\)"#),
             rss_content: String::from(r#"<rss xmlns\:atom"#),
             additional_hosts: vec![String::from("https://nitter.net")],
-            referer: String::from(""),
+            referrer: String::from(""),
             ping_range: chrono::Duration::hours(3),
             auto_mute: true,
             source_git_branch: String::from("master"),
             source_git_url: String::from("https://github.com/zedeus/nitter.git"),
+            bad_hosts: vec![String::from("tweet.whateveritworks.org")],
         })
     }
 }
