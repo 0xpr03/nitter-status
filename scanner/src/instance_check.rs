@@ -110,9 +110,11 @@ impl Scanner {
                             Some(http_code as _),
                         )
                         .await;
-                    },
+                    }
                     Ok(profile_content) => {
-                        if self.inner.config.profile_name != profile_content.name || self.inner.config.profile_posts_min > profile_content.post_count {
+                        if self.inner.config.profile_name != profile_content.name
+                            || self.inner.config.profile_posts_min > profile_content.post_count
+                        {
                             if !muted {
                                 tracing::debug!(
                                     profile_content = ?profile_content,

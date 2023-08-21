@@ -33,8 +33,8 @@ mod about_parser;
 mod cache_update;
 mod instance_check;
 mod instance_parser;
-mod version_check;
 mod profile_parser;
+mod version_check;
 
 const CAPTCHA_TEXT: &'static str = "Enable JavaScript and cookies to continue";
 const CAPTCHA_CODE: u16 = 403;

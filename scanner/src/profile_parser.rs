@@ -37,9 +37,10 @@ impl ProfileParser {
     pub fn parse_profile_content(&self, html: &str) -> Result<ProfileParsed> {
         let fragment = Html::parse_fragment(html);
         // get profile info div
-        let mut profile_card_name_divs = fragment
-            .select(&self.selector_profile_card_name);
-        let first_card = profile_card_name_divs.next().ok_or(ProfileParseError::NoProfileCard)?;
+        let mut profile_card_name_divs = fragment.select(&self.selector_profile_card_name);
+        let first_card = profile_card_name_divs
+            .next()
+            .ok_or(ProfileParseError::NoProfileCard)?;
         let profile_name = first_card.text().fold(String::new(), |mut acc, text| {
             acc.push_str(text);
             acc
@@ -51,7 +52,7 @@ impl ProfileParser {
         // select timeline-item divs inside
         let timeline_items = first_timeline_div.select(&self.selector_timeline_item);
         let timeline_item_count = timeline_items.count();
-        
+
         Ok(ProfileParsed {
             post_count: timeline_item_count,
             name: profile_name,
@@ -62,7 +63,8 @@ impl ProfileParser {
         let mut builder = RegexBuilder::new(r#"^((\d+\.\d+\.\d+)|[a-zA-Z0-9]{7,})"#);
         builder.case_insensitive(true);
         Self {
-            selector_profile_card_name: Selector::parse(".profile-card-username").expect(EXPECT_CSS_SELCTOR),
+            selector_profile_card_name: Selector::parse(".profile-card-username")
+                .expect(EXPECT_CSS_SELCTOR),
             selector_timeline: Selector::parse(".timeline").expect(EXPECT_CSS_SELCTOR),
             selector_timeline_item: Selector::parse(".timeline-item").expect(EXPECT_CSS_SELCTOR),
             regex: builder.build().expect("failed to generate regex"),
@@ -79,9 +81,6 @@ mod test {
         let parser = ProfileParser::new();
         let res = parser.parse_profile_content(html).unwrap();
         assert_eq!(&res.name, "@jack");
-        assert_eq!(
-            res.post_count,
-            20
-        );
+        assert_eq!(res.post_count, 20);
     }
 }
