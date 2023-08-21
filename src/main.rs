@@ -111,7 +111,10 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
     let profile_path = require_env_str("PROFILE_PATH")?;
     let rss_path = require_env_str("RSS_PATH")?;
     let about_path = require_env_str("ABOUT_PATH")?;
-    let profile_content = require_env_str("PROFILE_CONTENT")?;
+    let profile_name = require_env_str("PROFILE_NAME")?;
+    let profile_posts_min = require_env_str("PROFILE_POSTS_MIN")?
+        .parse()
+        .expect("PROFILE_POSTS_MIN must be a positive number");
     let rss_content = require_env_str("RSS_CONTENT")?;
     let additional_hosts: Vec<String> = require_env_vec_str("ADDITIONAL_HOSTS")?;
     let bad_hosts: Vec<String> = require_env_vec_str("BAD_HOSTS")?;
@@ -127,7 +130,8 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
         profile_path,
         rss_path,
         about_path,
-        profile_content,
+        profile_name,
+        profile_posts_min,
         rss_content,
         additional_hosts,
         referrer,

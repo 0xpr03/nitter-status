@@ -14,8 +14,10 @@ pub struct Config {
     pub rss_path: String,
     /// about path for version check
     pub about_path: String,
-    /// Expected string for a valid profile health check
-    pub profile_content: String,
+    /// Expected profile name for a valid profile health check
+    pub profile_name: String,
+    /// Expected minimum of timeline posts for a valid profile health check
+    pub profile_posts_min: usize,
     /// Expected string for a valid RSS health check
     pub rss_content: String,
     /// List of additional hosts to include during health checks
@@ -43,7 +45,8 @@ impl Config {
             profile_path: String::from("/jack"),
             rss_path: String::from("/jack/rss"),
             about_path: String::from("/about"),
-            profile_content: String::from(r#"jack.?\(@jack\)"#),
+            profile_name: String::from("@jack"),
+            profile_posts_min: 5,
             rss_content: String::from(r#"<rss xmlns\:atom"#),
             additional_hosts: vec![String::from("https://nitter.net")],
             referrer: String::from(""),

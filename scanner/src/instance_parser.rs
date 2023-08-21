@@ -5,7 +5,7 @@ use reqwest::Url;
 use scraper::{ElementRef, Html, Selector};
 use thiserror::Error;
 
-pub type Result<T> = std::result::Result<T, InstaceListError>;
+pub type Result<T> = std::result::Result<T, InstanceListError>;
 
 pub static EXPECT_CSS_SELCTOR: &'static str = "failed to parse css selector";
 static CHECKBOX: &'static str = "✅";
@@ -13,7 +13,7 @@ static CHECKBOX: &'static str = "✅";
 type InstanceMap = HashMap<String, InstanceParsed>;
 
 #[derive(Error, Debug)]
-pub enum InstaceListError {
+pub enum InstanceListError {
     #[error("No div #wiki-body found!")]
     NoWikiDiv,
     #[error("No table found containing instances!")]
@@ -82,13 +82,13 @@ impl InstanceParser {
         // wiki body by div ID
         let mut wiki_divs = fragment.select(&self.selector_wiki);
         // first result
-        let first_wiki = wiki_divs.next().ok_or(InstaceListError::NoWikiDiv)?;
+        let first_wiki = wiki_divs.next().ok_or(InstanceListError::NoWikiDiv)?;
         // all <table> element
         let mut tables = first_wiki.select(&self.selector_table);
         // find the one with "Online" text inside
         let instance_table = tables
             .find(|t| t.text().any(|text| text.contains("Online")))
-            .ok_or(InstaceListError::NoInstanceTable)?;
+            .ok_or(InstanceListError::NoInstanceTable)?;
 
         let mut instances = HashMap::with_capacity(50);
         // iterate over all <body> > <tr> inside
@@ -138,7 +138,7 @@ impl InstanceParser {
         let url: String = match cols.next() {
             None => {
                 tracing::error!(row=?row.html(),"Parsed instance missing URL row, skipping!");
-                return Err(InstaceListError::MalformedRow);
+                return Err(InstanceListError::MalformedRow);
             }
             Some(col) => {
                 // find first <a> inside and get its "href" attribute
@@ -146,7 +146,7 @@ impl InstanceParser {
                 match a_elems.next().and_then(|v| v.value().attr("href")) {
                     None => {
                         tracing::error!(row=?row.html(),"Parsed instance missing valid URL <a> element, skipping!");
-                        return Err(InstaceListError::MalformedRow);
+                        return Err(InstanceListError::MalformedRow);
                     }
                     Some(url_value) => {
                         // trim whitespace and strip `/` at the end
@@ -160,11 +160,11 @@ impl InstanceParser {
         let domain = match Url::parse(&url) {
             Ok(parsed_url) => parsed_url.domain().map(|v| v.to_owned()).ok_or_else(|| {
                 tracing::error!(url = url, "Parsed instance URL has no domain");
-                InstaceListError::MalformedRow
+                InstanceListError::MalformedRow
             })?,
             Err(e) => {
                 tracing::error!(url=url,error=?e,"Parsed instance URL is not valid");
-                return Err(InstaceListError::MalformedRow);
+                return Err(InstanceListError::MalformedRow);
             }
         };
 
@@ -179,7 +179,7 @@ impl InstanceParser {
             .collect();
         if columns.len() < 4 {
             tracing::error!(instance_data=?columns,"Parsed instance missing fields, skipping!");
-            return Err(InstaceListError::MalformedRow);
+            return Err(InstanceListError::MalformedRow);
         }
         let instance = InstanceParsed {
             domain,

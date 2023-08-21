@@ -12,6 +12,7 @@ use entities::{
     state::{scanner::ScannerConfig, Cache},
 };
 use instance_parser::InstanceParser;
+use profile_parser::ProfileParser;
 use regex::{Regex, RegexBuilder};
 use reqwest::{
     header::{HeaderMap, HeaderValue},
@@ -33,6 +34,7 @@ mod cache_update;
 mod instance_check;
 mod instance_parser;
 mod version_check;
+mod profile_parser;
 
 const CAPTCHA_TEXT: &'static str = "Enable JavaScript and cookies to continue";
 const CAPTCHA_CODE: u16 = 403;
@@ -57,10 +59,10 @@ pub enum ScannerError {
     #[error("Database Error {0:?}")]
     DB(#[from] sea_orm::DbErr),
     #[error("Failed parsing instance list {0}")]
-    InstanceParse(#[from] instance_parser::InstaceListError),
+    InstanceParse(#[from] instance_parser::InstanceListError),
     #[error("Failed to fetch URL: {0}")]
     FetchError(#[from] FetchError),
-    #[error("Failed fetcing git: {0}")]
+    #[error("Failed fetching git: {0}")]
     GitFetch(#[from] git2::Error),
     #[error("Couldn't find git branch")]
     GitBranch,
@@ -119,9 +121,9 @@ struct InnerScanner {
     client: reqwest::Client,
     instance_parser: InstanceParser,
     about_parser: AboutParser,
+    profile_parser: ProfileParser,
     last_list_fetch: Mutex<Instant>,
     last_uptime_check: Mutex<Instant>,
-    health_check_regex: Regex,
     rss_check_regex: Regex,
 }
 
@@ -148,8 +150,6 @@ impl Scanner {
             .connect_timeout(std::time::Duration::from_secs(3))
             .timeout(std::time::Duration::from_secs(10))
             .default_headers(headers);
-        let mut builder_regex_health = RegexBuilder::new(&config.profile_content);
-        builder_regex_health.case_insensitive(true);
         let mut builder_regex_rss = RegexBuilder::new(&config.rss_content);
         builder_regex_rss.case_insensitive(true);
         Self {
@@ -160,11 +160,9 @@ impl Scanner {
                 client: http_client.build().unwrap(),
                 instance_parser: InstanceParser::new(),
                 about_parser: AboutParser::new(),
+                profile_parser: ProfileParser::new(),
                 last_list_fetch: Mutex::new(Instant::now()),
                 last_uptime_check: Mutex::new(Instant::now()),
-                health_check_regex: builder_regex_health
-                    .build()
-                    .expect("Invalid Profile Content regex!"),
                 rss_check_regex: builder_regex_rss
                     .build()
                     .expect("Invalid RSS Content regex!"),

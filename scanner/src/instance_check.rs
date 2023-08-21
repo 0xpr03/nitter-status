@@ -94,34 +94,54 @@ impl Scanner {
                     tracing::trace!(host = host.url, took = took_ms);
                 }
                 // check for valid profile
-                if !self.inner.health_check_regex.is_match(&content) {
-                    if !muted {
-                        tracing::info!(
-                            content = content,
-                            "host doesn't contain expected profile content"
-                        );
+                match self.inner.profile_parser.parse_profile_content(&content) {
+                    Err(e) => {
+                        if !muted {
+                            tracing::debug!(
+                                error=?e,
+                                content = content,
+                                "host doesn't contain a valid profile"
+                            );
+                        }
+                        self.insert_failed_health_check(
+                            host.id,
+                            now,
+                            Some(took_ms as _),
+                            Some(http_code as _),
+                        )
+                        .await;
+                    },
+                    Ok(profile_content) => {
+                        if self.inner.config.profile_name != profile_content.name || self.inner.config.profile_posts_min > profile_content.post_count {
+                            if !muted {
+                                tracing::debug!(
+                                    profile_content = ?profile_content,
+                                    "host doesn't contain expected profile content"
+                                );
+                            }
+                            self.insert_failed_health_check(
+                                host.id,
+                                now,
+                                Some(took_ms as _),
+                                Some(http_code as _),
+                            )
+                            .await;
+                        } else {
+                            // create successful uptime entry
+                            if let Err(e) = (health_check::ActiveModel {
+                                time: ActiveValue::Set(now.timestamp()),
+                                host: ActiveValue::Set(host.id),
+                                resp_time: ActiveValue::Set(Some(took_ms as _)),
+                                response_code: ActiveValue::Set(Some(http_code as _)),
+                                healthy: ActiveValue::Set(true),
+                            }
+                            .insert(&self.inner.db)
+                            .await)
+                            {
+                                tracing::error!(host=host.id, error=?e,"Failed to insert update check");
+                            }
+                        }
                     }
-                    self.insert_failed_health_check(
-                        host.id,
-                        now,
-                        Some(took_ms as _),
-                        Some(http_code as _),
-                    )
-                    .await;
-                }
-
-                // create successfull uptime entry
-                if let Err(e) = (health_check::ActiveModel {
-                    time: ActiveValue::Set(now.timestamp()),
-                    host: ActiveValue::Set(host.id),
-                    resp_time: ActiveValue::Set(Some(took_ms as _)),
-                    response_code: ActiveValue::Set(Some(http_code as _)),
-                    healthy: ActiveValue::Set(true),
-                }
-                .insert(&self.inner.db)
-                .await)
-                {
-                    tracing::error!(error=?e,"Failed to insert update check");
                 }
             }
         }
