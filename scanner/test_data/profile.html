@@ -9,10 +9,9 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#ff6c60" />
-    <link rel="search" type="application/opensearchdescription+xml" title="nitter" href="https://nitter.net/opensearch" />
-    <link rel="canonical" href="https://twitter.com/jack" />
-    <script src="/js/hls.light.min.js" defer=""></script>
-    <script src="/js/hlsPlayback.js" defer=""></script>
+    <link rel="search" type="application/opensearchdescription+xml" title="nitter" href="https://nitter.d420.de/opensearch" />
+    <link rel="canonical" href="https://twitter.com/jack/with_replies" />
+    <link rel="alternate" type="application/rss+xml" href="/jack/with_replies/rss" title="RSS feed" />
     <title>jack (@jack) | nitter</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#1F1F1F" />
@@ -25,8 +24,8 @@
     <meta property="og:locale" content="en_US" />
     <link rel="preload" type="image/png" href="/pic/https%3A%2F%2Fpbs.twimg.com%2Fprofile_banners%2F12%2F1688241283%2F1500x500" as="image" />
     <link rel="preload" type="image/png" href="/pic/pbs.twimg.com%2Fprofile_images%2F1661201415899951105%2FazNjKOSH_400x400.jpg" as="image" />
-    <meta property="og:image" content="https://nitter.net/pic/pbs.twimg.com%2Fprofile_images%2F1661201415899951105%2FazNjKOSH_400x400.jpg" />
-    <meta property="twitter:image:src" content="https://nitter.net/pic/pbs.twimg.com%2Fprofile_images%2F1661201415899951105%2FazNjKOSH_400x400.jpg" />
+    <meta property="og:image" content="https://nitter.d420.de/pic/pbs.twimg.com%2Fprofile_images%2F1661201415899951105%2FazNjKOSH_400x400.jpg" />
+    <meta property="twitter:image:src" content="https://nitter.d420.de/pic/pbs.twimg.com%2Fprofile_images%2F1661201415899951105%2FazNjKOSH_400x400.jpg" />
     <meta property="twitter:card" content="summary" />
     <link rel="preload" type="font/woff2" as="font" href="/fonts/fontello.woff2?21002321" crossorigin="anonymous" />
   </head>
@@ -36,7 +35,8 @@
         <a href="/"><img class="site-logo" src="/logo.png" alt="Logo" /></a>
         <div class="nav-item right">
           <div class="icon-container"><a class="icon-search" title="Search" href="/search"></a></div>
-          <div class="icon-container"><a class="icon-bird" title="Open in Twitter" href="https://twitter.com/jack"></a></div>
+          <div class="icon-container"><a class="icon-rss-feed" title="RSS Feed" href="/jack/with_replies/rss"></a></div>
+          <div class="icon-container"><a class="icon-bird" title="Open in Twitter" href="https://twitter.com/jack/with_replies"></a></div>
           <a href="https://liberapay.com/zedeus"><svg class="lp" viewBox="0 0 40.6 52.3">
   <g transform="matrix(0.83,0,0,0.83,-158,-261)">
     <path d="m202.5,366c-3.1 0-5.5-0.4-7.3-1.2-1.8-0.8-3-1.9-3.8-3.3-0.8-1.4-1.1-3-1.1-4.8 0-1.8 0.3-3.7 0.8-5.8l8.3-34.8 10.2-1.6-9.1 37.8c-0.2 0.8-0.3 1.5-0.3 2.2 0 0.7 0.1 1.2 0.4 1.7 0.3 0.5 0.7 0.9 1.3 1.2 0.6 0.3 1.5 0.5 2.7 0.6l-2 8.1"/>
@@ -45,7 +45,7 @@
 </svg>
 </a>
           <div class="icon-container"><a class="icon-info" title="About" href="/about"></a></div>
-          <div class="icon-container"><a class="icon-cog" title="Preferences" href="/settings?referer=%2Fjack"></a></div>
+          <div class="icon-container"><a class="icon-cog" title="Preferences" href="/settings?referer=%2Fjack%2Fwith_replies"></a></div>
         </div>
       </div></nav>
     <div class="container"><div class="profile-tabs">
@@ -75,15 +75,15 @@
                   </li>
                   <li class="following">
                     <span class="profile-stat-header">Following</span>
-                    <span class="profile-stat-num">4,741</span>
+                    <span class="profile-stat-num">4,743</span>
                   </li>
                   <li class="followers">
                     <span class="profile-stat-header">Followers</span>
-                    <span class="profile-stat-num">6,518,313</span>
+                    <span class="profile-stat-num">6,517,346</span>
                   </li>
                   <li class="likes">
                     <span class="profile-stat-header">Likes</span>
-                    <span class="profile-stat-num">35,983</span>
+                    <span class="profile-stat-num">35,986</span>
                   </li>
                 </ul></div>
             </div>
@@ -110,12 +110,35 @@
         </div>
         <div class="timeline-container">
           <ul class="tab">
-            <li class="tab-item active"><a href="/jack">Tweets</a></li>
-            <li class="tab-item wide"><a href="/jack/with_replies">Tweets &amp; Replies</a></li>
+            <li class="tab-item"><a href="/jack">Tweets</a></li>
+            <li class="tab-item active wide"><a href="/jack/with_replies">Tweets &amp; Replies</a></li>
             <li class="tab-item"><a href="/jack/media">Media</a></li>
             <li class="tab-item"><a href="/jack/search">Search</a></li>
           </ul>
           <div class="timeline">
+            <div class="timeline-item ">
+              <a class="tweet-link" href="/jack/status/1693351584388747672#m"></a>
+              <div class="tweet-body">
+                <div><div class="tweet-header">
+                    <a class="tweet-avatar" href="/jack"><img class="avatar round" src="/pic/profile_images%2F1661201415899951105%2FazNjKOSH_bigger.jpg" alt="" /></a>
+                    <div class="tweet-name-row">
+                      <div class="fullname-and-username">
+                        <a class="fullname" href="/jack" title="jack">jack<div class="icon-container"><span class="icon-ok verified-icon" title="Verified account"></span></div></a>
+                        <a class="username" href="/jack" title="@jack">@jack</a>
+                      </div>
+                      <span class="tweet-date"><a href="/jack/status/1693351584388747672#m" title="Aug 20, 2023 · 7:57 PM UTC">Aug 20</a></span>
+                    </div>
+                  </div></div>
+                <div class="replying-to">Replying to <a href="/mcuban">@mcuban</a></div>
+                <div class="tweet-content media-body" dir="auto">an open algorithm app store is only fix here. <a href="https://writings.stephenwolfram.com/2019/06/testifying-at-the-senate-about-a-i-selected-content-on-the-internet/">writings.stephenwolfram.com/…</a></div>
+                <div class="tweet-stats">
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 42</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 36</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 10</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 317</div></span>
+                </div>
+              </div>
+            </div>
             <div class="timeline-item ">
               <a class="tweet-link" href="/SimpleXChat/status/1692964579997810849#m"></a>
               <div class="tweet-body">
@@ -134,7 +157,7 @@
                 </div>
                 <div class="tweet-content media-body" dir="auto">SimpleX Directory Service and v5.3 public beta are released!
 
-You can search for public groups via the experimental SimpleX Directory Service, connect to it in SimpleX app via this address: <a href="https://simplex.chat/contact#/?v=1-4&smp=smp%3A%2F%2Fu2dS9sG8nMNURyZwqASV4yROM28Er0luVTx5X1CsMrU%3D%40smp4.simplex.im%2FeXSPwqTkKyDO3px4fLf1wx3MvPdjdLW3%23%2F%3Fv%3D1-2%26dh%3DMCowBQYDK2VuAyEAaiv6MkMH44L2TcYrt_CsX3ZvM11WgbMEUn0hkIKTOho%253D%26srv%3Do5vmywmrnaxalvz6wi3zicyftgio6psuvyniis6gco6bp6ekl4cqj4id.onion">simplex.chat/contact#/?v=1-4…</a> <a href="https://nitter.net/i/web/status/1692964579997810849">nitter.net/i/web/status/169…</a></div>
+You can search for public groups via the experimental SimpleX Directory Service, connect to it in SimpleX app via this address: <a href="https://simplex.chat/contact#/?v=1-4&smp=smp%3A%2F%2Fu2dS9sG8nMNURyZwqASV4yROM28Er0luVTx5X1CsMrU%3D%40smp4.simplex.im%2FeXSPwqTkKyDO3px4fLf1wx3MvPdjdLW3%23%2F%3Fv%3D1-2%26dh%3DMCowBQYDK2VuAyEAaiv6MkMH44L2TcYrt_CsX3ZvM11WgbMEUn0hkIKTOho%253D%26srv%3Do5vmywmrnaxalvz6wi3zicyftgio6psuvyniis6gco6bp6ekl4cqj4id.onion">simplex.chat/contact#/?v=1-4…</a> <a href="https://nitter.d420.de/i/web/status/1692964579997810849">nitter.d420.de/i/web/status/169…</a></div>
                 <div class="card"><a class="card-container" href="https://simplex.chat/contact#/?v=1-4&amp;smp=smp%3A%2F%2Fu2dS9sG8nMNURyZwqASV4yROM28Er0luVTx5X1CsMrU%3D%40smp4.simplex.im%2FeXSPwqTkKyDO3px4fLf1wx3MvPdjdLW3%23%2F%3Fv%3D1-2%26dh%3DMCowBQYDK2VuAyEAaiv6MkMH44L2TcYrt_CsX3ZvM11WgbMEUn0hkIKTOho%253D%26srv%3Do5vmywmrnaxalvz6wi3zicyftgio6psuvyniis6gco6bp6ekl4cqj4id.onion">
                     <div class="card-image-container"><div class="card-image"><img src="/pic/card_img%2F1692585264785305601%2FmGmY34u8%3Fformat%3Dpng%26name%3D420x420_2" alt="" /></div></div>
                     <div class="card-content-container"><div class="card-content">
@@ -146,7 +169,99 @@ You can search for public groups via the experimental SimpleX Directory Service,
                   <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 7</div></span>
                   <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 5</div></span>
                   <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 1</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 75</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 81</div></span>
+                </div>
+              </div>
+            </div>
+            <div class="timeline-item ">
+              <a class="tweet-link" href="/jack/status/1692583743884509668#m"></a>
+              <div class="tweet-body">
+                <div><div class="tweet-header">
+                    <a class="tweet-avatar" href="/jack"><img class="avatar round" src="/pic/profile_images%2F1661201415899951105%2FazNjKOSH_bigger.jpg" alt="" /></a>
+                    <div class="tweet-name-row">
+                      <div class="fullname-and-username">
+                        <a class="fullname" href="/jack" title="jack">jack<div class="icon-container"><span class="icon-ok verified-icon" title="Verified account"></span></div></a>
+                        <a class="username" href="/jack" title="@jack">@jack</a>
+                      </div>
+                      <span class="tweet-date"><a href="/jack/status/1692583743884509668#m" title="Aug 18, 2023 · 5:06 PM UTC">Aug 18</a></span>
+                    </div>
+                  </div></div>
+                <div class="replying-to">Replying to <a href="/elonmusk">@elonmusk</a> <a href="/teslaownersSV">@teslaownersSV</a></div>
+                <div class="tweet-content media-body" dir="auto">💯. mute only.</div>
+                <div class="tweet-stats">
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 1,118</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 271</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 942</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 4,191</div></span>
+                </div>
+              </div>
+            </div>
+            <div class="timeline-item ">
+              <a class="tweet-link" href="/jack/status/1692416391704645941#m"></a>
+              <div class="tweet-body">
+                <div><div class="tweet-header">
+                    <a class="tweet-avatar" href="/jack"><img class="avatar round" src="/pic/profile_images%2F1661201415899951105%2FazNjKOSH_bigger.jpg" alt="" /></a>
+                    <div class="tweet-name-row">
+                      <div class="fullname-and-username">
+                        <a class="fullname" href="/jack" title="jack">jack<div class="icon-container"><span class="icon-ok verified-icon" title="Verified account"></span></div></a>
+                        <a class="username" href="/jack" title="@jack">@jack</a>
+                      </div>
+                      <span class="tweet-date"><a href="/jack/status/1692416391704645941#m" title="Aug 18, 2023 · 6:01 AM UTC">Aug 18</a></span>
+                    </div>
+                  </div></div>
+                <div class="replying-to">Replying to <a href="/f3wletter">@f3wletter</a></div>
+                <div class="tweet-content media-body" dir="auto">The best Jack</div>
+                <div class="tweet-stats">
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 49</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 14</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 3</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 743</div></span>
+                </div>
+              </div>
+            </div>
+            <div class="timeline-item ">
+              <a class="tweet-link" href="/jack/status/1692416219473998116#m"></a>
+              <div class="tweet-body">
+                <div><div class="tweet-header">
+                    <a class="tweet-avatar" href="/jack"><img class="avatar round" src="/pic/profile_images%2F1661201415899951105%2FazNjKOSH_bigger.jpg" alt="" /></a>
+                    <div class="tweet-name-row">
+                      <div class="fullname-and-username">
+                        <a class="fullname" href="/jack" title="jack">jack<div class="icon-container"><span class="icon-ok verified-icon" title="Verified account"></span></div></a>
+                        <a class="username" href="/jack" title="@jack">@jack</a>
+                      </div>
+                      <span class="tweet-date"><a href="/jack/status/1692416219473998116#m" title="Aug 18, 2023 · 6:00 AM UTC">Aug 18</a></span>
+                    </div>
+                  </div></div>
+                <div class="replying-to">Replying to <a href="/spacexsaudi">@spacexsaudi</a></div>
+                <div class="tweet-content media-body" dir="auto">Compromised</div>
+                <div class="tweet-stats">
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 68</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 37</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 7</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 978</div></span>
+                </div>
+              </div>
+            </div>
+            <div class="timeline-item ">
+              <a class="tweet-link" href="/jack/status/1692414659381666204#m"></a>
+              <div class="tweet-body">
+                <div><div class="tweet-header">
+                    <a class="tweet-avatar" href="/jack"><img class="avatar round" src="/pic/profile_images%2F1661201415899951105%2FazNjKOSH_bigger.jpg" alt="" /></a>
+                    <div class="tweet-name-row">
+                      <div class="fullname-and-username">
+                        <a class="fullname" href="/jack" title="jack">jack<div class="icon-container"><span class="icon-ok verified-icon" title="Verified account"></span></div></a>
+                        <a class="username" href="/jack" title="@jack">@jack</a>
+                      </div>
+                      <span class="tweet-date"><a href="/jack/status/1692414659381666204#m" title="Aug 18, 2023 · 5:54 AM UTC">Aug 18</a></span>
+                    </div>
+                  </div></div>
+                <div class="replying-to">Replying to <a href="/BoredElonMusk">@BoredElonMusk</a></div>
+                <div class="tweet-content media-body" dir="auto">All trade offs. I generally trust Apple more than others given their business model and stated values, but have been disappointed in their approach to the App Store broadly.</div>
+                <div class="tweet-stats">
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 68</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 75</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 9</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 2,211</div></span>
                 </div>
               </div>
             </div>
@@ -169,10 +284,104 @@ You can search for public groups via the experimental SimpleX Directory Service,
                 <div class="tweet-content media-body" dir="auto"></div>
                 <div class="attachments"><div class="gallery-row" style=""><div class="attachment image"><a class="still-image" href="/pic/orig/media%2FF3iIIvhXMAAuS1J.jpg" target="_blank"><img src="/pic/media%2FF3iIIvhXMAAuS1J.jpg%3Fname%3Dsmall%26format%3Dwebp" alt="" /></a></div></div></div>
                 <div class="tweet-stats">
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 2,186</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 8,031</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 459</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 57,230</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 2,326</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 8,290</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 480</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 58,509</div></span>
+                </div>
+              </div>
+            </div>
+            <div class="timeline-item ">
+              <a class="tweet-link" href="/jack/status/1692413132122243487#m"></a>
+              <div class="tweet-body">
+                <div><div class="tweet-header">
+                    <a class="tweet-avatar" href="/jack"><img class="avatar round" src="/pic/profile_images%2F1661201415899951105%2FazNjKOSH_bigger.jpg" alt="" /></a>
+                    <div class="tweet-name-row">
+                      <div class="fullname-and-username">
+                        <a class="fullname" href="/jack" title="jack">jack<div class="icon-container"><span class="icon-ok verified-icon" title="Verified account"></span></div></a>
+                        <a class="username" href="/jack" title="@jack">@jack</a>
+                      </div>
+                      <span class="tweet-date"><a href="/jack/status/1692413132122243487#m" title="Aug 18, 2023 · 5:48 AM UTC">Aug 18</a></span>
+                    </div>
+                  </div></div>
+                <div class="replying-to">Replying to <a href="/xDaily">@xDaily</a></div>
+                <div class="tweet-content media-body" dir="auto">Good move</div>
+                <div class="tweet-stats">
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 25</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 10</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 4</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 211</div></span>
+                </div>
+              </div>
+            </div>
+            <div class="timeline-item ">
+              <a class="tweet-link" href="/jack/status/1692407121814737197#m"></a>
+              <div class="tweet-body">
+                <div><div class="tweet-header">
+                    <a class="tweet-avatar" href="/jack"><img class="avatar round" src="/pic/profile_images%2F1661201415899951105%2FazNjKOSH_bigger.jpg" alt="" /></a>
+                    <div class="tweet-name-row">
+                      <div class="fullname-and-username">
+                        <a class="fullname" href="/jack" title="jack">jack<div class="icon-container"><span class="icon-ok verified-icon" title="Verified account"></span></div></a>
+                        <a class="username" href="/jack" title="@jack">@jack</a>
+                      </div>
+                      <span class="tweet-date"><a href="/jack/status/1692407121814737197#m" title="Aug 18, 2023 · 5:24 AM UTC">Aug 18</a></span>
+                    </div>
+                  </div></div>
+                <div class="replying-to">Replying to <a href="/KettlebellLife">@KettlebellLife</a></div>
+                <div class="tweet-content media-body" dir="auto">All the reasons are too meta to be interesting</div>
+                <div class="tweet-stats">
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 107</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 121</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 19</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 4,579</div></span>
+                </div>
+              </div>
+            </div>
+            <div class="timeline-item ">
+              <a class="tweet-link" href="/jack/status/1692406561875091878#m"></a>
+              <div class="tweet-body">
+                <div><div class="tweet-header">
+                    <a class="tweet-avatar" href="/jack"><img class="avatar round" src="/pic/profile_images%2F1661201415899951105%2FazNjKOSH_bigger.jpg" alt="" /></a>
+                    <div class="tweet-name-row">
+                      <div class="fullname-and-username">
+                        <a class="fullname" href="/jack" title="jack">jack<div class="icon-container"><span class="icon-ok verified-icon" title="Verified account"></span></div></a>
+                        <a class="username" href="/jack" title="@jack">@jack</a>
+                      </div>
+                      <span class="tweet-date"><a href="/jack/status/1692406561875091878#m" title="Aug 18, 2023 · 5:22 AM UTC">Aug 18</a></span>
+                    </div>
+                  </div></div>
+                <div class="replying-to">Replying to <a href="/BitcoinErrorLog">@BitcoinErrorLog</a></div>
+                <div class="tweet-content media-body" dir="auto">Words</div>
+                <div class="tweet-stats">
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 6</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 1</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 2</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 52</div></span>
+                </div>
+              </div>
+            </div>
+            <div class="timeline-item ">
+              <a class="tweet-link" href="/jack/status/1692404101601235112#m"></a>
+              <div class="tweet-body">
+                <div><div class="tweet-header">
+                    <a class="tweet-avatar" href="/jack"><img class="avatar round" src="/pic/profile_images%2F1661201415899951105%2FazNjKOSH_bigger.jpg" alt="" /></a>
+                    <div class="tweet-name-row">
+                      <div class="fullname-and-username">
+                        <a class="fullname" href="/jack" title="jack">jack<div class="icon-container"><span class="icon-ok verified-icon" title="Verified account"></span></div></a>
+                        <a class="username" href="/jack" title="@jack">@jack</a>
+                      </div>
+                      <span class="tweet-date"><a href="/jack/status/1692404101601235112#m" title="Aug 18, 2023 · 5:12 AM UTC">Aug 18</a></span>
+                    </div>
+                  </div></div>
+                <div class="replying-to">Replying to <a href="/razroo_chief">@razroo_chief</a></div>
+                <div class="tweet-content media-body" dir="auto">No. Or WhatsApp
+
+clear eyes, meta free, can’t lose</div>
+                <div class="tweet-stats">
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 255</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 363</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 98</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 7,341</div></span>
                 </div>
               </div>
             </div>
@@ -193,10 +402,10 @@ You can search for public groups via the experimental SimpleX Directory Service,
 
 who will they give the <a href="/jack" title="jack">@jack</a> handle to?</div>
                 <div class="tweet-stats">
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 3,589</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 2,577</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 602</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 31,493</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 3,605</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 2,589</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 610</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 31,588</div></span>
                 </div>
               </div>
             </div>
@@ -218,17 +427,41 @@ who will they give the <a href="/jack" title="jack">@jack</a> handle to?</div>
                 </div>
                 <div class="tweet-content media-body" dir="auto">America reacts to "Rich Men North of Richmond"</div>
                 <div class="attachments card"><div class="gallery-video"><div class="attachment video-container">
-                      <video poster="/pic/ext_tw_video_thumb%2F1691957315396653056%2Fpu%2Fimg%2F2TyvnR52J7MhSdT1.jpg%3Fname%3Dsmall%26format%3Dwebp" data-url="/video/DF763132A675E/https%3A%2F%2Fvideo.twimg.com%2Fext_tw_video%2F1691957315396653056%2Fpu%2Fpl%2FKXD1Zbpk0hW-obIO.m3u8%3Ftag%3D12%26container%3Dfmp4%26v%3Dc96" data-autoload="false"></video>
-                      <div class="video-overlay" onclick="playVideo(this)">
-                      <div class="overlay-circle"><span class="overlay-triangle"></span></div>
-                      </div>
+                      <img src="/pic/ext_tw_video_thumb%2F1691957315396653056%2Fpu%2Fimg%2F2TyvnR52J7MhSdT1.jpg%3Fname%3Dsmall%26format%3Dwebp" />
+                      <div class="video-overlay"><form method="post" action="/enablehls">
+                          <input name="referer" value="/jack/with_replies" style="display: none; " />
+                          <button type="submit">Enable hls playback</button>
+                        </form></div>
                     </div></div></div>
                 <div class="tweet-stats">
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 1,369</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 9,258</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 1,946</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 28,883</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-play" title=""></span> 5,851,109</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 1,388</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 9,353</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 1,981</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 29,178</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-play" title=""></span> 5,956,462</div></span>
+                </div>
+              </div>
+            </div>
+            <div class="timeline-item ">
+              <a class="tweet-link" href="/jack/status/1692398563001856297#m"></a>
+              <div class="tweet-body">
+                <div><div class="tweet-header">
+                    <a class="tweet-avatar" href="/jack"><img class="avatar round" src="/pic/profile_images%2F1661201415899951105%2FazNjKOSH_bigger.jpg" alt="" /></a>
+                    <div class="tweet-name-row">
+                      <div class="fullname-and-username">
+                        <a class="fullname" href="/jack" title="jack">jack<div class="icon-container"><span class="icon-ok verified-icon" title="Verified account"></span></div></a>
+                        <a class="username" href="/jack" title="@jack">@jack</a>
+                      </div>
+                      <span class="tweet-date"><a href="/jack/status/1692398563001856297#m" title="Aug 18, 2023 · 4:50 AM UTC">Aug 18</a></span>
+                    </div>
+                  </div></div>
+                <div class="replying-to">Replying to <a href="/vinaybhootra">@vinaybhootra</a></div>
+                <div class="tweet-content media-body" dir="auto">Up to them. Only way I see to remove liability from the company and make something truly censorship resistant and free speech.</div>
+                <div class="tweet-stats">
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 11</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 9</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 4</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 72</div></span>
                 </div>
               </div>
             </div>
@@ -257,10 +490,10 @@ who will they give the <a href="/jack" title="jack">@jack</a> handle to?</div>
                       </div></div>
                   </a></div>
                 <div class="tweet-stats">
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 114</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 238</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 36</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 1,350</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 119</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 239</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 37</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 1,353</div></span>
                 </div>
               </div>
             </div>
@@ -283,10 +516,10 @@ who will they give the <a href="/jack" title="jack">@jack</a> handle to?</div>
                 <div class="tweet-content media-body" dir="auto"></div>
                 <div class="attachments"><div class="gallery-row" style=""><div class="attachment image"><a class="still-image" href="/pic/orig/media%2FF3s__nsWkAENdmc.jpg" target="_blank"><img src="/pic/media%2FF3s__nsWkAENdmc.jpg%3Fname%3Dsmall%26format%3Dwebp" alt="" /></a></div></div></div>
                 <div class="tweet-stats">
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 1,133</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 4,730</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 163</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 39,104</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 1,136</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 4,750</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 164</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 39,234</div></span>
                 </div>
               </div>
             </div>
@@ -323,10 +556,10 @@ who will they give the <a href="/jack" title="jack">@jack</a> handle to?</div>
 <a href="https://vitalik.eth.limo/general/2023/08/16/communitynotes.html">vitalik.eth.limo/general/202…</a></div>
                 </div>
                 <div class="tweet-stats">
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 414</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 1,074</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 417</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 1,094</div></span>
                   <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 42</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 7,265</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 7,313</div></span>
                 </div>
               </div>
             </div>
@@ -359,17 +592,18 @@ who will they give the <a href="/jack" title="jack">@jack</a> handle to?</div>
                   </div>
                   <div class="quote-text" dir="auto">It will take all of us coming together and doing what we can to help those in need in Maui and Lāhainā right now. I hope you’ll join me in donating to the Hawai'i Red Cross today: <a href="http://www.redcross.org/donate/cm/khon2-pub.html">redcross.org/donate/cm/khon2…</a></div>
                   <div class="quote-media-container"><div class="attachments card"><div class="gallery-video"><div class="attachment video-container">
-                          <video poster="/pic/amplify_video_thumb%2F1691245142559105024%2Fimg%2FBwtVJ-Tqb_QsGkmt.jpg%3Fname%3Dsmall%26format%3Dwebp" data-url="/video/849FEA0CB1370/https%3A%2F%2Fvideo.twimg.com%2Famplify_video%2F1691245142559105024%2Fpl%2FVIAiqVN7hl-Ef4ev.m3u8%3Ftag%3D16%26container%3Dfmp4%26v%3Dbd6" data-autoload="false"></video>
-                          <div class="video-overlay" onclick="playVideo(this)">
-                          <div class="overlay-circle"><span class="overlay-triangle"></span></div>
-                          </div>
+                          <img src="/pic/amplify_video_thumb%2F1691245142559105024%2Fimg%2FBwtVJ-Tqb_QsGkmt.jpg%3Fname%3Dsmall%26format%3Dwebp" />
+                          <div class="video-overlay"><form method="post" action="/enablehls">
+                              <input name="referer" value="/jack/with_replies" style="display: none; " />
+                              <button type="submit">Enable hls playback</button>
+                            </form></div>
                         </div></div></div></div>
                 </div>
                 <div class="tweet-stats">
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 718</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 7,714</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 391</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 20,513</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 719</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 7,728</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 394</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 20,572</div></span>
                 </div>
               </div>
             </div>
@@ -391,255 +625,23 @@ who will they give the <a href="/jack" title="jack">@jack</a> handle to?</div>
                 </div>
                 <div class="tweet-content media-body" dir="auto">Golden State Warriors logo redesign. Which team should I do next??</div>
                 <div class="attachments card"><div class="gallery-video"><div class="attachment video-container">
-                      <video poster="/pic/amplify_video_thumb%2F1691496561795014673%2Fimg%2FW63q9fjr5Za1oxkc.jpg%3Fname%3Dsmall%26format%3Dwebp" data-url="/video/3BB08C2BB6175/https%3A%2F%2Fvideo.twimg.com%2Famplify_video%2F1691496561795014673%2Fpl%2Fx1cTag1NDpMcuo6q.m3u8%3Ftag%3D14%26container%3Dfmp4" data-autoload="false"></video>
-                      <div class="video-overlay" onclick="playVideo(this)">
-                      <div class="overlay-circle"><span class="overlay-triangle"></span></div>
-                      </div>
+                      <img src="/pic/amplify_video_thumb%2F1691496561795014673%2Fimg%2FW63q9fjr5Za1oxkc.jpg%3Fname%3Dsmall%26format%3Dwebp" />
+                      <div class="video-overlay"><form method="post" action="/enablehls">
+                          <input name="referer" value="/jack/with_replies" style="display: none; " />
+                          <button type="submit">Enable hls playback</button>
+                        </form></div>
                     </div></div></div>
                 <div class="tweet-stats">
                   <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 219</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 1,599</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 1,596</div></span>
                   <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 195</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 22,774</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-play" title=""></span> 600,576</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 22,791</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-play" title=""></span> 601,657</div></span>
                 </div>
               </div>
             </div>
             <div class="timeline-item ">
-              <a class="tweet-link" href="/_whitneywebb/status/1691235558637305857#m"></a>
-              <div class="tweet-body">
-                <div>
-                  <div class="retweet-header"><span><div class="icon-container"><span class="icon-retweet" title=""></span> jack retweeted</div></span></div>
-                  <div class="tweet-header">
-                    <a class="tweet-avatar" href="/_whitneywebb"><img class="avatar round" src="/pic/profile_images%2F1282479045335298050%2FsTgRq9Jk_bigger.jpg" alt="" /></a>
-                    <div class="tweet-name-row">
-                      <div class="fullname-and-username">
-                        <a class="fullname" href="/_whitneywebb" title="Whitney Webb">Whitney Webb</a>
-                        <a class="username" href="/_whitneywebb" title="@_whitneywebb">@_whitneywebb</a>
-                      </div>
-                      <span class="tweet-date"><a href="/_whitneywebb/status/1691235558637305857#m" title="Aug 14, 2023 · 11:49 PM UTC">Aug 14</a></span>
-                    </div>
-                  </div>
-                </div>
-                <div class="tweet-content media-body" dir="auto">When will people figure out that the US federal govt always always has infinite money for war but never enough money to help the people it supposedly represents. They are fronts for professional thieves engaged in a perpetual wealth transfer from us to them.</div>
-                <div class="quote quote-big">
-                  <a class="quote-link" href="/KanekoaTheGreat/status/1691210650931146752#m"></a>
-                  <div class="tweet-name-row">
-                    <div class="fullname-and-username">
-                      <img class="avatar round mini" src="/pic/profile_images%2F1612188077333835776%2FqxjhM55m_mini.jpg" />
-                      <a class="fullname" href="/KanekoaTheGreat" title="KanekoaTheGreat">KanekoaTheGreat<div class="icon-container"><span class="icon-ok verified-icon" title="Verified account"></span></div></a>
-                      <a class="username" href="/KanekoaTheGreat" title="@KanekoaTheGreat">@KanekoaTheGreat</a>
-                    </div>
-                    <span class="tweet-date"><a href="/KanekoaTheGreat/status/1691210650931146752#m" title="Aug 14, 2023 · 10:10 PM UTC">Aug 14</a></span>
-                  </div>
-                  <div class="quote-text" dir="auto">Over 2,700 structures were destroyed in Lahaina, Maui, valued at approximately $5.6 billion.
-
-Meanwhile, President Joe Biden, with $115 billion sent to Ukraine, offers just $1.9 million ($700 per household) to Lahaina.
-
-This is deeply insulting.</div>
-                  <div class="quote-media-container"><div class="attachments"><div class="gallery-row" style=""><div class="attachment image"><a class="still-image" href="/pic/orig/media%2FF3hfaMEakAAMMJe.jpg" target="_blank"><img src="/pic/media%2FF3hfaMEakAAMMJe.jpg%3Fname%3Dsmall%26format%3Dwebp" alt="" /></a></div></div></div></div>
-                </div>
-                <div class="tweet-stats">
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 633</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 4,746</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 222</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 14,890</div></span>
-                </div>
-              </div>
-            </div>
-            <div class="timeline-item ">
-              <a class="tweet-link" href="/RobertKennedyJr/status/1690038461498286080#m"></a>
-              <div class="tweet-body">
-                <div>
-                  <div class="retweet-header"><span><div class="icon-container"><span class="icon-retweet" title=""></span> jack retweeted</div></span></div>
-                  <div class="tweet-header">
-                    <a class="tweet-avatar" href="/RobertKennedyJr"><img class="avatar round" src="/pic/profile_images%2F1665141083624423428%2FgeiQrLwM_bigger.jpg" alt="" /></a>
-                    <div class="tweet-name-row">
-                      <div class="fullname-and-username">
-                        <a class="fullname" href="/RobertKennedyJr" title="Robert F. Kennedy Jr">Robert F. Kennedy Jr<div class="icon-container"><span class="icon-ok verified-icon" title="Verified account"></span></div></a>
-                        <a class="username" href="/RobertKennedyJr" title="@RobertKennedyJr">@RobertKennedyJr</a>
-                      </div>
-                      <span class="tweet-date"><a href="/RobertKennedyJr/status/1690038461498286080#m" title="Aug 11, 2023 · 4:32 PM UTC">Aug 11</a></span>
-                    </div>
-                  </div>
-                </div>
-                <div class="tweet-content media-body" dir="auto">Stop ruining land + water. Stop poisoning the earth. Protect what remains + regenerate what was damaged. Healthy ecosystems stabilize weather and mitigate flood-drought cycle. They also draw down carbon.</div>
-                <div class="tweet-stats">
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 129</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 349</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 23</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 2,600</div></span>
-                </div>
-              </div>
-            </div>
-            <div class="timeline-item ">
-              <a class="tweet-link" href="/Sekani__Solomon/status/1689395580659777536#m"></a>
-              <div class="tweet-body">
-                <div>
-                  <div class="retweet-header"><span><div class="icon-container"><span class="icon-retweet" title=""></span> jack retweeted</div></span></div>
-                  <div class="tweet-header">
-                    <a class="tweet-avatar" href="/Sekani__Solomon"><img class="avatar round" src="/pic/profile_images%2F1396079299267026948%2FzVov_RQe_bigger.jpg" alt="" /></a>
-                    <div class="tweet-name-row">
-                      <div class="fullname-and-username">
-                        <a class="fullname" href="/Sekani__Solomon" title="Sekani">Sekani</a>
-                        <a class="username" href="/Sekani__Solomon" title="@Sekani__Solomon">@Sekani__Solomon</a>
-                      </div>
-                      <span class="tweet-date"><a href="/Sekani__Solomon/status/1689395580659777536#m" title="Aug 9, 2023 · 9:57 PM UTC">Aug 9</a></span>
-                    </div>
-                  </div>
-                </div>
-                <div class="tweet-content media-body" dir="auto">Introducing Square Go, the new app to discover, book, and manage your local self-care experiences. Creative Studio collaborated with the amazing folks from the Square Go team to help launch their new booking platform. Shoutout to everyone involved!</div>
-                <div class="attachments card"><div class="gallery-video"><div class="attachment video-container">
-                      <video poster="/pic/ext_tw_video_thumb%2F1689395534723796992%2Fpu%2Fimg%2FjetSogCOjjfUHJPm.jpg%3Fname%3Dsmall%26format%3Dwebp" data-url="/video/D5A7EA9469398/https%3A%2F%2Fvideo.twimg.com%2Fext_tw_video%2F1689395534723796992%2Fpu%2Fpl%2F5sWDVj4iuW70bBkW.m3u8%3Ftag%3D12%26container%3Dfmp4" data-autoload="false"></video>
-                      <div class="video-overlay" onclick="playVideo(this)">
-                      <div class="overlay-circle"><span class="overlay-triangle"></span></div>
-                      </div>
-                    </div></div></div>
-                <div class="tweet-stats">
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 96</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 109</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 158</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 790</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-play" title=""></span> 213,568</div></span>
-                </div>
-              </div>
-            </div>
-            <div class="timeline-item ">
-              <a class="tweet-link" href="/resistancemoney/status/1686915722826625025#m"></a>
-              <div class="tweet-body">
-                <div>
-                  <div class="retweet-header"><span><div class="icon-container"><span class="icon-retweet" title=""></span> jack retweeted</div></span></div>
-                  <div class="tweet-header">
-                    <a class="tweet-avatar" href="/resistancemoney"><img class="avatar round" src="/pic/profile_images%2F1405412397485936641%2FaAjKVs89_bigger.jpg" alt="" /></a>
-                    <div class="tweet-name-row">
-                      <div class="fullname-and-username">
-                        <a class="fullname" href="/resistancemoney" title="Andrew M. Bailey">Andrew M. Bailey</a>
-                        <a class="username" href="/resistancemoney" title="@resistancemoney">@resistancemoney</a>
-                      </div>
-                      <span class="tweet-date"><a href="/resistancemoney/status/1686915722826625025#m" title="Aug 3, 2023 · 1:43 AM UTC">Aug 3</a></span>
-                    </div>
-                  </div>
-                </div>
-                <div class="tweet-content media-body" dir="auto">Let's give corporate and state authorities the ability to regulate access to our most vital systems via immutable biometrics. Biometrics from where? A crypto scheme with a history of preying on the global poor, self-dealing — all clothed in technobabble. Fascinating!</div>
-                <div class="attachments"><div class="gallery-row" style=""><div class="attachment image"><a class="still-image" href="/pic/orig/media%2FF2kgt6lboAA7sMg.png" target="_blank"><img src="/pic/media%2FF2kgt6lboAA7sMg.png%3Fname%3Dsmall%26format%3Dwebp" alt="" /></a></div></div></div>
-                <div class="tweet-stats">
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 82</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 159</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 18</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 649</div></span>
-                </div>
-              </div>
-            </div>
-            <div class="timeline-item ">
-              <a class="tweet-link" href="/RussellOkung/status/1686760947619074048#m"></a>
-              <div class="tweet-body">
-                <div>
-                  <div class="retweet-header"><span><div class="icon-container"><span class="icon-retweet" title=""></span> jack retweeted</div></span></div>
-                  <div class="tweet-header">
-                    <a class="tweet-avatar" href="/RussellOkung"><img class="avatar round" src="/pic/profile_images%2F1665881323997736960%2FGYTKrbRN_bigger.jpg" alt="" /></a>
-                    <div class="tweet-name-row">
-                      <div class="fullname-and-username">
-                        <a class="fullname" href="/RussellOkung" title="OKUNG 🕊️">OKUNG 🕊️<div class="icon-container"><span class="icon-ok verified-icon" title="Verified account"></span></div></a>
-                        <a class="username" href="/RussellOkung" title="@RussellOkung">@RussellOkung</a>
-                      </div>
-                      <span class="tweet-date"><a href="/RussellOkung/status/1686760947619074048#m" title="Aug 2, 2023 · 3:28 PM UTC">Aug 2</a></span>
-                    </div>
-                  </div>
-                </div>
-                <div class="tweet-content media-body" dir="auto">This is crazy. Fix the money. 😨</div>
-                <div class="attachments card"><div class="gallery-video"><div class="attachment video-container">
-                      <video poster="/pic/amplify_video_thumb%2F1686760585105432578%2Fimg%2FwFoQs4bErkdDjFX2.jpg%3Fname%3Dsmall%26format%3Dwebp" data-url="/video/38349954148FD/https%3A%2F%2Fvideo.twimg.com%2Famplify_video%2F1686760585105432578%2Fpl%2F878tIWWhLXZqYV7b.m3u8%3Ftag%3D14%26container%3Dfmp4%26v%3Dea7" data-autoload="false"></video>
-                      <div class="video-overlay" onclick="playVideo(this)">
-                      <div class="overlay-circle"><span class="overlay-triangle"></span></div>
-                      </div>
-                    </div></div></div>
-                <div class="tweet-stats">
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 74</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 333</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 51</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 1,108</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-play" title=""></span> 70,082</div></span>
-                </div>
-              </div>
-            </div>
-            <div class="timeline-item ">
-              <a class="tweet-link" href="/RussellOkung/status/1686808719718236169#m"></a>
-              <div class="tweet-body">
-                <div>
-                  <div class="retweet-header"><span><div class="icon-container"><span class="icon-retweet" title=""></span> jack retweeted</div></span></div>
-                  <div class="tweet-header">
-                    <a class="tweet-avatar" href="/RussellOkung"><img class="avatar round" src="/pic/profile_images%2F1665881323997736960%2FGYTKrbRN_bigger.jpg" alt="" /></a>
-                    <div class="tweet-name-row">
-                      <div class="fullname-and-username">
-                        <a class="fullname" href="/RussellOkung" title="OKUNG 🕊️">OKUNG 🕊️<div class="icon-container"><span class="icon-ok verified-icon" title="Verified account"></span></div></a>
-                        <a class="username" href="/RussellOkung" title="@RussellOkung">@RussellOkung</a>
-                      </div>
-                      <span class="tweet-date"><a href="/RussellOkung/status/1686808719718236169#m" title="Aug 2, 2023 · 6:38 PM UTC">Aug 2</a></span>
-                    </div>
-                  </div>
-                </div>
-                <div class="tweet-content media-body" dir="auto">Africa will lead Bitcoin adoption.</div>
-                <div class="quote quote-big">
-                  <a class="quote-link" href="/BitcoinMagazine/status/1403884622447063041#m"></a>
-                  <div class="tweet-name-row">
-                    <div class="fullname-and-username">
-                      <img class="avatar round mini" src="/pic/profile_images%2F1444022922377576453%2FAzvXYXGr_mini.jpg" />
-                      <a class="fullname" href="/BitcoinMagazine" title="Bitcoin Magazine">Bitcoin Magazine<div class="icon-container"><span class="icon-ok verified-icon" title="Verified account"></span></div></a>
-                      <a class="username" href="/BitcoinMagazine" title="@BitcoinMagazine">@BitcoinMagazine</a>
-                    </div>
-                    <span class="tweet-date"><a href="/BitcoinMagazine/status/1403884622447063041#m" title="Jun 13, 2021 · 1:19 AM UTC">13 Jun 2021</a></span>
-                  </div>
-                  <div class="quote-text" dir="auto">An Open Letter To The Nigerian Government: Pursue A <a href="/search?q=%23Bitcoin">#Bitcoin</a> Standard.
-
-"A delay in pursuing a national plan for bitcoin adoption will risk a scenario where Nigeria is left behind."
-
-Written by <a href="/RussellOkung" title="OKUNG 🕊️">@RussellOkung</a>.
-
-<a href="https://bitcoinmagazine.com/culture/bitcoin-letter-to-nigeria-government">bitcoinmagazine.com/culture/…</a></div>
-                </div>
-                <div class="tweet-stats">
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 60</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 113</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 13</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 808</div></span>
-                </div>
-              </div>
-            </div>
-            <div class="timeline-item ">
-              <a class="tweet-link" href="/amasad/status/1686776112314277890#m"></a>
-              <div class="tweet-body">
-                <div>
-                  <div class="retweet-header"><span><div class="icon-container"><span class="icon-retweet" title=""></span> jack retweeted</div></span></div>
-                  <div class="tweet-header">
-                    <a class="tweet-avatar" href="/amasad"><img class="avatar round" src="/pic/profile_images%2F1518391475687493633%2FBb6zQKr8_bigger.jpg" alt="" /></a>
-                    <div class="tweet-name-row">
-                      <div class="fullname-and-username">
-                        <a class="fullname" href="/amasad" title="Amjad Masad">Amjad Masad<div class="icon-container"><span class="icon-ok verified-icon" title="Verified account"></span></div></a>
-                        <a class="username" href="/amasad" title="@amasad">@amasad</a>
-                      </div>
-                      <span class="tweet-date"><a href="/amasad/status/1686776112314277890#m" title="Aug 2, 2023 · 4:28 PM UTC">Aug 2</a></span>
-                    </div>
-                  </div>
-                </div>
-                <div class="tweet-content media-body" dir="auto">Speed is a feature.
-
-We rewrote Replit's IDE filetree to make it 20x faster & enhance accessibility.
-
-You can expand a directory with 500 files in 16ms.
-
-People think browser software has to be slower, but we're starting to beat local editors on speed.
-
-<a href="https://blog.replit.com/filetree-updates">blog.replit.com/filetree-upd…</a></div>
-                <div class="tweet-stats">
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 32</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 47</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 4</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 532</div></span>
-                </div>
-              </div>
-            </div>
-            <div class="timeline-item ">
-              <a class="tweet-link" href="/jack/status/1686611658016538624#m"></a>
+              <a class="tweet-link" href="/jack/status/1691283965137870848#m"></a>
               <div class="tweet-body">
                 <div><div class="tweet-header">
                     <a class="tweet-avatar" href="/jack"><img class="avatar round" src="/pic/profile_images%2F1661201415899951105%2FazNjKOSH_bigger.jpg" alt="" /></a>
@@ -648,113 +650,20 @@ People think browser software has to be slower, but we're starting to beat local
                         <a class="fullname" href="/jack" title="jack">jack<div class="icon-container"><span class="icon-ok verified-icon" title="Verified account"></span></div></a>
                         <a class="username" href="/jack" title="@jack">@jack</a>
                       </div>
-                      <span class="tweet-date"><a href="/jack/status/1686611658016538624#m" title="Aug 2, 2023 · 5:35 AM UTC">Aug 2</a></span>
+                      <span class="tweet-date"><a href="/jack/status/1691283965137870848#m" title="Aug 15, 2023 · 3:01 AM UTC">Aug 15</a></span>
                     </div>
                   </div></div>
-                <div class="tweet-content media-body" dir="auto">join us in Tokyo or Hong Kong <a href="https://nostr.world/">nostr.world/</a></div>
-                <div class="card large"><a class="card-container" href="https://nostr.world/">
-                    <div class="card-image-container"><div class="card-image"><img src="/pic/card_img%2F1692232571516489728%2F2uZodd8z%3Fformat%3Djpg%26name%3D800x419" alt="" /></div></div>
-                    <div class="card-content-container"><div class="card-content">
-                        <h2 class="card-title">nostr world</h2>
-                        <p class="card-description">where nostriches come together</p>
-                        <span class="card-destination">nostr.world</span>
-                      </div></div>
-                  </a></div>
+                <div class="replying-to">Replying to <a href="/ChrisBlec">@ChrisBlec</a></div>
+                <div class="tweet-content media-body" dir="auto">Yes</div>
                 <div class="tweet-stats">
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 164</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 209</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 26</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 1,247</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 31</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 29</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 2</div></span>
+                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 485</div></span>
                 </div>
               </div>
             </div>
-            <div class="timeline-item ">
-              <a class="tweet-link" href="/pete_rizzo_/status/1686341243226279936#m"></a>
-              <div class="tweet-body">
-                <div>
-                  <div class="retweet-header"><span><div class="icon-container"><span class="icon-retweet" title=""></span> jack retweeted</div></span></div>
-                  <div class="tweet-header">
-                    <a class="tweet-avatar" href="/pete_rizzo_"><img class="avatar round" src="/pic/profile_images%2F1561709633638637570%2FaIZa43-3_bigger.jpg" alt="" /></a>
-                    <div class="tweet-name-row">
-                      <div class="fullname-and-username">
-                        <a class="fullname" href="/pete_rizzo_" title="RIZZO">RIZZO<div class="icon-container"><span class="icon-ok verified-icon" title="Verified account"></span></div></a>
-                        <a class="username" href="/pete_rizzo_" title="@pete_rizzo_">@pete_rizzo_</a>
-                      </div>
-                      <span class="tweet-date"><a href="/pete_rizzo_/status/1686341243226279936#m" title="Aug 1, 2023 · 11:40 AM UTC">Aug 1</a></span>
-                    </div>
-                  </div>
-                </div>
-                <div class="tweet-content media-body" dir="auto">✨ 6 years ago today, <a href="/search?q=%23Bitcoin">#Bitcoin</a> users proved, once and for all, that miners *do not* control the protocol. 
-
-Today we celebrate <a href="/search?q=%23Bitcoin">#Bitcoin</a>'s decentralization ⚔️
-
-Today we celebrate <a href="/search?q=%23Bitcoin">#Bitcoin</a> Independence Day 🎉</div>
-                <div class="attachments"><div class="gallery-row" style=""><div class="attachment image"><a class="still-image" href="/pic/orig/media%2FF2cWEx2WsAAuCsI.jpg" target="_blank"><img src="/pic/media%2FF2cWEx2WsAAuCsI.jpg%3Fname%3Dsmall%26format%3Dwebp" alt="" /></a></div></div></div>
-                <div class="tweet-stats">
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 150</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 463</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 25</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 1,956</div></span>
-                </div>
-              </div>
-            </div>
-            <div class="timeline-item ">
-              <a class="tweet-link" href="/AllanRSavory/status/1686442070150434824#m"></a>
-              <div class="tweet-body">
-                <div>
-                  <div class="retweet-header"><span><div class="icon-container"><span class="icon-retweet" title=""></span> jack retweeted</div></span></div>
-                  <div class="tweet-header">
-                    <a class="tweet-avatar" href="/AllanRSavory"><img class="avatar round" src="/pic/profile_images%2F700089066872639488%2FLchEzOA2_bigger.jpg" alt="" /></a>
-                    <div class="tweet-name-row">
-                      <div class="fullname-and-username">
-                        <a class="fullname" href="/AllanRSavory" title="Allan Savory">Allan Savory<div class="icon-container"><span class="icon-ok verified-icon" title="Verified account"></span></div></a>
-                        <a class="username" href="/AllanRSavory" title="@AllanRSavory">@AllanRSavory</a>
-                      </div>
-                      <span class="tweet-date"><a href="/AllanRSavory/status/1686442070150434824#m" title="Aug 1, 2023 · 6:21 PM UTC">Aug 1</a></span>
-                    </div>
-                  </div>
-                </div>
-                <div class="tweet-content media-body" dir="auto">Just had a nice message from a Vegan. “I love your work. I just want to add that you might appeal to Vegans by mentioning that animals need not ever be killed and eaten, just allowed to breed naturally growing their population to further heal the Earth.”
-
-Unfortunately, Nature is not humane which is a human concept. Every animal in nature dies if you leave it as suggested.  Almost none die peacefully in their sleep. They die from starvation, disease, or accident none of which are humane deaths, and if  lucky die more humanely in the gentle jaws of a crocodile, lion, hyena or wolf. None of these are as humane as the quick death most farmers and pastoralists ensure after years of raising animals humanely that they love. The inhumane treatment Vegans need to be fighting is not that of ranchers, farmers and pastoralists but corporations producing food in factory settings of great cruelty to animals throughout most of their lives.
-
-Do good by fighting corporate agriculture with one aim – profit for shareholders, and the universities producing ecologically illiterate experts advising government policies supporting the most destructive and inhumane corporate agriculture ever in history. Not only is it inhumane to livestock now, but it is going to cause human suffering and violence greater than the world has ever known if it continues.</div>
-                <div class="tweet-stats">
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 103</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 430</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 52</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 2,107</div></span>
-                </div>
-              </div>
-            </div>
-            <div class="timeline-item ">
-              <a class="tweet-link" href="/MIAuniverse/status/1686174636373901312#m"></a>
-              <div class="tweet-body">
-                <div>
-                  <div class="retweet-header"><span><div class="icon-container"><span class="icon-retweet" title=""></span> jack retweeted</div></span></div>
-                  <div class="tweet-header">
-                    <a class="tweet-avatar" href="/MIAuniverse"><img class="avatar round" src="/pic/profile_images%2F1529914498248626176%2FVP0rfNTY_bigger.jpg" alt="" /></a>
-                    <div class="tweet-name-row">
-                      <div class="fullname-and-username">
-                        <a class="fullname" href="/MIAuniverse" title="M.I.A.Ⓜ️">M.I.A.Ⓜ️</a>
-                        <a class="username" href="/MIAuniverse" title="@MIAuniverse">@MIAuniverse</a>
-                      </div>
-                      <span class="tweet-date"><a href="/MIAuniverse/status/1686174636373901312#m" title="Aug 1, 2023 · 12:38 AM UTC">Aug 1</a></span>
-                    </div>
-                  </div>
-                </div>
-                <div class="tweet-content media-body" dir="auto">Your tweeting me like tweety bird on ya iPhone....... X X X O 
-
-..... Timeless</div>
-                <div class="tweet-stats">
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-comment" title=""></span> 1,213</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-retweet" title=""></span> 194</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-quote" title=""></span> 50</div></span>
-                  <span class="tweet-stat"><div class="icon-container"><span class="icon-heart" title=""></span> 1,200</div></span>
-                </div>
-              </div>
-            </div>
-            <div class="show-more"><a href="?cursor=DAABCgABF4DgIlg__-oKAAIXZn-4W9sQAQgAAwAAAAIAAA">Load more</a></div>
+            <div class="show-more"><a href="?cursor=DAABCgABF4LWNmr__-oKAAIXeKXONFtgAAgAAwAAAAIAAA">Load more</a></div>
             <div class="top-ref"><div class="icon-container"><a class="icon-down" title="" href="#"></a></div></div>
           </div>
         </div>
