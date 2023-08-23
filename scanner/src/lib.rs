@@ -358,6 +358,10 @@ impl Scanner {
                 // cloudflare block
                 return Err(FetchError::KnownHttpResponseStatus(code, message));
             }
+            if code == 429 && body_text.contains("Instance has been rate limited") {
+                // out of non-limited accounts
+                return Err(FetchError::KnownHttpResponseStatus(code, message));
+            }
             if code == 404 {
                 // don't spam the body on 404s
                 return Err(FetchError::KnownHttpResponseStatus(code, message));
