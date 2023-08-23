@@ -63,7 +63,9 @@ impl Scanner {
         }
 
         let time_now = Utc::now();
-        let time_3h = time_now.checked_sub_days(Days::new(30)).unwrap();
+        let time_3h = time_now
+            .checked_sub_signed(chrono::Duration::hours(3))
+            .unwrap();
         let time_30d = time_now.checked_sub_days(Days::new(30)).unwrap();
         let time_120d = time_now.checked_sub_days(Days::new(120)).unwrap();
 
@@ -85,10 +87,10 @@ impl Scanner {
         let mut host_statistics = Vec::with_capacity(hosts.len());
         let default_health_check = LatestCheck::default();
         for host in hosts {
-            let points_3h: f64 = 0.3
-                * stats_3h
-                    .get(&host.id)
-                    .map_or(0.0, |stats| stats.good as f64 / stats.total as f64);
+            let stats_3h_host = stats_3h
+                .get(&host.id)
+                .map_or(0.0, |stats| stats.good as f64 / stats.total as f64);
+            let points_3h: f64 = 0.3 * stats_3h_host;
             let points_30d: f64 = 0.2
                 * stats_30d
                     .get(&host.id)
@@ -103,6 +105,7 @@ impl Scanner {
                     .as_ref()
                     .map_or(0.0, |version| *version_points.get(version).unwrap_or(&0.0));
             let points = points_30d + points_120d + points_version + points_3h;
+            let points = stats_3h_host * points;
 
             let last_check = latest_check.get(&host.id).unwrap_or(&default_health_check);
             // // don't rank currently down instances highly
