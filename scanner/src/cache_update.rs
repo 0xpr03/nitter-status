@@ -144,6 +144,7 @@ impl Scanner {
                 is_upstream,
                 version_url: host.version_url,
                 is_bad_host,
+                country: host.country,
             })
         }
         host_statistics.sort_unstable_by_key(|k| k.points);

@@ -25,6 +25,7 @@ pub struct Model {
     pub enabled: bool,
     pub rss: bool,
     pub version: Option<String>,
+    pub country: String,
     pub version_url: Option<String>,
     /// Last time the url and enabled were updated, *not* the rss
     pub updated: i64,
@@ -36,6 +37,7 @@ pub enum Column {
     Domain,
     Url,
     Version,
+    Country,
     VersionUrl,
     Enabled,
     Rss,
@@ -63,10 +65,12 @@ impl ColumnTrait for Column {
     type EntityName = Entity;
     fn def(&self) -> ColumnDef {
         match self {
+            // required for updated -> integer
             Self::Id => ColumnType::Integer.def(),
             Self::Domain => ColumnType::String(None).def(),
             Self::Url => ColumnType::String(None).def(),
             Self::Version => ColumnType::String(None).def().null(),
+            Self::Country => ColumnType::String(None).def(),
             Self::VersionUrl => ColumnType::String(None).def().null(),
             Self::Enabled => ColumnType::Integer.def(),
             Self::Rss => ColumnType::Integer.def(),

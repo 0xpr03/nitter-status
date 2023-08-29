@@ -117,6 +117,8 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
         .expect("PROFILE_POSTS_MIN must be a positive number");
     let rss_content = require_env_str("RSS_CONTENT")?;
     let additional_hosts: Vec<String> = require_env_vec_str("ADDITIONAL_HOSTS")?;
+    let additional_host_country = require_env_str("ADDITIONAL_HOSTS_COUNTRY")?;
+    let rss_content = require_env_str("RSS_CONTENT")?;
     let bad_hosts: Vec<String> = require_env_vec_str("BAD_HOSTS")?;
     let referrer = require_env_str("REFERER")?;
     let auto_mute = require_env_str("AUTO_MUTE")? == "true";
@@ -134,6 +136,7 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
         profile_posts_min,
         rss_content,
         additional_hosts,
+        additional_host_country,
         referrer,
         ping_range: chrono::Duration::hours(ping_range as _),
         auto_mute,

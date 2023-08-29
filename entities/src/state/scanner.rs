@@ -22,6 +22,8 @@ pub struct Config {
     pub rss_content: String,
     /// List of additional hosts to include during health checks
     pub additional_hosts: Vec<String>,
+    /// Country to use for additional hosts
+    pub additional_host_country: String,
     /// Referer to use
     pub referrer: String,
     /// Duration to average the ping/response times over
@@ -49,6 +51,7 @@ impl Config {
             profile_posts_min: 5,
             rss_content: String::from(r#"<rss xmlns\:atom"#),
             additional_hosts: vec![String::from("https://nitter.net")],
+            additional_host_country: String::from("🇳🇱"),
             referrer: String::from(""),
             ping_range: chrono::Duration::hours(3),
             auto_mute: true,

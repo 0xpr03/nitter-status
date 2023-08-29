@@ -47,4 +47,5 @@ pub struct CacheHost {
     pub is_latest_version: bool,
     /// Whether this host is known to be bad (ip blocking)
     pub is_bad_host: bool,
+    pub country: String,
 }

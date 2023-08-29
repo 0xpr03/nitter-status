@@ -15,9 +15,12 @@ scraper = "0.17.1"
 chrono = { workspace = true }
 regex = { workspace = true }
 git2 = "0.17.2"
+# testing
+serde = { workspace = true, features = ["derive"] }
 
 [dev-dependencies]
 tracing-test = { workspace = true }
+csv = "1.2.2"
 
 [dependencies.entities]
 path = "../entities"

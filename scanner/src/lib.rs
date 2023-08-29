@@ -225,10 +225,11 @@ impl Scanner {
     #[instrument]
     async fn update_instacelist(&mut self) -> Result<()> {
         let start = Instant::now();
-        let html = self.fetch_instancelist().await?;
+        let html: String = self.fetch_instancelist().await?;
         let parsed_instances = self.inner.instance_parser.parse_instancelist(
             &html,
             &self.inner.config.additional_hosts,
+            &self.inner.config.additional_host_country,
             false,
         )?;
 
@@ -292,6 +293,7 @@ impl Scanner {
                 host::ActiveModel {
                     id: ActiveValue::NotSet,
                     domain: ActiveValue::Set(instance.domain),
+                    country: ActiveValue::Set(instance.country),
                     url: ActiveValue::Set(instance.url),
                     enabled: ActiveValue::Set(true),
                     version: ActiveValue::Set(version),
@@ -312,6 +314,7 @@ impl Scanner {
                             host::Column::Rss,
                             host::Column::Version,
                             host::Column::VersionUrl,
+                            host::Column::Country,
                         ])
                         .to_owned(),
                 )

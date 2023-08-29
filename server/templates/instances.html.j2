@@ -4,7 +4,6 @@
   <head>
     <meta charset="utf-8">
     <link href="/static/bootstrap.min.css" rel="stylesheet">
-    <meta name="robots" content="noindex,nofollow" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Nitter Instance Health</title>
   </head>
@@ -12,16 +11,17 @@
   <div class="container">
     <h1>Nitter Instance Uptime & Health</h1>
     <p><a href="/about">About</a></p>
-    <p>Please use <a href="/api/v1/instances">/api/v1/instances</a> for bots.</p>
-    <p>Last Updated {{last_updated}} <a href="https://time.is/UTC">UTC</a>.</p>
+    <p>Please use <a rel="nofollow" href="/api/v1/instances">/api/v1/instances</a> for bots.</p>
+    <p>Last Updated {{last_updated}} <a rel="nofollow" href="https://time.is/UTC">UTC</a>.</p>
     <div class="table-responsive">
       <table class="table sortable">
       <thead>
           <tr>
           <th scope="col">Instance</th>
+          <th scope="col">Country</th>
           <th scope="col">Healthy</th>
-          <th scope="col">Response Time</th>
-          <th scope="col">Average</th>
+          <th scope="col">Response Times</th>
+          <th scope="col">Average (ms)</th>
           <th scope="col">RSS</th>
           <th scope="col">Version</th>
           <th scope="col">Points</th>
@@ -30,7 +30,8 @@
       <tbody>
           {% for host in instances -%}
           <tr>
-          <td><a href="{{host.url}}">{{host.domain}}</a></td>
+          <td><a rel="nofollow external" href="{{host.url}}">{{host.domain}}</a></td>
+          <td>{{host.country}}</td>
           <td>
           {%- if host.is_bad_host -%}
             <div title="Host known for blocking healthchecks">❓</div>
@@ -42,7 +43,7 @@
           <td>
             {%- if host.recent_pings|length > 0 -%}
               {%- set height = 57 -%}
-              {%- set width = 182 -%}
+              {%- set width = 100 -%}
               {%- set amount = host.recent_pings|length  -%}
               {%- set width_bar = width / amount  -%}
               {%- set offset = 5  -%}
