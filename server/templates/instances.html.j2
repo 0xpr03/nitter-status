@@ -106,8 +106,8 @@
           {%- endif -%}
           <td data-sort="{{version}}{{host.version | default(value='')}}">
           {%- if host.version_url -%}
-            <a href="{{host.version_url}}">
-            {{host.version | default(value="missing version")}}
+            <a title="{{host.version}}" href="{{host.version_url}}">
+            {{host.version | truncate(length=18) | default(value="missing version")}}
             </a>
           {%- else -%}
             <a href="{{host.url ~ '/about'}}">missing version</a>
