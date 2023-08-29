@@ -40,7 +40,7 @@
           {%- else -%}
             ❌
           {%- endif -%}</td>
-          <td>
+          <td {%- if not host.ping_min %} colspan="2" {% endif -%}>
             {%- if host.recent_pings|length > 0 -%}
               {%- set height = 57 -%}
               {%- set width = 100 -%}
@@ -91,7 +91,9 @@
               No recent data!
             {%- endif -%}
           </td>
+          {%- if host.ping_min -%}
           <td>{{host.ping_avg}}</td>
+          {% endif %}
           <td>{% if host.rss -%} ✅ {%- else -%} ❌ {%- endif -%}</td>
           {%- if host.healthy and not host.version -%}
             {%- set version = "Dmissing" -%}
