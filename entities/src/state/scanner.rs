@@ -24,8 +24,8 @@ pub struct Config {
     pub additional_hosts: Vec<String>,
     /// Country to use for additional hosts
     pub additional_host_country: String,
-    /// Referer to use
-    pub referrer: String,
+    /// Website URL of this service
+    pub website_url: String,
     /// Duration to average the ping/response times over
     pub ping_range: chrono::Duration,
     /// don't emit errors for hosts which are already listed as down
@@ -52,7 +52,7 @@ impl Config {
             rss_content: String::from(r#"<rss xmlns\:atom"#),
             additional_hosts: vec![String::from("https://nitter.net")],
             additional_host_country: String::from("🇳🇱"),
-            referrer: String::from(""),
+            website_url: String::from(""),
             ping_range: chrono::Duration::hours(3),
             auto_mute: true,
             source_git_branch: String::from("master"),

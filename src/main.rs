@@ -137,7 +137,7 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
         rss_content,
         additional_hosts,
         additional_host_country,
-        referrer,
+        website_url: require_env_str("SITE_URL")?,
         ping_range: chrono::Duration::hours(ping_range as _),
         auto_mute,
         source_git_branch,

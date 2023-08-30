@@ -39,8 +39,6 @@ mod version_check;
 const CAPTCHA_TEXT: &'static str = "Enable JavaScript and cookies to continue";
 const CAPTCHA_CODE: u16 = 403;
 
-static USER_AGENT: &str =
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0";
 static ACCEPT: &str =
     "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8";
 static LANGUAGE: &str = "de,en-US;q=0.7,en;q=0.3";
@@ -140,13 +138,13 @@ impl Scanner {
         for header in HEADERS {
             headers.insert(header[0], HeaderValue::from_static(header[1]));
         }
-        headers.insert("Referer", HeaderValue::from_str(&config.referrer).unwrap());
+        let user_agent = format!("nitter-status (+{}/about)",config.website_url);
         let http_client = Client::builder()
             .cookie_store(true)
             .brotli(true)
             .deflate(true)
             .gzip(true)
-            .user_agent(USER_AGENT)
+            .user_agent(user_agent)
             .connect_timeout(std::time::Duration::from_secs(3))
             .timeout(std::time::Duration::from_secs(10))
             .default_headers(headers);
