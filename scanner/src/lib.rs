@@ -92,13 +92,13 @@ impl FetchError {
     }
 }
 
-pub fn run_scanner(
+pub async fn run_scanner(
     db: DatabaseConnection,
     config: ScannerConfig,
     cache: Cache,
     disable_startup_scan: bool,
 ) -> Result<()> {
-    let scanner = Scanner::new(db, config, cache);
+    let scanner = Scanner::new(db, config, cache).await?;
 
     tokio::spawn(async move {
         scanner.run(disable_startup_scan).await.unwrap();
@@ -133,7 +133,7 @@ pub struct LatestCheck {
 }
 
 impl Scanner {
-    fn new(db: DatabaseConnection, config: ScannerConfig, cache: Cache) -> Self {
+    async fn new(db: DatabaseConnection, config: ScannerConfig, cache: Cache) -> Result<Self> {
         let mut headers = HeaderMap::with_capacity(HEADERS.len());
         for header in HEADERS {
             headers.insert(header[0], HeaderValue::from_static(header[1]));
@@ -150,7 +150,7 @@ impl Scanner {
             .default_headers(headers);
         let mut builder_regex_rss = RegexBuilder::new(&config.rss_content);
         builder_regex_rss.case_insensitive(true);
-        Self {
+        let scanner = Self {
             inner: Arc::new(InnerScanner {
                 db,
                 cache,
@@ -165,13 +165,13 @@ impl Scanner {
                     .build()
                     .expect("Invalid RSS Content regex!"),
             }),
-        }
+        };
+        scanner.update_cache().await?;
+        Ok(scanner)
     }
 
     pub async fn run(mut self, disable_startup_scan: bool) -> Result<()> {
         let mut first_run = !disable_startup_scan;
-
-        self.update_cache().await?;
         loop {
             if first_run || self.is_instance_list_outdated() {
                 if let Err(e) = self.update_instacelist().await {
@@ -429,7 +429,7 @@ mod test {
     #[ignore]
     async fn update_instacelist() {
         let db = db_init().await;
-        let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new());
+        let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new()).await.unwrap();
         let res = scanner.fetch_instancelist().await.unwrap();
         let mut file = File::create("test_data/instancelist.html").await.unwrap();
         file.write_all(&res.as_bytes()).await.unwrap();
@@ -439,7 +439,7 @@ mod test {
     #[ignore]
     async fn fetch_test() {
         let db = db_init().await;
-        let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new());
+        let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new()).await.unwrap();
         let (_, res) = scanner.fetch_url("example.com/jack").await.unwrap();
         let mut file = File::create("test_data/blocked.html").await.unwrap();
         file.write_all(&res.as_bytes()).await.unwrap();
@@ -449,7 +449,7 @@ mod test {
     #[ignore]
     async fn stats_test() {
         let db = db_init().await;
-        let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new());
+        let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new()).await.unwrap();
         dbg!(scanner.generate_cache_data().await.unwrap());
     }
 }

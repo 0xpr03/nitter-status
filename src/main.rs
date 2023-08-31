@@ -82,7 +82,7 @@ async fn _main() -> miette::Result<()> {
         scanner_config.clone(),
         cache.clone(),
         disable_startup_scan,
-    )
+    ).await
     .into_diagnostic()
     .wrap_err("Failed starting background scanner")?;
 
