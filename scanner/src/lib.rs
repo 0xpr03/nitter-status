@@ -412,10 +412,13 @@ impl Scanner {
 
 #[cfg(test)]
 mod test {
+
     use super::*;
+    use chrono::Duration;
     use entities::state::scanner::Config;
     use sea_orm::{ConnectOptions, Database};
     use tokio::{fs::File, io::AsyncWriteExt};
+    use entities::health_check;
 
     async fn db_init() -> DatabaseConnection {
         Database::connect(ConnectOptions::new(
@@ -423,6 +426,27 @@ mod test {
         ))
         .await
         .unwrap()
+    }
+
+    // only for generating fake data
+    // still requires copying over the DB for running on it
+    #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
+    #[ignore]
+    async fn setup_test_data() {
+        let db = db_init().await;
+        let time: chrono::DateTime<Utc> = Utc::now();
+        for v in 0..365 {
+            let entry_time = time.checked_sub_signed(Duration::minutes(15*v)).unwrap();
+            health_check::ActiveModel {
+                time: ActiveValue::Set(entry_time.timestamp()),
+                host: ActiveValue::Set(208692),
+                resp_time: ActiveValue::Set(Some(12)),
+                healthy: ActiveValue::Set(v % 2 == 0),
+                response_code: ActiveValue::Set(Some(200)),
+            }
+            .insert(&db)
+            .await.unwrap();
+        }
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 1)]

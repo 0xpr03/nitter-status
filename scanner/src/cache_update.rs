@@ -24,6 +24,13 @@ pub struct HostStats {
     total: u32,
 }
 
+#[derive(Debug, FromQueryResult)]
+pub struct HostHealthyPercentage {
+    host: i32,
+    /// Percentage
+    healthy: u8,
+}
+
 #[derive(Debug, Default)]
 struct LastPings {
     avg: Option<i32>,
@@ -83,6 +90,8 @@ impl Scanner {
         let mut ping_data = self
             .query_pings(time_now - self.inner.config.ping_range)
             .await?;
+
+        let mut healthy_percentage_total = self.query_healthy_percentage().await?;
 
         let mut host_statistics = Vec::with_capacity(hosts.len());
         let default_health_check = LatestCheck::default();
@@ -145,6 +154,8 @@ impl Scanner {
                 version_url: host.version_url,
                 is_bad_host,
                 country: host.country,
+                healthy_percentage_overall: healthy_percentage_total.remove(&host.id).unwrap_or(0),
+                recent_checks: self.query_latest_health_checks(22,host.id).await?,
             })
         }
         host_statistics.sort_unstable_by_key(|k| k.points);
@@ -303,5 +314,54 @@ impl Scanner {
         .await?;
         let stats: HashMap<_, _> = stats.into_iter().map(|v| (v.host, v)).collect();
         Ok(stats)
+    }
+
+    /// Query total up percentage for all hosts
+    async fn query_healthy_percentage(
+        &self,
+    ) -> Result<HashMap<i32, u8>> {
+        let stats: Vec<HostHealthyPercentage> = HostHealthyPercentage::find_by_statement(Statement::from_sql_and_values(
+            DbBackend::Sqlite,
+            r#"SELECT u.host, CAST(AVG(healthy) * 100 as INT) as healthy FROM health_check u
+            JOIN host h ON h.id = u.host
+            WHERE h.enabled = true
+            GROUP BY u.host"#,
+            [],
+        ))
+        .all(&self.inner.db)
+        .await?;
+        let stats: HashMap<_, _> = stats.into_iter().map(|v| (v.host, v.healthy)).collect();
+        Ok(stats)
+    }
+
+    /// Query latest health checks for the red/green only graph. Returns latest $amount in ascending order and formatted time.
+    async fn query_latest_health_checks(
+        &self,
+        // How many to retrieve
+        amount: i32,
+        host: i32,
+    ) -> Result<Vec<(String,bool)>> {
+        #[derive(Debug, FromQueryResult)]
+        pub struct HostHealthCheck {
+            healthy: bool,
+            time: i64,
+        }
+        let health_checks: Vec<HostHealthCheck> = HostHealthCheck::find_by_statement(Statement::from_sql_and_values(
+            DbBackend::Sqlite,
+            r#"SELECT healthy, time FROM health_check u
+            JOIN host h ON h.id = u.host
+            WHERE h.enabled = true AND host = $1
+            ORDER BY time DESC
+            LIMIT $2"#,
+            [host.into(), amount.into()],
+        ))
+        .all(&self.inner.db)
+        .await?;
+        // transform to correct time format
+        let health_checks: Vec<_> = health_checks.into_iter().rev().map(|entry|{
+            let time = Utc.timestamp_opt(entry.time, 0).unwrap();
+            (time.format("%Y.%m.%d %H:%M").to_string(),entry.healthy)
+        }).collect();
+        Ok(health_checks)
     }
 }

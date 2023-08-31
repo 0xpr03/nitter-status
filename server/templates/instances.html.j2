@@ -4,6 +4,14 @@
   <head>
     <meta charset="utf-8">
     <link href="/static/bootstrap.min.css" rel="stylesheet">
+    <style>
+    .uptime-graph rect {
+      cursor: pointer;
+    }
+    .uptime-graph rect:hover {
+      fill: #5e6c84;
+    }
+    </style>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Nitter Instance Health</title>
   </head>
@@ -20,8 +28,9 @@
           <th scope="col">Instance</th>
           <th scope="col">Country</th>
           <th scope="col">Healthy</th>
-          <th scope="col">Response Times</th>
+          <th scope="col">Health History</th>
           <th scope="col">Average (ms)</th>
+          <th scope="col">All Healthy %</th>
           <th scope="col">RSS</th>
           <th scope="col">Version</th>
           <th scope="col">Points</th>
@@ -40,57 +49,38 @@
           {%- else -%}
             ❌
           {%- endif -%}</td>
-          <td {%- if not host.ping_min %} colspan="2" {% endif -%}>
-            {%- if host.recent_pings|length > 0 -%}
-              {%- set height = 34 -%}
-              {%- set width = 100 -%}
-              {%- set amount = host.recent_pings|length  -%}
-              {%- set width_bar = 5  -%}
-              {%- set offset = 5  -%}
-              {%- set error_size = height / 3 %}
-              {%- if host.ping_max and host.ping_min -%}
-                {# only one entry, so max = min => step_size would be 0 #}
-                {%- if host.ping_max == host.ping_min -%}
-                  {%- set step_size = 5/(height-offset) -%}
-                {%- else -%}
-                  {%- set step_size = (host.ping_max - host.ping_min)/(height-offset) -%}
-                {%- endif -%}
-              {%- else %}
-                {# no valid entries, only nulls #}
-                {%- set step_size = 5/(height-offset) -%}
-              {%- endif -%}
-              {# <!-- step size {{step_size}} -->
-              <!-- ping_max {{host.ping_max}} -->
-              <!-- ping_min {{host.ping_min}} --> #}
-              {%- if host.ping_min -%}
-                <svg viewBox="0 0 {{width}} {{height}}" height="{{height - 1}}">
-                  {%- for ping in host.recent_pings -%}
-                    {%- if ping -%}
-                      {%- set title = "Healthy" -%}
-                      {%- set color_bar = "#2fcc66" -%}
-                    {%- else -%}
-                      {%- set title = "Unhealthy" -%}
-                      {%- set color_bar = "#ff6225" -%}
-                    {%- endif -%}
-                    <rect x="{{(loop.index-1) * width_bar}}" y="0" width="{{width_bar - 2}}" height="{{height}}" fill="{{color_bar}}" fill-opacity="0.95"><title>{{title}}</title></rect>
-                  {%- endfor -%}
-                </svg>
-              {%- else -%}
-                {# <!-- no healthy entries, show last time host was seen healthy --> #}
-                {%- if host.last_healthy -%}
-                Last seen healthy: {{host.last_healthy | truncate(length=16, end="") | replace(from="-", to=".") | replace(from="T", to=" ")}}
-                <a rel="nofollow" href="https://time.is/UTC">UTC</a>
-                {%- else -%}
-                Never seen healthy.
-                {%- endif -%}
-              {%- endif -%}
+          <td {%- if not host.recent_checks %} colspan="2" {% endif -%}>
+            {%- set height = 28 -%}
+            {%- set width = 110 -%}
+            {%- set width_bar = 5  -%}
+            {%- set offset = 5  -%}
+            {%- if host.recent_checks -%}
+              <svg class="uptime-graph" viewBox="0 0 {{width}} {{height}}" height="{{height}}">
+                {%- for check in host.recent_checks -%}
+                  {%- if check.1 -%}
+                    {%- set title = "Healthy " ~ check.0 -%}
+                    {%- set color_bar = "#2fcc66" -%}
+                  {%- else -%}
+                    {%- set title = "Unhealthy " ~ check.0 -%}
+                    {%- set color_bar = "#ff6225" -%}
+                  {%- endif -%}
+                  <rect x="{{(loop.index-1) * width_bar}}" y="0" width="{{width_bar - 1}}" height="{{height}}" fill="{{color_bar}}" fill-opacity="0.95" shape-rendering="auto" ><title>{{title}}</title></rect>
+                {%- endfor -%}
+              </svg>
             {%- else -%}
-              No recent data!
+              {# <!-- no healthy entries, show last time host was seen healthy --> #}
+              {%- if host.last_healthy -%}
+              Last seen healthy: {{host.last_healthy | truncate(length=16, end="") | replace(from="-", to=".") | replace(from="T", to=" ")}}
+              <a rel="nofollow" href="https://time.is/UTC">UTC</a>
+              {%- else -%}
+              Never seen healthy.
+              {%- endif -%}
             {%- endif -%}
           </td>
-          {%- if host.ping_min -%}
+          {%- if host.recent_checks -%}
           <td>{{host.ping_avg}}</td>
           {% endif %}
+          <td>{{host.healthy_percentage_overall}}</td>
           <td>{% if host.rss -%} ✅ {%- else -%} ❌ {%- endif -%}</td>
           {%- if host.healthy and not host.version -%}
             {%- set version = "Dmissing" -%}

@@ -47,5 +47,10 @@ pub struct CacheHost {
     pub is_latest_version: bool,
     /// Whether this host is known to be bad (ip blocking)
     pub is_bad_host: bool,
+    /// Country from the wiki
     pub country: String,
+    /// Last health checks time formatted, healthy
+    pub recent_checks: Vec<(String,bool)>,
+    /// Percentage of healthy checks since first seen
+    pub healthy_percentage_overall: u8,
 }
