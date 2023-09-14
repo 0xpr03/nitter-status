@@ -142,6 +142,7 @@ impl Scanner {
                 url: host.url,
                 domain: host.domain,
                 points,
+                connectivity: host.connectivity,
                 rss: host.rss,
                 version: host.version,
                 healthy: last_check.healthy,

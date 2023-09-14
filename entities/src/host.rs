@@ -4,7 +4,7 @@ use sea_orm::{
     entity::prelude::*,
     sea_query::{Expr, SimpleExpr},
 };
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 
 #[derive(Copy, Clone, Default, Debug, DeriveEntity)]
 pub struct Entity;
@@ -27,8 +27,20 @@ pub struct Model {
     pub version: Option<String>,
     pub country: String,
     pub version_url: Option<String>,
+    pub connectivity: Option<Connectivity>,
     /// Last time the url and enabled were updated, *not* the rss
     pub updated: i64,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq ,Eq, EnumIter, DeriveActiveEnum, Serialize)]
+#[sea_orm(rs_type = "i32", db_type = "Integer")]
+pub enum Connectivity {
+    #[sea_orm(num_value = 0)]
+    All = 0,
+    #[sea_orm(num_value = 1)]
+    IPv4 = 1,
+    #[sea_orm(num_value = 2)]
+    IPv6 = 2,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveColumn)]
@@ -40,6 +52,7 @@ pub enum Column {
     Country,
     VersionUrl,
     Enabled,
+    Connectivity,
     Rss,
     Updated,
 }
@@ -75,6 +88,7 @@ impl ColumnTrait for Column {
             Self::Enabled => ColumnType::Integer.def(),
             Self::Rss => ColumnType::Integer.def(),
             Self::Updated => ColumnType::Integer.def(),
+            Self::Connectivity => ColumnType::Integer.def().null(),
         }
     }
 

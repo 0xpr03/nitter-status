@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //! Instance health/uptime checking code
+use std::net::IpAddr;
 use std::time::Instant;
 
 use chrono::Utc;
 use entities::health_check;
+use entities::host::Connectivity;
 use entities::{host, prelude::*};
-use reqwest::Url;
+use reqwest::{Url, ClientBuilder};
 use sea_orm::prelude::DateTimeUtc;
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;

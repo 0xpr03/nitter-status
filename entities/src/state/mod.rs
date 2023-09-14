@@ -8,6 +8,8 @@ use chrono::Utc;
 use sea_orm::prelude::DateTimeUtc;
 use serde::Serialize;
 
+use crate::host::Connectivity;
+
 pub mod scanner;
 
 pub type Cache = Arc<RwLock<CacheData>>;
@@ -53,4 +55,5 @@ pub struct CacheHost {
     pub recent_checks: Vec<(String,bool)>,
     /// Percentage of healthy checks since first seen
     pub healthy_percentage_overall: u8,
+    pub connectivity: Option<Connectivity>,
 }

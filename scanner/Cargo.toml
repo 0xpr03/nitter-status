@@ -22,5 +22,8 @@ serde = { workspace = true, features = ["derive"] }
 tracing-test = { workspace = true }
 csv = "1.2.2"
 
+[dev-dependencies.migration]
+path = "../migration"
+
 [dependencies.entities]
 path = "../entities"

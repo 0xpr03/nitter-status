@@ -33,6 +33,7 @@
           <th scope="col">All Healthy %</th>
           <th scope="col">RSS</th>
           <th scope="col">Version</th>
+          <th scope="col">Connectivity</th>
           <th scope="col">Points</th>
           </tr>
       </thead>
@@ -111,6 +112,8 @@
                 <span class="ms-1 badge bg-info">outdated</span>
               {%- endif -%}
           </td>
+          {# <td>{%- if host.connectivity ==  -%}</td> #}
+          <td>{{host.connectivity}}</td>
           <td>{{host.points}}</td>
           </tr>
           {%- endfor -%}
