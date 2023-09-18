@@ -1,0 +1,7 @@
+User-Agent: *
+
+Disallow: /api/
+
+Allow: /
+
+Crawl-delay: 5

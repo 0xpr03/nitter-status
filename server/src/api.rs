@@ -20,5 +20,6 @@ pub async fn instances(
         "cache-control",
         HeaderValue::from_str(&format!("public, max-age={}", config.max_age)).unwrap(),
     );
+    res.headers_mut().insert("X-Robots-Tag", HeaderValue::from_static("noindex, nofollow"));
     Ok(res)
 }

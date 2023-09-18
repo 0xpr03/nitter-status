@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 use std::{borrow::Cow, net::SocketAddr, sync::Arc};
 
-use axum::{extract::DefaultBodyLimit, http::HeaderValue, response::Html, routing::get, Router};
+use axum::{extract::DefaultBodyLimit, http::HeaderValue, response::Html, routing::{get, get_service}, Router};
 use entities::state::{scanner::ScannerConfig, Cache};
 use hyper::{header, StatusCode};
 use sea_orm::DatabaseConnection;
@@ -9,7 +9,7 @@ use tera::Tera;
 use thiserror::Error;
 use tower::ServiceBuilder;
 use tower_http::{
-    cors::CorsLayer, limit::RequestBodyLimitLayer, services::ServeDir,
+    cors::CorsLayer, limit::RequestBodyLimitLayer, services::{ServeDir, ServeFile},
     set_header::SetResponseHeaderLayer, trace::TraceLayer,
 };
 
@@ -55,6 +55,10 @@ pub async fn start(
         )
         .route("/api/v1/instances", get(api::instances))
         .route("/about", get(website::about))
+        .route(
+            "/robots.txt",
+            get_service(ServeFile::new("server/static/robots.txt")),
+        )
         .route("/", get(website::instances))
         .layer(
             ServiceBuilder::new()
