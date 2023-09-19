@@ -68,7 +68,7 @@ pub async fn start(
                 .layer(cors_policy(&config.site_url))
                 .layer(SetResponseHeaderLayer::overriding(
                     header::CONTENT_SECURITY_POLICY,
-                    "default-src 'self'; child-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline';"
+                    "default-src 'self'; child-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
                         .parse::<HeaderValue>()
                         .expect("Invalid CSP header value"),
                 )),
