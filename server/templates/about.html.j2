@@ -1,6 +1,6 @@
 {# SPDX-License-Identifier: AGPL-3.0-only #}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
   <head>
     <meta charset="utf-8">
     <link href="/static/bootstrap.min.css" rel="stylesheet">
@@ -13,7 +13,7 @@
     <div class="container">
     <h1>Nitter instance uptime & health tracker</h1>
     <p><a href="/">Home</a></p>
-    <p>Uptime check interval: {{uptime_interval_s}}s.</p>
+    <p id="update-interval">Uptime check interval: {{uptime_interval_s}}s.</p>
     <p>Instance re-fetching interval, including RSS & version check: {{wiki_interval_s}}s.</p>
     <p>Fetched latest commit: {{latest_commit}}</p>
 
@@ -24,19 +24,32 @@
       {%- endfor %}
     </ul>
 
-    <p>The same data can also be fetched as JSON from <code>/api/v1/instances</code></p>
+    <p>
+      <h4>Table Explanations</h4>
+      <ul>
+        <li><code>Country</code> for the host country reported in the instance wiki.</li>
+        <li><code>Healthy</code> stands for hosts which are reachable and pass a content check. Known bad hosts are marked with a ❓, these instances block healthchecks.</li>
+        <li><code>Average Time</code> is the response time average over the last {{ping_avg_interval_h}} hours. This is not a network ping.</li>
+        <li><code>All Time %</code> for all time percentage of the instance being healthy.</li>
+        <li><code>RSS</code> whether the host has RSS feeds enabled.</li>
+        <li><code>Nitter Version</code> which nitter version the host reports.</li>
+        <li><code>Connectivity</code> the IP connectivity support. One of All, IPv4, IPv6</li>
+        <li><code>Points</code> is a weighted instance score based on the availability over the last 3h, 30 and 120 days, together with the version.</li>
+      </ul>
+    </p>
 
-    <p>Explanations</p>
-    <ul>
-      <li><code>Healthy</code> stands for hosts which are reachable and pass a content check. Known bad hosts are marked with a ❓, these instances block healthchecks.</li>
-      <li><code>Response Time</code> is the response time over the last {{ping_avg_interval_h}} hours. This is not a network ping.</li>
-      <li><code>Average</code> is the time average over the last {{ping_avg_interval_h}} hours.</li>
-      <li><code>RSS</code> whether the host has RSS feeds enabled.</li>
-      <li><code>Version</code> which nitter version the host reports.</li>
-      <li><code>Points</code> is a weighted instance score based on the availability over the last 3h, 30 and 120 days, together with the version.</li>
-    </ul>
+    <p>Settings for visible columns are stored locally per client.</p>
 
-    <p>Table settings are stored locally per client.</p>
+    <p id="api">
+      <h4>API</h4>
+      The same data as visible in the website/table can also be fetched as JSON from <code>/api/v1/instances</code> (<a rel="nofollow" href="/api/v1/instances">link</a>).
+      Note that the data only changes in the intervals stated <a href="#update-interval">above</a>. Thus requesting it very often will get you rate limited.
+    </p>
+    <p>
+      Please <b>do not use instances listed here for scraping(<a rel="nofollow" href="https://en.wikipedia.org/wiki/Web_scraping">?</a>) !</b>
+      Instead <a href="https://github.com/zedeus/nitter/#docker">host your own</a> nitter instance, so public instances can be used by less tech savy people and not get overrun by you. You can get help with that at the listed matrix channel.
+    </p>
+    <p>The purpose of this API is to serve services like Twiiit, Farside or people looking for indication that their RSS feed is down - but not scrapers. Scraping will bring the downfall of public instances.</p>
 
     <p><a rel="nofollow" href="https://github.com/0xpr03/nitter-status">Sourcecode</a></p>
     <p>License: AGPL3</p>

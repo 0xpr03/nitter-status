@@ -22,9 +22,9 @@
   <div class="container">
     <h1>Nitter Instance Uptime & Health</h1>
     <p><a href="/about">About</a></p>
-    <p>Please use <a rel="nofollow" href="/api/v1/instances">/api/v1/instances</a> for bots.</p>
+    <p>Please use the <a rel="nofollow" href="/about#api">API</a> for bots. Please <b>do NOT use these instances for scraping</b>, host nitter yourself.</p>
     <p>Last Updated {{last_updated}} <a rel="nofollow" href="https://time.is/UTC">UTC</a>.</p>
-    <p>You can customize the visible columns at the bottom.</p>
+    <p>Customize the visible columns <a href="#column-settings">down below</a>.</p>
     <div class="table-responsive">
       <table id="status-tbl" class="table sortable table-hover table-sm">
       <thead>
@@ -33,10 +33,10 @@
           <th data-name="country" scope="col">Country</th>
           <th scope="col">Healthy</th>
           <th scope="col">Health History</th>
-          <th data-name="average" scope="col">Average (ms)</th>
-          <th scope="col">All Healthy %</th>
+          <th data-name="average" scope="col">Average Time</th>
+          <th scope="col">All Time %</th>
           <th data-name="rss" scope="col">RSS</th>
-          <th data-name="version" scope="col">Version</th>
+          <th data-name="version" scope="col">Nitter Version</th>
           <th data-name="connectivity" scope="col">Connectivity</th>
           <th scope="col">Points</th>
           </tr>
@@ -83,7 +83,7 @@
             {%- endif -%}
           </td>
           {%- if host.recent_checks -%}
-          <td data-name="average">{{host.ping_avg}}</td>
+          <td data-name="average">{{host.ping_avg}}ms</td>
           {% endif %}
           <td>{{host.healthy_percentage_overall}}</td>
           <td data-name="rss">{% if host.rss -%} ✅ {%- else -%} ❌ {%- endif -%}</td>
@@ -125,7 +125,8 @@
       </table>
     </div>
     <noscript>Toggling table columns and sorting requires JS.</noscript>
-    <div class="form mt-2">
+    <div id="column-settings" class="form mt-2">
+      Visible Columns:
       <div class="form-check">
         <input class="form-check-input toggle-column" data-name="connectivity" type="checkbox" id="checkConnectivity">
         <label class="form-check-label" for="checkConnectivity">
