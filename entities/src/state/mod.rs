@@ -11,15 +11,25 @@ use serde::Serialize;
 use crate::host::Connectivity;
 
 pub mod scanner;
+/// Log for recent host errors
+pub mod error_cache;
 
-pub type Cache = Arc<RwLock<CacheData>>;
+pub type Cache = RwLock<CacheData>;
 
-pub fn new() -> Cache {
-    Arc::new(RwLock::new(CacheData {
-        hosts: vec![],
-        last_update: Utc::now(),
-        latest_commit: String::new(),
-    }))
+pub type AppState = Arc<InnerState>;
+
+pub struct InnerState {
+    pub cache: RwLock<CacheData>,
+}
+
+pub fn new() -> AppState {
+    Arc::new(InnerState {
+        cache: RwLock::new(CacheData {
+            hosts: vec![],
+            last_update: Utc::now(),
+            latest_commit: String::new(),
+        }),
+    })
 }
 
 #[derive(Debug, Serialize)]

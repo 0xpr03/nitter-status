@@ -4,8 +4,9 @@ use std::net::IpAddr;
 use std::time::Instant;
 
 use chrono::Utc;
-use entities::health_check;
+use entities::{health_check, check_errors};
 use entities::host::Connectivity;
+use entities::state::error_cache::HostError;
 use entities::{host, prelude::*};
 use reqwest::{Url, ClientBuilder};
 use sea_orm::prelude::DateTimeUtc;
@@ -62,7 +63,7 @@ impl Scanner {
                 if !muted {
                     tracing::error!(error=?e, url=host.url,"failed to parse instance URL");
                 }
-                self.insert_failed_health_check(host.id, now, None, None)
+                self.insert_failed_health_check(host.id, now,HostError::new_message(format!("Not a valid URL")), None)
                     .await;
                 return;
             }
@@ -82,13 +83,7 @@ impl Scanner {
                         "couldn't ping host: {e}, marking as dead"
                     );
                 }
-                let (http_code, resp_time) = match e {
-                    FetchError::HttpResponseStatus(code, _, _) => {
-                        (Some(code as _), Some(took_ms as _))
-                    }
-                    _ => (None, None),
-                };
-                self.insert_failed_health_check(host.id, now, resp_time, http_code)
+                self.insert_failed_health_check(host.id, now, e.to_host_error(), Some(took_ms as _))
                     .await;
             }
             Ok((http_code, content)) => {
@@ -108,8 +103,8 @@ impl Scanner {
                         self.insert_failed_health_check(
                             host.id,
                             now,
+                            HostError::new(e.to_string(), content, http_code),
                             Some(took_ms as _),
-                            Some(http_code as _),
                         )
                         .await;
                     }
@@ -126,8 +121,8 @@ impl Scanner {
                             self.insert_failed_health_check(
                                 host.id,
                                 now,
+                                HostError::new(format!("profile content mismatch"), content, http_code),
                                 Some(took_ms as _),
-                                Some(http_code as _),
                             )
                             .await;
                         } else {
@@ -205,20 +200,32 @@ impl Scanner {
         &self,
         host: i32,
         time: DateTimeUtc,
+        host_error: HostError,
         resp_time: Option<i32>,
-        http_code: Option<i32>,
     ) {
         if let Err(e) = (health_check::ActiveModel {
             time: ActiveValue::Set(time.timestamp()),
             host: ActiveValue::Set(host),
             resp_time: ActiveValue::Set(resp_time),
             healthy: ActiveValue::Set(false),
-            response_code: ActiveValue::Set(http_code),
+            response_code: ActiveValue::Set(host_error.http_status),
         }
         .insert(&self.inner.db)
         .await)
         {
             tracing::error!(error=?e,"Failed to insert update check");
+        }
+        if let Err(e) = (check_errors::ActiveModel {
+            time: ActiveValue::Set(host_error.time.timestamp()),
+            host: ActiveValue::Set(host),
+            message: ActiveValue::Set(host_error.message),
+            http_body: ActiveValue::Set(host_error.http_body),
+            http_status: ActiveValue::Set(host_error.http_status),
+        }
+        .insert(&self.inner.db)
+        .await)
+        {
+            tracing::error!(host=host, error=?e,"Failed to insert error for host");
         }
     }
 }

@@ -1,5 +1,8 @@
 {
     "rust-analyzer.linkedProjects": [
         ".\\server\\Cargo.toml"
+    ],
+    "cSpell.words": [
+        "Deque"
     ]
 }

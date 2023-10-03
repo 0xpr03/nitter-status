@@ -91,12 +91,3 @@ impl MigrationTrait for Migration {
         panic!("Can't migrate down");
     }
 }
-
-/// Learn more at https://docs.rs/sea-query#iden
-#[derive(Iden)]
-enum Post {
-    Table,
-    Id,
-    Title,
-    Text,
-}

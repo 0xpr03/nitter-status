@@ -6,6 +6,8 @@ mod m20230729_230909_datetime_int_host;
 mod m20230803_154714_version_url;
 mod m20230829_201916_country;
 mod m20230914_231514_connectivity;
+mod m20231011_231223_errors;
+
 
 
 pub struct Migrator;
@@ -20,6 +22,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20230803_154714_version_url::Migration),
             Box::new(m20230829_201916_country::Migration),
             Box::new(m20230914_231514_connectivity::Migration),
+            Box::new(m20231011_231223_errors::Migration),
         ]
     }
 }

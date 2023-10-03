@@ -18,11 +18,19 @@ chrono = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 serde = { workspace = true, features = ["derive"] }
-
+reqwest = { workspace = true, features = ["deflate","gzip","brotli","cookies", "rustls-tls"] }
+sha2 = "0.10"
+constant_time_eq = "0.3"
+base16ct = "0.2"
 thiserror = { workspace = true }
+trust-dns-resolver = { version = "0.23.0", features = ["dns-over-rustls"] }
 
 # templating
 tera = "1.19.0"
+
+# login
+tower-sessions = {version = "0.3.1"}
+time = { workspace = true }
 
 [dependencies.entities]
 path = "../entities"

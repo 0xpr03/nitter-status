@@ -4,6 +4,8 @@
 
 New entities:
 
+`sea-orm-cli migrate generate --migration-dir "migration" --database-url "./sqlite.db?mode=rwc" <name>`
+
 Run the following command to re-generate the entities.
 `sea-orm-cli generate entity -o entities/src --with-serde serialize`
 

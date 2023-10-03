@@ -1,0 +1,87 @@
+{# SPDX-License-Identifier: AGPL-3.0-only #}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <link href="/static/bootstrap.min.css" rel="stylesheet">
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="" />
+    <title>Admin Interface</title>
+  </head>
+  <body>
+    <div class="container">
+    <h1>Login for Instance owners</h1>
+    <p>Get access to your instance history and errors by loggin in.</p>
+    <p><a href="/">Home</a></p>
+
+    {% if ERROR %}
+      <div id="error" class="p-3 bg-secondary-subtle border border-danger-subtle rounded-3">
+        <h4 class="text-danger-emphasis">Failed to login</h4>
+        <div class="text-danger-emphasis bg-danger-subtle">{{ERROR}}</div>
+      {% if QUOTE %}<blockquote class="text-secondary-emphasis bg-secondary-subtle">{{QUOTE}}</blockquote>{% endif %}
+      </div>
+    {% endif %}
+
+    <form class="p-3" method="post">
+      <div class="mb-3">
+        <label for="domainInput" class="form-label">Instance</label>
+        <input type="text" required name="domain" value="{{DOMAIN | default(value='')}}" hint="example.com" class="form-control" id="domainInput" aria-describedby="instanceHelp">
+        <div id="instanceHelp" class="form-text">Instance domain, without https.</div>
+      </div>
+      <div class="mb-3">
+        <label for="instanceToken" class="form-label">Private Token</label>
+        <input type="password" required name="key" class="form-control" id="instanceToken" aria-describedby="tokenHelp">
+        <div id="tokenHelp" class="form-text">Private token to verify against your host.</div>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" required value="HTTP" type="radio" name="verification_method" id="verification_method_http">
+        <label class="form-check-label" for="verification_method_http">
+          Verify via HTTP file at <code>/.{{VERIFY_TOKEN_NAME}}</code>
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" required value="DNS" type="radio" name="verification_method" id="verification_method_dns">
+        <label class="form-check-label" for="verification_method_dns">
+          Verify via DNS TXT record <code>{{VERIFY_TOKEN_NAME}}</code>
+        </label>
+      </div>
+      <input type="hidden" id="referrer" name="referrer" value="{{referrer | default(value='')}}" />
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+    <h4>Setting up the login token:</h4>
+    <ol>
+    <li><p>Create a random value, and its corresponding SHA256 hash:
+
+        <ul>
+
+            <li><p>Run this in bash: <code>uuidgen | tee >(tr -d $'\n' | sha256sum)</code>
+
+            <li><strong>OR: </strong> <a id=generate href=#>generate it in the browser</a>
+        </ul>
+
+        <p>The output is like this:
+
+        <pre><code class="ex-key">9FF98B96-9CCF-4624-85F4-453BBF8BB96D</code>
+        <code class="ex-hash">6c9872185d6975f0f51d7d16a6428aadb1df494af0f68166f790ef0d51b0bc8f</code></pre>
+
+        <p>The first line is your random value, and the second line's hex part is the hash.
+    </li>
+
+    <li><p>For your instance <code class=ex-host>nitter.example.com</code>, either:
+
+        <ul>
+            <li>
+              <p>create a new TXT record with the name <code>{{VERIFY_TOKEN_NAME}}.<span class=ex-host>nitter</span></code> and the value <code class=ex-hash>6c9872185d6975f0f51d7d16a6428aadb1df494af0f68166f790ef0d51b0bc8f</code>
+
+              <p>Verify that <code>dig -t txt {{VERIFY_TOKEN_NAME}}.<span class=ex-host>nitter.example.com</span></code> resolves
+
+            <li><p><strong>OR: </strong>create a file <code>https://<span class=ex-host>nitter.example.com</span>/.{{VERIFY_TOKEN_NAME}}</code> with the content <code class=ex-hash>6c9872185d6975f0f51d7d16a6428aadb1df494af0f68166f790ef0d51b0bc8f</code>
+        </ul>
+    </li>
+    
+    <p>License: AGPL3</p>
+    <script src="/static/login_key.js"></script>
+  </body>
+</html>

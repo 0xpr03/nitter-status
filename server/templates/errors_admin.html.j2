@@ -1,0 +1,43 @@
+{# SPDX-License-Identifier: AGPL-3.0-only #}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <link href="/static/bootstrap.min.css" rel="stylesheet">
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="" />
+    <title>Admin Interface</title>
+  </head>
+  <body>
+    <div class="container">
+    <h1>Admin Interface</h1>
+    <p><a href="/admin">Overview</a> <a href="/admin/logout">Logout</a> <a href="/admin/login">Add more instances</a></p>
+    
+    <h4>Last errors from {{HOST_DOMAIN}}</h4>
+    <div class="table-responsive">
+      <table id="status-tbl" class="table sortable table-hover table-sm">
+      <thead>
+          <tr>
+          <th scope="col">Time</th>
+          <th scope="col">Message</th>
+          <th scope="col">Http Body</th>
+          <th scope="col">Http Status</th>
+          </tr>
+      </thead>
+      <tbody>
+        {% for error in ERRORS -%}
+        <tr>
+          <td>{{error.time}}</td>
+          <td>{{error.message}}</td>
+          <td>{{error.http_body}}</td>
+          <td>{{error.http_status}}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+      </table>
+    </div>
+
+    <p>License: AGPL3</p>
+  </body>
+</html>

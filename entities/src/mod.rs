@@ -2,8 +2,9 @@
 
 pub mod prelude;
 
+pub mod check_errors;
 pub mod health_check;
 pub mod host;
 
-// has to be re-added
+// has to be re-added on entity regeneration
 pub mod state;

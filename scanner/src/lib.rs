@@ -9,7 +9,7 @@ use chrono::Utc;
 use entities::{
     host,
     prelude::*,
-    state::{scanner::ScannerConfig, Cache},
+    state::{scanner::ScannerConfig, Cache, AppState, error_cache::HostError},
 };
 use instance_parser::InstanceParser;
 use profile_parser::ProfileParser;
@@ -90,15 +90,25 @@ impl FetchError {
             FetchError::Captcha | FetchError::RetrievingBody(_, _) => None,
         }
     }
+
+    fn to_host_error(self) -> HostError {
+        match self {
+            FetchError::Reqwest(e) => HostError::new_message(e.to_string()),
+            FetchError::HttpResponseStatus(http_status, _code_msg, http_body) => HostError::new(format!("failed to fetch"), http_body, http_status),
+            FetchError::KnownHttpResponseStatus(http_status, _) => HostError::new_without_body(self.to_string(), http_status),
+            FetchError::RetrievingBody(_url, reqwest_error) => HostError::new_message(reqwest_error.to_string()),
+            FetchError::Captcha => HostError::new_message(format!("Captcha detected")),
+        }
+    }
 }
 
 pub async fn run_scanner(
     db: DatabaseConnection,
     config: ScannerConfig,
-    cache: Cache,
+    app_state: AppState,
     disable_startup_scan: bool,
 ) -> Result<()> {
-    let scanner = Scanner::new(db, config, cache).await?;
+    let scanner = Scanner::new(db, config, app_state).await?;
 
     tokio::spawn(async move {
         scanner.run(disable_startup_scan).await.unwrap();
@@ -114,7 +124,7 @@ struct Scanner {
 
 struct InnerScanner {
     db: DatabaseConnection,
-    cache: Cache,
+    app_state: AppState,
     config: ScannerConfig,
     client: reqwest::Client,
     instance_parser: InstanceParser,
@@ -154,7 +164,7 @@ impl Scanner {
         http_client
     }
 
-    async fn new(db: DatabaseConnection, config: ScannerConfig, cache: Cache) -> Result<Self> {
+    async fn new(db: DatabaseConnection, config: ScannerConfig, app_state: AppState) -> Result<Self> {
         let mut builder_regex_rss = RegexBuilder::new(&config.rss_content);
         builder_regex_rss.case_insensitive(true);
         let http_client = Self::client_builder(&config);
@@ -163,7 +173,7 @@ impl Scanner {
         let scanner = Self {
             inner: Arc::new(InnerScanner {
                 db,
-                cache,
+                app_state,
                 client: http_client.build().unwrap(),
                 config,
                 client_ipv4,

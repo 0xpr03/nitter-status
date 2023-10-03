@@ -48,7 +48,7 @@ impl Scanner {
     pub(crate) async fn update_cache(&self) -> Result<()> {
         let new_data = self.generate_cache_data().await?;
         {
-            let mut guard = self.inner.cache.write().unwrap();
+            let mut guard = self.inner.app_state.cache.write().unwrap();
             *guard = new_data;
         }
         Ok(())

@@ -163,10 +163,16 @@ async fn test_init(db: &DatabaseConnection) -> miette::Result<()> {
 
 fn read_server_config(instance_ping_interval: usize) -> miette::Result<server::Config> {
     let site_url = require_env_str("SITE_URL")?;
+    let session_ttl_seconds = require_env_str("SESSION_TTL_SECONDS")?
+    .parse()
+    .expect("SESSION_TTL_SECONDS must be a positive number");
+    let login_token_name = require_env_str("LOGIN_TOKEN_NAME")?;
 
     Ok(server::Config {
         site_url,
         max_age: instance_ping_interval,
+        session_ttl_seconds,
+        login_token_name,
     })
 }
 
