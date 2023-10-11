@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-reqwest = { workspace = true, features = ["deflate","gzip","brotli","cookies"] }
+reqwest = { workspace = true, features = ["deflate","gzip","brotli","cookies", "rustls-tls"] }
 sea-orm = { workspace = true, features = [ "sqlx-sqlite", "runtime-tokio-native-tls", "macros" ] }
 thiserror = { workspace = true }
 tracing = { workspace = true }

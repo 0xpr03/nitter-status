@@ -146,6 +146,7 @@ impl Scanner {
             .brotli(true)
             .deflate(true)
             .gzip(true)
+            .use_rustls_tls()
             .user_agent(user_agent)
             .connect_timeout(std::time::Duration::from_secs(3))
             .timeout(std::time::Duration::from_secs(10))
