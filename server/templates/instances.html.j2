@@ -75,7 +75,7 @@
             {%- else -%}
               {# <!-- no healthy entries, show last time host was seen healthy --> #}
               {%- if host.last_healthy -%}
-              Last seen healthy: {{host.last_healthy | truncate(length=16, end="") | replace(from="-", to=".") | replace(from="T", to=" ")}}
+              LSH: {{host.last_healthy | truncate(length=16, end="") | replace(from="-", to=".") | replace(from="T", to=" ")}}
               <a rel="nofollow" href="https://time.is/UTC">UTC</a>
               {%- else -%}
               Never seen healthy.
