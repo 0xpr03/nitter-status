@@ -7,7 +7,7 @@ use axum::{
     http::HeaderValue,
     response::{Html, Redirect},
     routing::{get, get_service},
-    Router,
+    Router, BoxError,
 };
 use chrono::TimeZone;
 use entities::state::{scanner::ScannerConfig, AppState};
@@ -17,6 +17,7 @@ use sea_orm::DatabaseConnection;
 use tera::{Tera, from_value, to_value};
 use thiserror::Error;
 use tower::ServiceBuilder;
+use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
 use tower_http::{
     cors::CorsLayer,
     limit::RequestBodyLimitLayer,
@@ -108,6 +109,21 @@ pub async fn start(
         login_client,
     };
 
+    let per_ip_governor_conf = Box::new(
+        GovernorConfigBuilder::default()
+            .per_second(2)
+            .burst_size(2)
+            .finish()
+            .unwrap(),
+    );
+    let rate_limit_layer = ServiceBuilder::new()
+    .layer(HandleErrorLayer::new(|e: BoxError| async move {
+        tower_governor::errors::display_error(e) // too many requests
+    }))
+    .layer(GovernorLayer {
+        config: Box::leak(per_ip_governor_conf),
+    });
+
     let router = Router::new()
         .nest_service(
             "/static",
@@ -119,7 +135,7 @@ pub async fn start(
             .route("/errors/:host", get(admin::errors_view))
             // .route("/history/:host", get(admin::history_view))
             // .route("/api/history", get(admin::history_json))
-            .route("/login", get(admin::login_view).post(admin::login))
+            .route("/login", get(admin::login_view).post(admin::login).route_layer(rate_limit_layer))
             .route("/logout", get(admin::logout))
             // .layer(ServiceBuilder::new().layer(SetResponseHeaderLayer::overriding(header::CACHE_CONTROL, "must-revalidate")))
             .layer(session_service)

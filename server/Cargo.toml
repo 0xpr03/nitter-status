@@ -32,5 +32,8 @@ tera = "1.19.0"
 tower-sessions = {version = "0.3.1"}
 time = { workspace = true }
 
+# login rate limits
+tower_governor = "0.1"
+
 [dependencies.entities]
 path = "../entities"
