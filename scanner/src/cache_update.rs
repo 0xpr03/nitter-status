@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 use std::collections::HashMap;
 
-use chrono::TimeZone;
+use chrono::{TimeZone, Duration};
 use chrono::{Days, Utc};
 use entities::host;
 use entities::prelude::*;
@@ -137,8 +137,11 @@ impl Scanner {
                 (!last_check.healthy) && self.inner.config.bad_hosts.contains(&host.domain);
 
             let host_ping_data = ping_data.remove(&host.id);
+            let last_healthy = last_healthy_check.remove(&host.id);
+            let __show_last_seen = last_healthy.map_or(true, |e|(time_now - e) > Duration::hours(4));
             host_statistics.push(CacheHost {
-                last_healthy: last_healthy_check.remove(&host.id),
+                last_healthy: last_healthy,
+                __show_last_seen,
                 url: host.url,
                 domain: host.domain,
                 points,

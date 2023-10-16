@@ -59,7 +59,7 @@
             {%- set width = 110 -%}
             {%- set width_bar = 5  -%}
             {%- set offset = 5  -%}
-            {%- if host.recent_checks -%}
+            {%- if not host.__show_last_seen -%}
               <svg class="uptime-graph" viewBox="0 0 {{width}} {{height}}" height="{{height}}">
                 {%- for check in host.recent_checks -%}
                   {%- if check.1 -%}

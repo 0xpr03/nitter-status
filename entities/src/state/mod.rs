@@ -66,4 +66,6 @@ pub struct CacheHost {
     /// Percentage of healthy checks since first seen
     pub healthy_percentage_overall: u8,
     pub connectivity: Option<Connectivity>,
+    /// Internal: show last-seen information
+    pub __show_last_seen: bool,
 }
