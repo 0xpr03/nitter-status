@@ -58,6 +58,8 @@ pub enum LoginError {
     KeyMismatch,
     #[error("No public instance host found with domain '{0}'")]
     HostNotFound(String),
+    #[error("Host is not in the public instances listed right now")]
+    DisabledHost(String),
     #[error("Server responded with status code '{0}'")]
     ServerResponse(u16, String),
     #[error("Invalid hash found")]
@@ -153,6 +155,10 @@ async fn login_inner(
     host: Option<host::Model>,
 ) -> LoginResult<host::Model> {
     let host = host.ok_or_else(|| LoginError::HostNotFound(input.domain.clone()))?;
+
+    if !host.enabled {
+        return Err(LoginError::DisabledHost(input.domain.clone()));
+    }
 
     match input.verification_method {
         VerificationMethod::DNS => {
