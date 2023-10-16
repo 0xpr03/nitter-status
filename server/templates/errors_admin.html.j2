@@ -19,7 +19,7 @@
       <table id="status-tbl" class="table sortable table-hover table-sm">
       <thead>
           <tr>
-          <th scope="col">Time</th>
+          <th scope="col">Time <a rel="nofollow" href="https://time.is/UTC">UTC</a></th>
           <th scope="col">Message</th>
           <th scope="col">Http Body</th>
           <th scope="col">Http Status</th>
@@ -28,7 +28,7 @@
       <tbody>
         {% for error in ERRORS -%}
         <tr>
-          <td>{{error.time}}</td>
+          <td>{{fmt_date(value=error.time)}}</td>
           <td>{{error.message}}</td>
           <td>{{error.http_body}}</td>
           <td>{{error.http_status}}</td>

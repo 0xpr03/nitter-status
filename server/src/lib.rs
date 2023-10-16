@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-use std::{borrow::Cow, net::SocketAddr, sync::Arc};
+use std::{borrow::Cow, net::SocketAddr, sync::Arc, collections::HashMap};
 
 use axum::{
     error_handling::HandleErrorLayer,
@@ -9,11 +9,12 @@ use axum::{
     routing::{get, get_service},
     Router,
 };
+use chrono::TimeZone;
 use entities::state::{scanner::ScannerConfig, AppState};
 use hyper::{header, StatusCode};
 use reqwest::Client;
 use sea_orm::DatabaseConnection;
-use tera::Tera;
+use tera::{Tera, from_value, to_value};
 use thiserror::Error;
 use tower::ServiceBuilder;
 use tower_http::{
@@ -97,6 +98,7 @@ pub async fn start(
     let config = Arc::new(config);
     let mut tera = Tera::new("server/templates/*")?;
     tera.autoescape_on(vec![".html.j2"]);
+    tera.register_function("fmt_date", fmt_date);
     let state = WebState {
         config: config.clone(),
         db,
@@ -201,5 +203,23 @@ impl axum::response::IntoResponse for ServerError {
             tracing::error!(?self);
         }
         msg.into_response()
+    }
+}
+
+/// Tera template function to format unix timestamps
+fn fmt_date(args: &HashMap<String, tera::Value>) -> tera::Result<tera::Value> {
+    match args.get("value") {
+        Some(time_val) => match from_value::<i64>(time_val.clone()) {
+            Ok(time_i64) => {
+                let format = match args.get("fmt") {
+                    None => "%Y.%m.%d %H:%M:%S",
+                    Some(v) => v.as_str().ok_or_else(||tera::Error::from("fmt has to be a string"))?,
+                };
+                let time = chrono::Utc.timestamp_opt(time_i64,0).single().ok_or_else(||tera::Error::from("Invalid timestamp"))?;
+                Ok(to_value(time.format(format).to_string()).unwrap())
+            },
+            Err(_) => Err("timestamp not an i64".into()),
+        },
+        None => Err("no value provided".into()),
     }
 }
