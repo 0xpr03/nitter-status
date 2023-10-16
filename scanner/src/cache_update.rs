@@ -138,7 +138,7 @@ impl Scanner {
 
             let host_ping_data = ping_data.remove(&host.id);
             let last_healthy = last_healthy_check.remove(&host.id);
-            let __show_last_seen = last_healthy.map_or(true, |e|(time_now - e) > Duration::hours(4));
+            let __show_last_seen = last_healthy.map_or(true, |e|(time_now - e) > Duration::hours(12));
             host_statistics.push(CacheHost {
                 last_healthy: last_healthy,
                 __show_last_seen,
