@@ -2,9 +2,7 @@ use std::borrow::Cow;
 
 use sea_orm_migration::{
     prelude::*,
-    sea_orm::{
-        prelude::DateTimeUtc, DbBackend, DeriveEntityModel, FromQueryResult, RuntimeErr, Statement,
-    },
+    sea_orm::{prelude::DateTimeUtc, DbBackend, FromQueryResult, RuntimeErr, Statement},
 };
 
 #[derive(DeriveMigrationName)]

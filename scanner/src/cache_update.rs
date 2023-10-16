@@ -156,7 +156,7 @@ impl Scanner {
                 is_bad_host,
                 country: host.country,
                 healthy_percentage_overall: healthy_percentage_total.remove(&host.id).unwrap_or(0),
-                recent_checks: self.query_latest_health_checks(22,host.id).await?,
+                recent_checks: self.query_latest_health_checks(22, host.id).await?,
             })
         }
         host_statistics.sort_unstable_by_key(|k| k.points);
@@ -318,19 +318,18 @@ impl Scanner {
     }
 
     /// Query total up percentage for all hosts
-    async fn query_healthy_percentage(
-        &self,
-    ) -> Result<HashMap<i32, u8>> {
-        let stats: Vec<HostHealthyPercentage> = HostHealthyPercentage::find_by_statement(Statement::from_sql_and_values(
-            DbBackend::Sqlite,
-            r#"SELECT u.host, CAST(AVG(healthy) * 100 as INT) as healthy FROM health_check u
+    async fn query_healthy_percentage(&self) -> Result<HashMap<i32, u8>> {
+        let stats: Vec<HostHealthyPercentage> =
+            HostHealthyPercentage::find_by_statement(Statement::from_sql_and_values(
+                DbBackend::Sqlite,
+                r#"SELECT u.host, CAST(AVG(healthy) * 100 as INT) as healthy FROM health_check u
             JOIN host h ON h.id = u.host
             WHERE h.enabled = true
             GROUP BY u.host"#,
-            [],
-        ))
-        .all(&self.inner.db)
-        .await?;
+                [],
+            ))
+            .all(&self.inner.db)
+            .await?;
         let stats: HashMap<_, _> = stats.into_iter().map(|v| (v.host, v.healthy)).collect();
         Ok(stats)
     }
@@ -341,28 +340,33 @@ impl Scanner {
         // How many to retrieve
         amount: i32,
         host: i32,
-    ) -> Result<Vec<(String,bool)>> {
+    ) -> Result<Vec<(String, bool)>> {
         #[derive(Debug, FromQueryResult)]
         pub struct HostHealthCheck {
             healthy: bool,
             time: i64,
         }
-        let health_checks: Vec<HostHealthCheck> = HostHealthCheck::find_by_statement(Statement::from_sql_and_values(
-            DbBackend::Sqlite,
-            r#"SELECT healthy, time FROM health_check u
+        let health_checks: Vec<HostHealthCheck> =
+            HostHealthCheck::find_by_statement(Statement::from_sql_and_values(
+                DbBackend::Sqlite,
+                r#"SELECT healthy, time FROM health_check u
             JOIN host h ON h.id = u.host
             WHERE h.enabled = true AND host = $1
             ORDER BY time DESC
             LIMIT $2"#,
-            [host.into(), amount.into()],
-        ))
-        .all(&self.inner.db)
-        .await?;
+                [host.into(), amount.into()],
+            ))
+            .all(&self.inner.db)
+            .await?;
         // transform to correct time format
-        let health_checks: Vec<_> = health_checks.into_iter().rev().map(|entry|{
-            let time = Utc.timestamp_opt(entry.time, 0).unwrap();
-            (time.format("%Y.%m.%d %H:%M").to_string(),entry.healthy)
-        }).collect();
+        let health_checks: Vec<_> = health_checks
+            .into_iter()
+            .rev()
+            .map(|entry| {
+                let time = Utc.timestamp_opt(entry.time, 0).unwrap();
+                (time.format("%Y.%m.%d %H:%M").to_string(), entry.healthy)
+            })
+            .collect();
         Ok(health_checks)
     }
 }

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 use std::{
+    net::IpAddr,
     sync::{Arc, Mutex},
-    time::Instant, net::IpAddr,
+    time::Instant,
 };
 
 use about_parser::AboutParser;
@@ -9,14 +10,14 @@ use chrono::Utc;
 use entities::{
     host,
     prelude::*,
-    state::{scanner::ScannerConfig, Cache, AppState, error_cache::HostError},
+    state::{error_cache::HostError, scanner::ScannerConfig, AppState},
 };
 use instance_parser::InstanceParser;
 use profile_parser::ProfileParser;
 use regex::{Regex, RegexBuilder};
 use reqwest::{
     header::{HeaderMap, HeaderValue},
-    Client, Url, ClientBuilder,
+    Client, ClientBuilder, Url,
 };
 use sea_orm::{
     sea_query::OnConflict, ActiveModelTrait, ActiveValue, ColumnTrait, ConnectionTrait,
@@ -94,9 +95,15 @@ impl FetchError {
     fn to_host_error(self) -> HostError {
         match self {
             FetchError::Reqwest(e) => HostError::new_message(e.to_string()),
-            FetchError::HttpResponseStatus(http_status, _code_msg, http_body) => HostError::new(format!("failed to fetch"), http_body, http_status),
-            FetchError::KnownHttpResponseStatus(http_status, _) => HostError::new_without_body(self.to_string(), http_status),
-            FetchError::RetrievingBody(_url, reqwest_error) => HostError::new_message(reqwest_error.to_string()),
+            FetchError::HttpResponseStatus(http_status, _code_msg, http_body) => {
+                HostError::new(format!("failed to fetch"), http_body, http_status)
+            }
+            FetchError::KnownHttpResponseStatus(http_status, _) => {
+                HostError::new_without_body(self.to_string(), http_status)
+            }
+            FetchError::RetrievingBody(_url, reqwest_error) => {
+                HostError::new_message(reqwest_error.to_string())
+            }
             FetchError::Captcha => HostError::new_message(format!("Captcha detected")),
         }
     }
@@ -150,7 +157,7 @@ impl Scanner {
         for header in HEADERS {
             headers.insert(header[0], HeaderValue::from_static(header[1]));
         }
-        let user_agent = format!("nitter-status (+{}/about)",config.website_url);
+        let user_agent = format!("nitter-status (+{}/about)", config.website_url);
         let http_client = Client::builder()
             .cookie_store(true)
             .brotli(true)
@@ -164,12 +171,22 @@ impl Scanner {
         http_client
     }
 
-    async fn new(db: DatabaseConnection, config: ScannerConfig, app_state: AppState) -> Result<Self> {
+    async fn new(
+        db: DatabaseConnection,
+        config: ScannerConfig,
+        app_state: AppState,
+    ) -> Result<Self> {
         let mut builder_regex_rss = RegexBuilder::new(&config.rss_content);
         builder_regex_rss.case_insensitive(true);
         let http_client = Self::client_builder(&config);
-        let client_ipv4 = Scanner::client_builder(&config).local_address("0.0.0.0".parse::<IpAddr>().unwrap()).build().unwrap();
-        let client_ipv6 = Scanner::client_builder(&config).local_address("::".parse::<IpAddr>().unwrap()).build().unwrap();
+        let client_ipv4 = Scanner::client_builder(&config)
+            .local_address("0.0.0.0".parse::<IpAddr>().unwrap())
+            .build()
+            .unwrap();
+        let client_ipv6 = Scanner::client_builder(&config)
+            .local_address("::".parse::<IpAddr>().unwrap())
+            .build()
+            .unwrap();
         let scanner = Self {
             inner: Arc::new(InnerScanner {
                 db,
@@ -305,7 +322,12 @@ impl Scanner {
                         let connectivity = scanner_c.check_connectivity(url.as_str()).await;
                         let rss = scanner_c.has_rss(&mut url, muted_host).await;
                         match scanner_c.nitter_version(&mut url, muted_host).await {
-                            Some(version) => (connectivity, rss, Some(version.version_name), Some(version.url)),
+                            Some(version) => (
+                                connectivity,
+                                rss,
+                                Some(version.version_name),
+                                Some(version.url),
+                            ),
                             None => (connectivity, rss, None, None),
                         }
                     }
@@ -366,18 +388,26 @@ impl Scanner {
 
     /// Check ipv4/6 connectivity of host
     async fn check_connectivity(&self, url: &str) -> Option<host::Connectivity> {
-        let ipv4 = self.inner.client_ipv4.get(url).send().await.map_or(false, |res|{
-            res.status().is_success()
-        });
-        let ipv6 = self.inner.client_ipv6.get(url).send().await.map_or(false, |res|{
-            res.status().is_success()
-        });
+        let ipv4 = self
+            .inner
+            .client_ipv4
+            .get(url)
+            .send()
+            .await
+            .map_or(false, |res| res.status().is_success());
+        let ipv6 = self
+            .inner
+            .client_ipv6
+            .get(url)
+            .send()
+            .await
+            .map_or(false, |res| res.status().is_success());
 
-        match (ipv4,ipv6) {
-            (true,true) => Some(host::Connectivity::All),
-            (false,true) => Some(host::Connectivity::IPv6),
-            (true,false) => Some(host::Connectivity::IPv4),
-            (false,false) => None,
+        match (ipv4, ipv6) {
+            (true, true) => Some(host::Connectivity::All),
+            (false, true) => Some(host::Connectivity::IPv6),
+            (true, false) => Some(host::Connectivity::IPv4),
+            (false, false) => None,
         }
     }
 
@@ -457,11 +487,11 @@ mod test {
 
     use super::*;
     use chrono::Duration;
+    use entities::health_check;
     use entities::state::scanner::Config;
     use migration::MigratorTrait;
     use sea_orm::{ConnectOptions, Database};
     use tokio::{fs::File, io::AsyncWriteExt};
-    use entities::health_check;
 
     async fn db_init() -> DatabaseConnection {
         let db = Database::connect(ConnectOptions::new(
@@ -469,8 +499,7 @@ mod test {
         ))
         .await
         .unwrap();
-        migration::Migrator::up(&db, None)
-            .await.unwrap();
+        migration::Migrator::up(&db, None).await.unwrap();
         db
     }
 
@@ -482,7 +511,7 @@ mod test {
         let db = db_init().await;
         let time: chrono::DateTime<Utc> = Utc::now();
         for v in 0..365 {
-            let entry_time = time.checked_sub_signed(Duration::minutes(15*v)).unwrap();
+            let entry_time = time.checked_sub_signed(Duration::minutes(15 * v)).unwrap();
             health_check::ActiveModel {
                 time: ActiveValue::Set(entry_time.timestamp()),
                 host: ActiveValue::Set(208692),
@@ -491,7 +520,8 @@ mod test {
                 response_code: ActiveValue::Set(Some(200)),
             }
             .insert(&db)
-            .await.unwrap();
+            .await
+            .unwrap();
         }
     }
 
@@ -499,7 +529,9 @@ mod test {
     #[ignore]
     async fn update_instacelist() {
         let db = db_init().await;
-        let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new()).await.unwrap();
+        let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new())
+            .await
+            .unwrap();
         let res = scanner.fetch_instancelist().await.unwrap();
         let mut file = File::create("test_data/instancelist.html").await.unwrap();
         file.write_all(&res.as_bytes()).await.unwrap();
@@ -509,7 +541,9 @@ mod test {
     #[ignore]
     async fn fetch_test() {
         let db = db_init().await;
-        let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new()).await.unwrap();
+        let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new())
+            .await
+            .unwrap();
         let (_, res) = scanner.fetch_url("example.com/jack").await.unwrap();
         let mut file = File::create("test_data/blocked.html").await.unwrap();
         file.write_all(&res.as_bytes()).await.unwrap();
@@ -519,7 +553,9 @@ mod test {
     #[ignore]
     async fn stats_test() {
         let db = db_init().await;
-        let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new()).await.unwrap();
+        let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new())
+            .await
+            .unwrap();
         dbg!(scanner.generate_cache_data().await.unwrap());
     }
 
@@ -527,10 +563,21 @@ mod test {
     #[ignore]
     async fn connectivity_test() {
         let db = db_init().await;
-        let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new()).await.unwrap();
-        assert_eq!(scanner.check_connectivity("https://v4.ipv6test.app").await,Some(host::Connectivity::IPv4));
-        assert_eq!(scanner.check_connectivity("https://ipv6test.app").await,Some(host::Connectivity::All));
-        assert_eq!(scanner.check_connectivity("https://v6.ipv6test.app").await,Some(host::Connectivity::IPv6));
+        let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new())
+            .await
+            .unwrap();
+        assert_eq!(
+            scanner.check_connectivity("https://v4.ipv6test.app").await,
+            Some(host::Connectivity::IPv4)
+        );
+        assert_eq!(
+            scanner.check_connectivity("https://ipv6test.app").await,
+            Some(host::Connectivity::All)
+        );
+        assert_eq!(
+            scanner.check_connectivity("https://v6.ipv6test.app").await,
+            Some(host::Connectivity::IPv6)
+        );
     }
 }
 

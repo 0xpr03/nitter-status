@@ -8,8 +8,6 @@ mod m20230829_201916_country;
 mod m20230914_231514_connectivity;
 mod m20231011_231223_errors;
 
-
-
 pub struct Migrator;
 
 #[async_trait::async_trait]

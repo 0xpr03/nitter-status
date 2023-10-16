@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //! Parse profile pages for verification
-use regex::{Regex, RegexBuilder};
-use reqwest::Url;
 use scraper::{Html, Selector};
 use thiserror::Error;
 
@@ -15,15 +13,12 @@ pub enum ProfileParseError {
     NoProfileCard,
     #[error("No timeline div found!")]
     NoTimeline,
-    #[error("No timeline-item div found!")]
-    NoTimelineItem,
 }
 
 pub(crate) struct ProfileParser {
     selector_profile_card_name: Selector,
     selector_timeline: Selector,
     selector_timeline_item: Selector,
-    regex: Regex,
 }
 
 #[derive(Debug)]
@@ -60,14 +55,11 @@ impl ProfileParser {
     }
 
     pub fn new() -> Self {
-        let mut builder = RegexBuilder::new(r#"^((\d+\.\d+\.\d+)|[a-zA-Z0-9]{7,})"#);
-        builder.case_insensitive(true);
         Self {
             selector_profile_card_name: Selector::parse(".profile-card-username")
                 .expect(EXPECT_CSS_SELCTOR),
             selector_timeline: Selector::parse(".timeline").expect(EXPECT_CSS_SELCTOR),
             selector_timeline_item: Selector::parse(".timeline-item").expect(EXPECT_CSS_SELCTOR),
-            regex: builder.build().expect("failed to generate regex"),
         }
     }
 }

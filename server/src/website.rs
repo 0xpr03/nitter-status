@@ -6,9 +6,8 @@ use crate::Result;
 use crate::ServerError;
 use axum::response::IntoResponse;
 use axum::{extract::State, response::Html};
-use entities::state::AppState;
 use entities::state::scanner::ScannerConfig;
-use entities::state::Cache;
+use entities::state::AppState;
 use hyper::http::HeaderValue;
 
 pub async fn instances(
@@ -18,7 +17,10 @@ pub async fn instances(
 ) -> Result<axum::response::Response> {
     let mut context = tera::Context::new();
     let mut res = {
-        let guard = app_state.cache.read().map_err(|_| ServerError::MutexFailure)?;
+        let guard = app_state
+            .cache
+            .read()
+            .map_err(|_| ServerError::MutexFailure)?;
         context.insert("instances", &guard.hosts);
         let time = guard.last_update.format("%Y.%m.%d %H:%M").to_string();
         context.insert("last_updated", &time);
@@ -61,7 +63,10 @@ pub async fn about(
         &scanner_config.ping_range.num_hours(),
     );
     {
-        let guard = app_state.cache.read().map_err(|_| ServerError::MutexFailure)?;
+        let guard = app_state
+            .cache
+            .read()
+            .map_err(|_| ServerError::MutexFailure)?;
         context.insert("latest_commit", &guard.latest_commit);
     }
 

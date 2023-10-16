@@ -10,9 +10,9 @@ use serde::Serialize;
 
 use crate::host::Connectivity;
 
-pub mod scanner;
 /// Log for recent host errors
 pub mod error_cache;
+pub mod scanner;
 
 pub type Cache = RwLock<CacheData>;
 
@@ -62,7 +62,7 @@ pub struct CacheHost {
     /// Country from the wiki
     pub country: String,
     /// Last health checks time formatted, healthy
-    pub recent_checks: Vec<(String,bool)>,
+    pub recent_checks: Vec<(String, bool)>,
     /// Percentage of healthy checks since first seen
     pub healthy_percentage_overall: u8,
     pub connectivity: Option<Connectivity>,

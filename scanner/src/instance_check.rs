@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //! Instance health/uptime checking code
-use std::net::IpAddr;
 use std::time::Instant;
 
 use chrono::Utc;
-use entities::{health_check, check_errors};
-use entities::host::Connectivity;
 use entities::state::error_cache::HostError;
+use entities::{check_errors, health_check};
 use entities::{host, prelude::*};
-use reqwest::{Url, ClientBuilder};
+use reqwest::Url;
 use sea_orm::prelude::DateTimeUtc;
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
@@ -18,7 +16,6 @@ use tokio::task::JoinSet;
 use tracing::instrument;
 
 use crate::about_parser::AboutParsed;
-use crate::FetchError;
 use crate::Result;
 use crate::Scanner;
 
@@ -63,8 +60,13 @@ impl Scanner {
                 if !muted {
                     tracing::error!(error=?e, url=host.url,"failed to parse instance URL");
                 }
-                self.insert_failed_health_check(host.id, now,HostError::new_message(format!("Not a valid URL")), None)
-                    .await;
+                self.insert_failed_health_check(
+                    host.id,
+                    now,
+                    HostError::new_message(format!("Not a valid URL")),
+                    None,
+                )
+                .await;
                 return;
             }
             Ok(v) => v,
@@ -83,8 +85,13 @@ impl Scanner {
                         "couldn't ping host: {e}, marking as dead"
                     );
                 }
-                self.insert_failed_health_check(host.id, now, e.to_host_error(), Some(took_ms as _))
-                    .await;
+                self.insert_failed_health_check(
+                    host.id,
+                    now,
+                    e.to_host_error(),
+                    Some(took_ms as _),
+                )
+                .await;
             }
             Ok((http_code, content)) => {
                 if !muted {
@@ -121,7 +128,11 @@ impl Scanner {
                             self.insert_failed_health_check(
                                 host.id,
                                 now,
-                                HostError::new(format!("profile content mismatch"), content, http_code),
+                                HostError::new(
+                                    format!("profile content mismatch"),
+                                    content,
+                                    http_code,
+                                ),
                                 Some(took_ms as _),
                             )
                             .await;

@@ -82,7 +82,8 @@ async fn _main() -> miette::Result<()> {
         scanner_config.clone(),
         cache.clone(),
         disable_startup_scan,
-    ).await
+    )
+    .await
     .into_diagnostic()
     .wrap_err("Failed starting background scanner")?;
 
@@ -115,12 +116,10 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
     let profile_posts_min = require_env_str("PROFILE_POSTS_MIN")?
         .parse()
         .expect("PROFILE_POSTS_MIN must be a positive number");
-    let rss_content = require_env_str("RSS_CONTENT")?;
     let additional_hosts: Vec<String> = require_env_vec_str("ADDITIONAL_HOSTS")?;
     let additional_host_country = require_env_str("ADDITIONAL_HOSTS_COUNTRY")?;
     let rss_content = require_env_str("RSS_CONTENT")?;
     let bad_hosts: Vec<String> = require_env_vec_str("BAD_HOSTS")?;
-    let referrer = require_env_str("REFERER")?;
     let auto_mute = require_env_str("AUTO_MUTE")? == "true";
     let source_git_branch = require_env_str("ORIGIN_SOURCE_GIT_BRANCH")?;
     let source_git_url = require_env_str("ORIGIN_SOURCE_GIT_URL")?;
@@ -164,8 +163,8 @@ async fn test_init(db: &DatabaseConnection) -> miette::Result<()> {
 fn read_server_config(instance_ping_interval: usize) -> miette::Result<server::Config> {
     let site_url = require_env_str("SITE_URL")?;
     let session_ttl_seconds = require_env_str("SESSION_TTL_SECONDS")?
-    .parse()
-    .expect("SESSION_TTL_SECONDS must be a positive number");
+        .parse()
+        .expect("SESSION_TTL_SECONDS must be a positive number");
     let login_token_name = require_env_str("LOGIN_TOKEN_NAME")?;
 
     Ok(server::Config {

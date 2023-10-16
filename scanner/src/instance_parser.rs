@@ -196,10 +196,10 @@ impl InstanceParser {
 
 #[cfg(test)]
 mod test {
-    use std::{collections::HashMap, io::BufWriter};
-    use std::io::Write;
-    use tracing_test::traced_test;
     use csv;
+    use std::io::Write;
+    use std::{collections::HashMap, io::BufWriter};
+    use tracing_test::traced_test;
 
     use super::*;
     #[test]
@@ -208,10 +208,9 @@ mod test {
         let html = include_str!("../test_data/instancelist.html");
         let parser = InstanceParser::new();
         let res = parser.parse_instancelist(html, &[], "", true).unwrap();
-        
+
         // writeback for new tests
         // write_data(res.values());
-
 
         // adjust when updating the test html
         let expected: HashMap<String, InstanceParsed> = expected_data()

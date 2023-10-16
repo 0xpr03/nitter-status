@@ -1,7 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 use std::{borrow::Cow, net::SocketAddr, sync::Arc};
 
-use axum::{extract::DefaultBodyLimit, http::HeaderValue, response::{Html, Redirect}, routing::{get, get_service}, Router, error_handling::HandleErrorLayer};
+use axum::{
+    error_handling::HandleErrorLayer,
+    extract::DefaultBodyLimit,
+    http::HeaderValue,
+    response::{Html, Redirect},
+    routing::{get, get_service},
+    Router,
+};
 use entities::state::{scanner::ScannerConfig, AppState};
 use hyper::{header, StatusCode};
 use reqwest::Client;
@@ -10,14 +17,17 @@ use tera::Tera;
 use thiserror::Error;
 use tower::ServiceBuilder;
 use tower_http::{
-    cors::CorsLayer, limit::RequestBodyLimitLayer, services::{ServeDir, ServeFile},
-    set_header::SetResponseHeaderLayer, trace::TraceLayer,
+    cors::CorsLayer,
+    limit::RequestBodyLimitLayer,
+    services::{ServeDir, ServeFile},
+    set_header::SetResponseHeaderLayer,
+    trace::TraceLayer,
 };
-use tower_sessions::{SessionManagerLayer, cookie::SameSite};
+use tower_sessions::{cookie::SameSite, SessionManagerLayer};
 
+mod admin;
 mod api;
 mod website;
-mod admin;
 
 const LOGIN_URL: &'static str = "/admin/login";
 const ADMIN_OVERVIEW_URL: &'static str = "/admin";
@@ -70,8 +80,8 @@ pub async fn start(
                 .with_same_site(SameSite::Strict)
                 .with_max_age(time::Duration::seconds(config.session_ttl_seconds as _)),
         );
-    
-    let user_agent = format!("nitter-status (+{}/about)",scanner_config.website_url);
+
+    let user_agent = format!("nitter-status (+{}/about)", scanner_config.website_url);
     let login_client = Client::builder()
         .cookie_store(false)
         .brotli(true)
@@ -81,7 +91,8 @@ pub async fn start(
         .user_agent(user_agent)
         .connect_timeout(std::time::Duration::from_secs(3))
         .timeout(std::time::Duration::from_secs(10))
-        .build().unwrap();
+        .build()
+        .unwrap();
 
     let config = Arc::new(config);
     let mut tera = Tera::new("server/templates/*")?;
@@ -172,14 +183,15 @@ impl axum::response::IntoResponse for ServerError {
     fn into_response(self) -> axum::response::Response {
         use ServerError::*;
         let msg = match &self {
-            NoLogin =>  {
+            NoLogin => {
                 let mut resp = Redirect::temporary(LOGIN_URL).into_response();
                 // *resp.status_mut() = StatusCode::FOUND; // have to use a 301, [Redirect] 307 won't work for referrer
                 return resp;
-            },
-            MissingPermission =>  
-                (StatusCode::FORBIDDEN,Cow::Borrowed("Missing permission to access this resource"))
-            ,
+            }
+            MissingPermission => (
+                StatusCode::FORBIDDEN,
+                Cow::Borrowed("Missing permission to access this resource"),
+            ),
             MutexFailure | Templating(_) | DBError(_) | SessionError(_) | HostNotFound(_) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Cow::Borrowed("Internal Server Error"),
