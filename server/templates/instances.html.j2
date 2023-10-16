@@ -100,11 +100,11 @@
           {%- endif -%}
           <td data-name="version" data-sort="{{version}}{{host.version | default(value='')}}">
           {%- if host.version_url -%}
-            <a title="{{host.version}}" href="{{host.version_url}}">
+            <a rel="nofollow external" title="{{host.version}}" href="{{host.version_url}}">
             {{host.version | truncate(length=18) | default(value="missing version")}}
             </a>
           {%- else -%}
-            <a href="{{host.url ~ '/about'}}">missing version</a>
+            <a rel="nofollow external" href="{{host.url ~ '/about'}}">missing version</a>
           {%- endif -%}
             {%- if version == "Dmissing" -%}
                 <span class="ms-1 badge bg-warning">missing</span>
