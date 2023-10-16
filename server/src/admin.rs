@@ -43,6 +43,7 @@ use crate::LOGIN_URL;
 pub struct ActiveLogin {
     /// Hosts this session has access to.
     hosts: HashSet<i32>,
+    admin: bool,
 }
 const LOGIN_KEY: &'static str = "LOGIN";
 
@@ -85,8 +86,9 @@ pub async fn login(
     Form(input): Form<LoginInput>,
 ) -> Result<axum::response::Response> {
     tracing::debug!(login=?input);
+    let domain = input.domain.trim();
     let host = host::Entity::find()
-        .filter(host::Column::Domain.eq(input.domain.trim()))
+        .filter(host::Column::Domain.eq(domain))
         .one(db)
         .await?;
 
@@ -113,7 +115,7 @@ pub async fn login(
                 Err(_) => {
                     let mut ids = HashSet::with_capacity(1);
                     ids.insert(host.id);
-                    ActiveLogin { hosts: ids }
+                    ActiveLogin { hosts: ids, admin: config.admin_domains.iter().any(|e| e == domain) }
                 }
             };
             session.insert(LOGIN_KEY, session_value)?;
@@ -273,7 +275,7 @@ pub async fn overview(
 ) -> Result<axum::response::Response> {
     tracing::info!(?session);
 
-    let hosts = get_all_login_hosts(&session, db).await?;
+    let (login,hosts) = get_all_login_hosts(&session, db).await?;
 
     let mut context = tera::Context::new();
     let res = {
@@ -284,6 +286,7 @@ pub async fn overview(
         let time = guard.last_update.format("%Y.%m.%d %H:%M").to_string();
         context.insert("last_updated", &time);
         context.insert("instances", &hosts);
+        context.insert("is_admin", &login.admin);
 
         let res = Html(template.render("admin.html.j2", &context)?).into_response();
         drop(guard);
@@ -377,14 +380,20 @@ pub async fn errors_view(
 async fn get_all_login_hosts(
     session: &Session,
     db: &DatabaseConnection,
-) -> Result<Vec<host::Model>> {
+) -> Result<(ActiveLogin, Vec<host::Model>)> {
     let login = get_session_login(&session)?;
 
-    let host_res = host::Entity::find()
+    let host_res = match login.admin {
+        true => host::Entity::find()
+        .filter(host::Column::Enabled.eq(true))
+        .all(db)
+        .await?,
+        false => host::Entity::find()
         .filter(host::Column::Id.is_in(login.hosts.iter().map(|v| *v)))
         .all(db)
-        .await?;
-    Ok(host_res)
+        .await?,
+    };
+    Ok((login,host_res))
 }
 
 /// Get wanted [host::Model] for current [Session] if valid for this user
@@ -395,7 +404,7 @@ async fn get_specific_login_host(
 ) -> Result<host::Model> {
     let login = get_session_login(&session)?;
 
-    if !login.hosts.contains(&wanted_host_id) {
+    if !login.hosts.contains(&wanted_host_id) && !login.admin {
         return Err(ServerError::MissingPermission);
     }
 

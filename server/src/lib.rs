@@ -40,6 +40,7 @@ pub struct Config {
     pub max_age: usize,
     pub session_ttl_seconds: u64,
     pub login_token_name: String,
+    pub admin_domains: Vec<String>,
 }
 
 #[derive(Clone, axum::extract::FromRef)]

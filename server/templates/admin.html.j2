@@ -14,7 +14,8 @@
     <h1>Admin Interface</h1>
     <p><a href="/admin/logout">Logout</a> <a href="/admin/login">Add more instances</a></p>
     
-    <p><h4>Instances</h4> you are logged in for.</p>
+    <h4>Instances</h4>
+    {% if is_admin %}<p class="text-danger-emphasis">Admin mode.</p>{% endif %}
     <div class="table-responsive">
       <table id="status-tbl" class="table sortable table-hover table-sm">
       <thead>
@@ -24,9 +25,11 @@
       </thead>
       <tbody>
         {% for instance in instances -%}
+        <tr>
           <td>{{instance.domain}}</td>
           {# <td><a href="/admin/history/{{instance.id}}">History</a></td> #}
           <td><a href="/admin/errors/{{instance.id}}">Errors</a></td>
+        </tr>
         {%- endfor %}
       </tbody>
       </table>
