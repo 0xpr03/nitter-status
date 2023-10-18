@@ -75,13 +75,13 @@ async fn _main() -> miette::Result<()> {
 
     let cache = entities::state::new();
 
-    let disable_startup_scan = require_env_str("DISABLE_STARTUP_SCAN")? == "true";
+    let disable_health_checks = require_env_str("DISABLE_HEALTH_CHECKS")? == "true";
 
     scanner::run_scanner(
         pool.clone(),
         scanner_config.clone(),
         cache.clone(),
-        disable_startup_scan,
+        disable_health_checks,
     )
     .await
     .into_diagnostic()

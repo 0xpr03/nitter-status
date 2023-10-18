@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 use std::{sync::Arc, time::Duration};
 pub type ScannerConfig = Arc<Config>;
+#[derive(Debug)]
 pub struct Config {
     /// time until next instance list fetch
     pub list_fetch_interval: Duration,

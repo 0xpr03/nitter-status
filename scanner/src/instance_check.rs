@@ -47,7 +47,7 @@ impl Scanner {
         while let Some(_) = join_set.join_next().await {}
         let end = Instant::now();
         let took_ms = end.saturating_duration_since(start).as_millis();
-        *self.inner.last_uptime_check.lock().unwrap() = end;
+        *self.inner.last_uptime_check.lock().unwrap() = Utc::now();
         tracing::debug!(hosts = tasks, took_ms = took_ms, "checked uptime");
         Ok(())
     }

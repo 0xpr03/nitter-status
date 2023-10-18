@@ -6,11 +6,11 @@ use std::{
 };
 
 use about_parser::AboutParser;
-use chrono::Utc;
+use chrono::{Utc, DateTime, TimeZone, Duration};
 use entities::{
     host,
     prelude::*,
-    state::{error_cache::HostError, scanner::ScannerConfig, AppState},
+    state::{error_cache::HostError, scanner::ScannerConfig, AppState}, health_check,
 };
 use instance_parser::InstanceParser;
 use profile_parser::ProfileParser;
@@ -22,7 +22,7 @@ use reqwest::{
 use sea_orm::{
     sea_query::OnConflict, ActiveModelTrait, ActiveValue, ColumnTrait, ConnectionTrait,
     DatabaseConnection, DbBackend, EntityTrait, FromQueryResult, QueryFilter, Statement,
-    TransactionTrait,
+    TransactionTrait, QuerySelect,
 };
 use thiserror::Error;
 use tokio::{task::JoinSet, time::sleep};
@@ -113,12 +113,16 @@ pub async fn run_scanner(
     db: DatabaseConnection,
     config: ScannerConfig,
     app_state: AppState,
-    disable_startup_scan: bool,
+    disable_health_checks: bool,
 ) -> Result<()> {
     let scanner = Scanner::new(db, config, app_state).await?;
 
+    if disable_health_checks {
+        tracing::error!("Health checks disabled!");
+        return Ok(())
+    }
     tokio::spawn(async move {
-        scanner.run(disable_startup_scan).await.unwrap();
+        scanner.run().await.unwrap();
     });
 
     Ok(())
@@ -137,8 +141,8 @@ struct InnerScanner {
     instance_parser: InstanceParser,
     about_parser: AboutParser,
     profile_parser: ProfileParser,
-    last_list_fetch: Mutex<Instant>,
-    last_uptime_check: Mutex<Instant>,
+    last_list_fetch: Mutex<DateTime<Utc>>,
+    last_uptime_check: Mutex<DateTime<Utc>>,
     rss_check_regex: Regex,
     client_ipv4: Client,
     client_ipv6: Client,
@@ -187,6 +191,9 @@ impl Scanner {
             .local_address("::".parse::<IpAddr>().unwrap())
             .build()
             .unwrap();
+
+        let last_uptime_check = Self::query_last_fetch(&db).await?;
+        tracing::info!(?last_uptime_check);
         let scanner = Self {
             inner: Arc::new(InnerScanner {
                 db,
@@ -198,8 +205,8 @@ impl Scanner {
                 instance_parser: InstanceParser::new(),
                 about_parser: AboutParser::new(),
                 profile_parser: ProfileParser::new(),
-                last_list_fetch: Mutex::new(Instant::now()),
-                last_uptime_check: Mutex::new(Instant::now()),
+                last_list_fetch: Mutex::new(last_uptime_check),
+                last_uptime_check: Mutex::new(last_uptime_check),
                 rss_check_regex: builder_regex_rss
                     .build()
                     .expect("Invalid RSS Content regex!"),
@@ -209,15 +216,24 @@ impl Scanner {
         Ok(scanner)
     }
 
-    pub async fn run(mut self, disable_startup_scan: bool) -> Result<()> {
-        let mut first_run = !disable_startup_scan;
+    /// Retrieves the last uptime fetch that happened
+    pub async fn query_last_fetch(db: &DatabaseConnection) -> Result<DateTime<Utc>> {
+        let time = health_check::Entity::find().column_as(health_check::Column::Time.max(), health_check::Column::Time)
+        .one(db)
+        .await?
+        .map(|model| model.time)
+        .unwrap_or_default();
+        Ok(Utc.timestamp_opt(time,0).unwrap())
+    }
+
+    pub async fn run(mut self) -> Result<()> {
         loop {
-            if first_run || self.is_instance_list_outdated() {
+            if self.is_instance_list_outdated() {
                 if let Err(e) = self.update_instacelist().await {
                     tracing::error!(error=?e,"Failed updating instance list");
                 }
             }
-            if first_run || self.is_instance_check_outdated() {
+            if self.is_instance_check_outdated() {
                 if let Err(e) = self.check_uptime().await {
                     tracing::error!(error=?e,"Failed checking instance");
                 }
@@ -226,7 +242,6 @@ impl Scanner {
                 tracing::error!(error=?e,"Failed updating cache!");
             }
             self.sleep_till_deadline().await;
-            first_run = false;
         }
     }
 
@@ -235,28 +250,35 @@ impl Scanner {
             self.last_uptime_check() + self.inner.config.instance_check_interval;
 
         let delay_list_update = self.last_list_fetch() + self.inner.config.list_fetch_interval;
-
-        let delay = delay_instance_check.min(delay_list_update);
-        tracing::trace!(duration=?delay-Instant::now(),"scanner sleeping");
-        sleep(delay.duration_since(Instant::now())).await;
+        tracing::debug!(?delay_list_update,?delay_instance_check);
+        let next_deadline = delay_instance_check.min(delay_list_update);
+        let now = Utc::now();
+        let sleep_time = next_deadline.signed_duration_since(now);
+        if sleep_time <= Duration::zero() {
+            // schedule right now, also std duration can't be negative
+            return;
+        }
+        let sleep_time = sleep_time.to_std().unwrap();
+        tracing::trace!(duration=?sleep_time,"scanner sleeping");
+        sleep(sleep_time).await;
     }
 
-    fn last_uptime_check(&self) -> Instant {
+    fn last_uptime_check(&self) -> DateTime<Utc> {
         *self.inner.last_uptime_check.lock().unwrap()
     }
 
-    fn last_list_fetch(&self) -> Instant {
+    fn last_list_fetch(&self) -> DateTime<Utc> {
         *self.inner.last_list_fetch.lock().unwrap()
     }
 
     fn is_instance_check_outdated(&self) -> bool {
         let val = self.last_uptime_check();
-        Instant::now().saturating_duration_since(val) >= self.inner.config.instance_check_interval
+        Utc::now().signed_duration_since(val).to_std().unwrap() >= self.inner.config.instance_check_interval
     }
 
     fn is_instance_list_outdated(&self) -> bool {
         let val = self.last_list_fetch();
-        Instant::now().saturating_duration_since(val) >= self.inner.config.list_fetch_interval
+        Utc::now().signed_duration_since(val).to_std().unwrap() >= self.inner.config.list_fetch_interval
     }
 
     #[instrument]
@@ -371,7 +393,7 @@ impl Scanner {
         let end = Instant::now();
         let took_ms = end.saturating_duration_since(start).as_millis();
         {
-            *self.inner.last_list_fetch.lock().unwrap() = end;
+            *self.inner.last_list_fetch.lock().unwrap() = Utc::now();
         }
         tracing::debug!(
             removed = removed,
@@ -527,7 +549,7 @@ mod test {
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
     #[ignore]
-    async fn update_instacelist() {
+    async fn update_instancelist() {
         let db = db_init().await;
         let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new())
             .await
