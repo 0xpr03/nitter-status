@@ -26,18 +26,18 @@
     <form class="p-3" method="post">
       <div class="mb-3">
         <label for="domainInput" class="form-label">Instance</label>
-        <input type="text" required name="domain" value="{{DOMAIN | default(value='')}}" hint="example.com" class="form-control" id="domainInput" aria-describedby="instanceHelp">
+        <input type="text" required name="domain" value="{{DOMAIN | default(value='')}}" placeholder="example.com" class="form-control" id="domainInput" aria-describedby="instanceHelp">
         <div id="instanceHelp" class="form-text">Instance domain, without https.</div>
       </div>
       <div class="mb-3">
         <label for="instanceToken" class="form-label">Private Token</label>
-        <input type="password" required name="key" class="form-control" id="instanceToken" aria-describedby="tokenHelp">
+        <input type="password" placeholder="00000000-0000-0000-0000-000000000000" required name="key" class="form-control" id="instanceToken" aria-describedby="tokenHelp">
         <div id="tokenHelp" class="form-text">Private token to verify against your host.</div>
       </div>
       <div class="form-check">
         <input class="form-check-input" required value="HTTP" type="radio" name="verification_method" id="verification_method_http">
         <label class="form-check-label" for="verification_method_http">
-          Verify via HTTP file at <code>/.{{VERIFY_TOKEN_NAME}}</code>
+          Verify via HTTP file at <code>/.well-known/{{VERIFY_TOKEN_NAME}}</code>
         </label>
       </div>
       <div class="form-check">
@@ -56,15 +56,15 @@
 
         <ul>
 
-            <li><p>Run this in bash: <code>uuidgen | tee >(tr -d $'\n' | sha256sum)</code>
+            <li><p>Run this in bash: <code>uuidgen -r | tee >(tr -d $'\n' | sha256sum)</code>
 
             <li><strong>OR: </strong> <a id=generate href=#>generate it in the browser</a>
         </ul>
 
         <p>The output is like this:
 
-        <pre><code class="ex-key">9FF98B96-9CCF-4624-85F4-453BBF8BB96D</code>
-        <code class="ex-hash">6c9872185d6975f0f51d7d16a6428aadb1df494af0f68166f790ef0d51b0bc8f</code></pre>
+        <pre><code class="ex-key">00000000-0000-0000-0000-000000000000</code>
+        <code class="ex-hash">12B9377CBE7E5C94E8A70D9D23929523D14AFA954793130F8A3959C7B849ACA8</code></pre>
 
         <p>The first line is your random value, and the second line's hex part is the hash.
     </li>

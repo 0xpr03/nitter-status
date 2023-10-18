@@ -47,9 +47,10 @@ pub struct ActiveLogin {
 }
 const LOGIN_KEY: &'static str = "LOGIN";
 
+/// Error shown to user, details aren't part of the error message, as they're displayed separately.
 #[derive(Error, Debug)]
 pub enum LoginError {
-    #[error("Couldn't get login file at '{0}': {1}")]
+    #[error("Couldn't get login file at '{0}'")]
     HttpFailure(Url, reqwest::Error),
     #[error("Invalid instance URL '{0}'")]
     InstanceUrl(String),
@@ -63,11 +64,11 @@ pub enum LoginError {
     DisabledHost(String),
     #[error("Server responded with status code '{0}'")]
     ServerResponse(u16, String),
-    #[error("Invalid hash found")]
+    #[error("Invalid hash, found:")]
     InvalidHash(String),
     #[error("Failed to fetch DNS TXT records")]
     DNSError(#[from] trust_dns_resolver::error::ResolveError),
-    #[error("No valid DNS TXT entry found for your key")]
+    #[error("No valid DNS TXT entry found for your key, found:")]
     DNSNoValidEntry(String),
 }
 type LoginResult<T> = std::result::Result<T, LoginError>;
@@ -200,7 +201,7 @@ async fn fetch_host_txt(
 ) -> LoginResult<String> {
     let mut request_url =
         Url::parse(&instance_url).map_err(|_| LoginError::InstanceUrl(instance_url.to_string()))?;
-    request_url.set_path(&[".", &config.login_token_name].concat());
+    request_url.set_path(&[".well-known/", &config.login_token_name].concat());
     request_url.set_query(None);
     let result = client
         .get(request_url.clone())
