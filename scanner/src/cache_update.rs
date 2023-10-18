@@ -1,3 +1,4 @@
+use std::cmp;
 // SPDX-License-Identifier: AGPL-3.0-only
 use std::collections::HashMap;
 
@@ -162,7 +163,26 @@ impl Scanner {
                 recent_checks: self.query_latest_health_checks(22, host.id).await?,
             })
         }
-        host_statistics.sort_unstable_by_key(|k| k.points);
+        host_statistics.sort_unstable_by(|a,b| {
+            if a.points > 0 {
+                match a.points.cmp(&b.points) {
+                    cmp::Ordering::Equal => a.healthy_percentage_overall.cmp(&b.healthy_percentage_overall),
+                    v => v,
+                }
+            } else {
+                let cmp_v: cmp::Ordering = b.__show_last_seen.cmp(&a.__show_last_seen);
+                if cmp_v.is_ne() {
+                    cmp_v
+                } else {
+                    match (a.last_healthy,b.last_healthy) {
+                        (Some(a),Some(b)) => a.cmp(&b),
+                        (Some(_),None) => cmp::Ordering::Greater,
+                        (None,Some(_)) => cmp::Ordering::Less,
+                        (None,None) => cmp::Ordering::Equal,
+                    }
+                }
+            }
+        });
         host_statistics.reverse();
         Ok(CacheData {
             hosts: host_statistics,
