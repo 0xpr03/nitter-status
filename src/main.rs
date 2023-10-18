@@ -38,11 +38,18 @@ async fn _main() -> miette::Result<()> {
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(
             var("RUST_LOG").unwrap_or_else(|_| {
-                format!(
+                #[cfg(debug_assertions)]
+                return format!(
                     "warn,tower_http=debug,migration=debug,scanner=trace,server=debug,{}=debug",
                     env!("CARGO_PKG_NAME")
                 )
-                .into()
+                .into();
+                #[cfg(not(debug_assertions))]
+                return format!(
+                    "warn,tower_http=debug,migration=debug,scanner=info,server=info,{}=debug",
+                    env!("CARGO_PKG_NAME")
+                )
+                .into();
             }),
         ))
         .with(tracing_subscriber::fmt::layer())
