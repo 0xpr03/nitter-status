@@ -182,6 +182,7 @@ fn read_server_config(instance_ping_interval: usize) -> miette::Result<server::C
         .expect("SESSION_TTL_SECONDS must be a positive number");
     let login_token_name = require_env_str("LOGIN_TOKEN_NAME")?;
     let admin_domains = require_env_str("ADMIN_DOMAINS")?.split(",").map(|v|v.trim().to_string()).collect();
+    let session_db_uri = require_env_str("SESSION_DB_URI")?;
 
     Ok(server::Config {
         site_url,
@@ -189,6 +190,7 @@ fn read_server_config(instance_ping_interval: usize) -> miette::Result<server::C
         session_ttl_seconds,
         login_token_name,
         admin_domains,
+        session_db_uri,
     })
 }
 

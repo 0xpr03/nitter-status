@@ -25,7 +25,7 @@ use tower_http::{
     set_header::SetResponseHeaderLayer,
     trace::TraceLayer,
 };
-use tower_sessions::{cookie::SameSite, SessionManagerLayer};
+use tower_sessions::{cookie::SameSite, SessionManagerLayer, SqliteStore};
 
 mod admin;
 mod api;
@@ -41,6 +41,7 @@ pub struct Config {
     pub session_ttl_seconds: u64,
     pub login_token_name: String,
     pub admin_domains: Vec<String>,
+    pub session_db_uri: String,
 }
 
 #[derive(Clone, axum::extract::FromRef)]
@@ -69,7 +70,15 @@ pub async fn start(
         tracing::warn!("debug build, sessions are not secure!");
     }
 
-    let session_store = tower_sessions::MemoryStore::default();
+    let pool = tower_sessions::sqlx::SqlitePool::connect(&config.session_db_uri).await.expect("failed to initialize session store");
+    let session_store = SqliteStore::new(pool);
+    session_store.migrate().await.expect("failed to migrate session store");
+    tokio::task::spawn(
+        session_store
+            .clone()
+            .continuously_delete_expired(tokio::time::Duration::from_secs(60)),
+    );
+
     let session_service = ServiceBuilder::new()
         .layer(HandleErrorLayer::new(|e: axum::BoxError| async move {
             tracing::debug!(session_error=?e);
