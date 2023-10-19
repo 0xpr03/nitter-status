@@ -37,6 +37,10 @@ pub struct Config {
     pub source_git_branch: String,
     /// Hosts known to be bad (ip block), domain per entry
     pub bad_hosts: Vec<String>,
+    /// Interval to run cleanup operations in, to remove old data
+    pub cleanup_interval: Duration,
+    /// Amount of latest errors to keep per instance/host
+    pub error_retention_per_host: usize,
 }
 
 impl Config {
@@ -59,6 +63,8 @@ impl Config {
             source_git_branch: String::from("master"),
             source_git_url: String::from("https://github.com/zedeus/nitter.git"),
             bad_hosts: vec![String::from("tweet.whateveritworks.org")],
+            cleanup_interval: Duration::from_secs(24*60*60),
+            error_retention_per_host: 100,
         })
     }
 }

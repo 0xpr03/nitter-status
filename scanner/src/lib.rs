@@ -36,6 +36,7 @@ mod instance_check;
 mod instance_parser;
 mod profile_parser;
 mod version_check;
+mod cleanup;
 
 const CAPTCHA_TEXT: &'static str = "Enable JavaScript and cookies to continue";
 const CAPTCHA_CODE: u16 = 403;
@@ -116,6 +117,7 @@ pub async fn run_scanner(
     disable_health_checks: bool,
 ) -> Result<()> {
     let scanner = Scanner::new(db, config, app_state).await?;
+    scanner.schedule_cleanup().unwrap();
 
     if disable_health_checks {
         tracing::error!("Health checks disabled!");
@@ -284,7 +286,7 @@ impl Scanner {
     #[instrument]
     async fn update_instacelist(&mut self) -> Result<()> {
         let start = Instant::now();
-        let html: String = self.fetch_instancelist().await?;
+        let html: String = self.fetch_instance_list().await?;
         let parsed_instances = self.inner.instance_parser.parse_instancelist(
             &html,
             &self.inner.config.additional_hosts,
@@ -403,7 +405,7 @@ impl Scanner {
         Ok(())
     }
 
-    async fn fetch_instancelist(&self) -> Result<String> {
+    async fn fetch_instance_list(&self) -> Result<String> {
         let (_, body) = self.fetch_url(&self.inner.config.instance_list_url).await?;
         Ok(body)
     }
@@ -554,7 +556,7 @@ mod test {
         let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new())
             .await
             .unwrap();
-        let res = scanner.fetch_instancelist().await.unwrap();
+        let res = scanner.fetch_instance_list().await.unwrap();
         let mut file = File::create("test_data/instancelist.html").await.unwrap();
         file.write_all(&res.as_bytes()).await.unwrap();
     }

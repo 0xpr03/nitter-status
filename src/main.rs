@@ -130,6 +130,12 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
     let auto_mute = require_env_str("AUTO_MUTE")? == "true";
     let source_git_branch = require_env_str("ORIGIN_SOURCE_GIT_BRANCH")?;
     let source_git_url = require_env_str("ORIGIN_SOURCE_GIT_URL")?;
+    let cleanup_interval: u64 = require_env_str("CLEANUP_INTERVAL_S")?
+        .parse()
+        .expect("CLEANUP_INTERVAL_S must be a number");
+    let error_retention_per_host: usize = require_env_str("ERROR_RETENTION_PER_HOST")?
+        .parse()
+        .expect("CLEANUP_INTERVAL_S must be a number");
 
     Ok(Arc::new(entities::state::scanner::Config {
         list_fetch_interval: Duration::from_secs(instance_list_interval),
@@ -149,6 +155,8 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
         source_git_branch,
         source_git_url,
         bad_hosts,
+        cleanup_interval: Duration::from_secs(cleanup_interval),
+        error_retention_per_host,
     }))
 }
 

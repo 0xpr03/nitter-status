@@ -3201,6 +3201,7 @@ dependencies = [
  "reqwest",
  "scraper",
  "sea-orm",
+ "sea-query",
  "serde",
  "thiserror",
  "tokio",
