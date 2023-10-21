@@ -3218,6 +3218,7 @@ dependencies = [
  "csv",
  "entities",
  "git2",
+ "miette",
  "migration",
  "regex",
  "reqwest",

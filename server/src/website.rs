@@ -49,6 +49,7 @@ pub async fn about(
     paths.push(&scanner_config.about_path);
     paths.push(&scanner_config.rss_path);
     paths.push(&scanner_config.profile_path);
+    paths.push(&scanner_config.connectivity_path);
     context.insert("checked_paths", &paths);
     context.insert(
         "uptime_interval_s",

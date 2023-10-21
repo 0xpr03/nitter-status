@@ -91,8 +91,7 @@ async fn _main() -> miette::Result<()> {
         disable_health_checks,
     )
     .await
-    .into_diagnostic()
-    .wrap_err("Failed starting background scanner")?;
+    .wrap_err("Crash starting background scanner")?;
 
     let addr = std::net::SocketAddr::from(([127, 0, 0, 1], port));
     server::start(&addr, pool, server_config, scanner_config, cache)
@@ -157,6 +156,7 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
         bad_hosts,
         cleanup_interval: Duration::from_secs(cleanup_interval),
         error_retention_per_host,
+        connectivity_path: String::from("/"),
     }))
 }
 

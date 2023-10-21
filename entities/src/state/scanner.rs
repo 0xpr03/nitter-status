@@ -41,6 +41,8 @@ pub struct Config {
     pub cleanup_interval: Duration,
     /// Amount of latest errors to keep per instance/host
     pub error_retention_per_host: usize,
+    /// Path for connectivity checks
+    pub connectivity_path: String,
 }
 
 impl Config {
@@ -65,6 +67,7 @@ impl Config {
             bad_hosts: vec![String::from("tweet.whateveritworks.org")],
             cleanup_interval: Duration::from_secs(24*60*60),
             error_retention_per_host: 100,
+            connectivity_path: String::from("/"),
         })
     }
 }

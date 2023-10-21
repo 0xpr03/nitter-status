@@ -2,31 +2,26 @@
 use std::{
     net::IpAddr,
     sync::{Arc, Mutex},
-    time::Instant,
 };
 
 use about_parser::AboutParser;
 use chrono::{Utc, DateTime, TimeZone, Duration};
-use entities::{
-    host,
-    prelude::*,
-    state::{error_cache::HostError, scanner::ScannerConfig, AppState}, health_check,
-};
+use entities::{state::{error_cache::HostError, scanner::ScannerConfig, AppState}, health_check};
 use instance_parser::InstanceParser;
+use miette::{IntoDiagnostic, Context};
 use profile_parser::ProfileParser;
 use regex::{Regex, RegexBuilder};
 use reqwest::{
     header::{HeaderMap, HeaderValue},
-    Client, ClientBuilder, Url,
+    Client, ClientBuilder
 };
 use sea_orm::{
-    sea_query::OnConflict, ActiveModelTrait, ActiveValue, ColumnTrait, ConnectionTrait,
-    DatabaseConnection, DbBackend, EntityTrait, FromQueryResult, QueryFilter, Statement,
-    TransactionTrait, QuerySelect,
+    ColumnTrait, ConnectionTrait,
+    DatabaseConnection, DbBackend, EntityTrait, FromQueryResult, Statement,
+    QuerySelect,
 };
 use thiserror::Error;
-use tokio::{task::JoinSet, time::sleep};
-use tracing::instrument;
+use tokio::time::sleep;
 
 type Result<T> = std::result::Result<T, ScannerError>;
 
@@ -37,6 +32,7 @@ mod instance_parser;
 mod profile_parser;
 mod version_check;
 mod cleanup;
+mod list_update;
 
 const CAPTCHA_TEXT: &'static str = "Enable JavaScript and cookies to continue";
 const CAPTCHA_CODE: u16 = 403;
@@ -110,13 +106,21 @@ impl FetchError {
     }
 }
 
+#[derive(Debug, FromQueryResult, Default)]
+pub(crate) struct LatestCheck {
+    pub host: i32,
+    pub healthy: bool,
+    pub domain: String,
+}
+
 pub async fn run_scanner(
     db: DatabaseConnection,
     config: ScannerConfig,
     app_state: AppState,
     disable_health_checks: bool,
-) -> Result<()> {
-    let scanner = Scanner::new(db, config, app_state).await?;
+) -> miette::Result<()> {
+    let scanner = Scanner::new(db, config, app_state).await
+        .wrap_err("Initializing scanner!")?;
     scanner.schedule_cleanup().unwrap();
 
     if disable_health_checks {
@@ -124,7 +128,7 @@ pub async fn run_scanner(
         return Ok(())
     }
     tokio::spawn(async move {
-        scanner.run().await.unwrap();
+        scanner.run().await.expect("Failed to run scanner daemon!");
     });
 
     Ok(())
@@ -148,13 +152,6 @@ struct InnerScanner {
     rss_check_regex: Regex,
     client_ipv4: Client,
     client_ipv6: Client,
-}
-
-#[derive(Debug, FromQueryResult, Default)]
-pub struct LatestCheck {
-    pub host: i32,
-    pub healthy: bool,
-    pub domain: String,
 }
 
 impl Scanner {
@@ -181,20 +178,22 @@ impl Scanner {
         db: DatabaseConnection,
         config: ScannerConfig,
         app_state: AppState,
-    ) -> Result<Self> {
+    ) -> miette::Result<Self> {
         let mut builder_regex_rss = RegexBuilder::new(&config.rss_content);
         builder_regex_rss.case_insensitive(true);
         let http_client = Self::client_builder(&config);
         let client_ipv4 = Scanner::client_builder(&config)
             .local_address("0.0.0.0".parse::<IpAddr>().unwrap())
             .build()
-            .unwrap();
+            .into_diagnostic()?;
         let client_ipv6 = Scanner::client_builder(&config)
             .local_address("::".parse::<IpAddr>().unwrap())
             .build()
-            .unwrap();
+            .into_diagnostic()?;
 
-        let last_uptime_check = Self::query_last_fetch(&db).await?;
+        let last_uptime_check = Self::query_last_fetch(&db).await
+            .into_diagnostic()
+            .wrap_err("Fetching last uptime check failed!")?;
         tracing::info!(?last_uptime_check);
         let scanner = Self {
             inner: Arc::new(InnerScanner {
@@ -211,10 +210,12 @@ impl Scanner {
                 last_uptime_check: Mutex::new(last_uptime_check),
                 rss_check_regex: builder_regex_rss
                     .build()
-                    .expect("Invalid RSS Content regex!"),
+                    .into_diagnostic()
+                    .wrap_err("Invalid RSS Content regex!")?,
             }),
         };
-        scanner.update_cache().await?;
+        scanner.update_cache().await.into_diagnostic()
+        .wrap_err("Initial cache update failed!")?;
         Ok(scanner)
     }
 
@@ -226,6 +227,29 @@ impl Scanner {
         .map(|model| model.time)
         .unwrap_or_default();
         Ok(Utc.timestamp_opt(time,0).unwrap())
+    }
+
+    pub async fn query_latest_check<T: ConnectionTrait>(
+        &self,
+        connection: &T,
+    ) -> Result<Vec<LatestCheck>> {
+        let health_checks = LatestCheck::find_by_statement(Statement::from_sql_and_values(
+            DbBackend::Sqlite,
+            r#"
+            WITH latest AS(
+                SELECT u.host,MAX(u.time) as time FROM health_check u
+                GROUP BY u.host
+            )
+            SELECT u.host,healthy,h.domain FROM health_check u
+            JOIN host h ON h.id = u.host
+            JOIN latest l ON l.host = u.host AND l.time = u.time
+            WHERE h.enabled = true
+            "#,
+            [],
+        ))
+        .all(connection)
+        .await?;
+        Ok(health_checks)
     }
 
     pub async fn run(mut self) -> Result<()> {
@@ -283,156 +307,9 @@ impl Scanner {
         Utc::now().signed_duration_since(val).to_std().unwrap() >= self.inner.config.list_fetch_interval
     }
 
-    #[instrument]
-    async fn update_instacelist(&mut self) -> Result<()> {
-        let start = Instant::now();
-        let html: String = self.fetch_instance_list().await?;
-        let parsed_instances = self.inner.instance_parser.parse_instancelist(
-            &html,
-            &self.inner.config.additional_hosts,
-            &self.inner.config.additional_host_country,
-            false,
-        )?;
-
-        let transaction = self.inner.db.begin().await?;
-
-        // find all currently enabled instances
-        let enabled_hosts = Host::find()
-            .filter(host::Column::Enabled.eq(true))
-            .all(&transaction)
-            .await?;
-        // make a diff and remove the ones not found while parsing
-        let time: chrono::DateTime<Utc> = Utc::now();
-        let mut removed = 0;
-        for host in enabled_hosts.iter() {
-            if !parsed_instances.contains_key(&host.domain) {
-                host::ActiveModel {
-                    id: ActiveValue::Set(host.id),
-                    enabled: ActiveValue::Set(false),
-                    updated: ActiveValue::Set(time.timestamp()),
-                    ..Default::default()
-                }
-                .update(&transaction)
-                .await?;
-                removed += 1;
-            }
-        }
-        // now update/insert the existing ones
-        let found_instances: usize = parsed_instances.len();
-        // find last update checks to detect spam
-        let last_status = self.query_latest_check(&transaction).await?;
-        let mut join_set = JoinSet::new();
-        for (_, instance) in parsed_instances {
-            // TODO: parallelize this!
-            let scanner_c = self.clone();
-            // detect already offline host and prevent log spam
-            let muted_host = match self.inner.config.auto_mute {
-                false => false,
-                true => last_status
-                    .iter()
-                    .find(|v| v.domain == instance.domain)
-                    .map_or(false, |check| !check.healthy),
-            };
-            // tracing::trace!(muted_host,instance=?instance,last_status=?last_status);
-            join_set.spawn(async move {
-                let (connectivity, rss, version, version_url) = match Url::parse(&instance.url) {
-                    Err(_) => {
-                        if !muted_host {
-                            tracing::info!(url = instance.url, "Instance URL invalid");
-                        }
-                        (None, false, None, None)
-                    }
-                    Ok(mut url) => {
-                        let connectivity = scanner_c.check_connectivity(url.as_str()).await;
-                        let rss = scanner_c.has_rss(&mut url, muted_host).await;
-                        match scanner_c.nitter_version(&mut url, muted_host).await {
-                            Some(version) => (
-                                connectivity,
-                                rss,
-                                Some(version.version_name),
-                                Some(version.url),
-                            ),
-                            None => (connectivity, rss, None, None),
-                        }
-                    }
-                };
-
-                host::ActiveModel {
-                    id: ActiveValue::NotSet,
-                    domain: ActiveValue::Set(instance.domain),
-                    country: ActiveValue::Set(instance.country),
-                    url: ActiveValue::Set(instance.url),
-                    enabled: ActiveValue::Set(true),
-                    version: ActiveValue::Set(version),
-                    version_url: ActiveValue::Set(version_url),
-                    rss: ActiveValue::Set(rss),
-                    updated: ActiveValue::Set(time.timestamp()),
-                    connectivity: ActiveValue::Set(connectivity),
-                }
-            });
-        }
-        while let Some(update_model) = join_set.join_next().await.map(|v| v.unwrap()) {
-            Host::insert(update_model)
-                .on_conflict(
-                    OnConflict::column(host::Column::Domain)
-                        .update_columns([
-                            host::Column::Enabled,
-                            host::Column::Updated,
-                            host::Column::Url,
-                            host::Column::Rss,
-                            host::Column::Version,
-                            host::Column::VersionUrl,
-                            host::Column::Country,
-                            host::Column::Connectivity,
-                        ])
-                        .to_owned(),
-                )
-                .exec(&transaction)
-                .await?;
-        }
-
-        transaction.commit().await?;
-        let end = Instant::now();
-        let took_ms = end.saturating_duration_since(start).as_millis();
-        {
-            *self.inner.last_list_fetch.lock().unwrap() = Utc::now();
-        }
-        tracing::debug!(
-            removed = removed,
-            found = found_instances,
-            took_ms = took_ms
-        );
-        Ok(())
-    }
-
     async fn fetch_instance_list(&self) -> Result<String> {
         let (_, body) = self.fetch_url(&self.inner.config.instance_list_url).await?;
         Ok(body)
-    }
-
-    /// Check ipv4/6 connectivity of host
-    async fn check_connectivity(&self, url: &str) -> Option<host::Connectivity> {
-        let ipv4 = self
-            .inner
-            .client_ipv4
-            .get(url)
-            .send()
-            .await
-            .map_or(false, |res| res.status().is_success());
-        let ipv6 = self
-            .inner
-            .client_ipv6
-            .get(url)
-            .send()
-            .await
-            .map_or(false, |res| res.status().is_success());
-
-        match (ipv4, ipv6) {
-            (true, true) => Some(host::Connectivity::All),
-            (false, true) => Some(host::Connectivity::IPv6),
-            (true, false) => Some(host::Connectivity::IPv4),
-            (false, false) => None,
-        }
     }
 
     async fn fetch_url(&self, url: &str) -> std::result::Result<(u16, String), FetchError> {
@@ -481,29 +358,6 @@ impl Scanner {
 
         Ok((code, body))
     }
-
-    pub async fn query_latest_check<T: ConnectionTrait>(
-        &self,
-        connection: &T,
-    ) -> Result<Vec<LatestCheck>> {
-        let health_checks = LatestCheck::find_by_statement(Statement::from_sql_and_values(
-            DbBackend::Sqlite,
-            r#"
-            WITH latest AS(
-                SELECT u.host,MAX(u.time) as time FROM health_check u
-                GROUP BY u.host
-            )
-            SELECT u.host,healthy,h.domain FROM health_check u
-            JOIN host h ON h.id = u.host
-            JOIN latest l ON l.host = u.host AND l.time = u.time
-            WHERE h.enabled = true
-            "#,
-            [],
-        ))
-        .all(connection)
-        .await?;
-        Ok(health_checks)
-    }
 }
 
 #[cfg(test)]
@@ -514,10 +368,10 @@ mod test {
     use entities::health_check;
     use entities::state::scanner::Config;
     use migration::MigratorTrait;
-    use sea_orm::{ConnectOptions, Database};
+    use sea_orm::{ConnectOptions, Database, ActiveValue, ActiveModelTrait};
     use tokio::{fs::File, io::AsyncWriteExt};
 
-    async fn db_init() -> DatabaseConnection {
+    pub(crate) async fn db_init() -> DatabaseConnection {
         let db = Database::connect(ConnectOptions::new(
             "sqlite:./test_db.db?mode=rwc".to_owned(),
         ))
@@ -581,27 +435,6 @@ mod test {
             .await
             .unwrap();
         dbg!(scanner.generate_cache_data().await.unwrap());
-    }
-
-    #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
-    #[ignore]
-    async fn connectivity_test() {
-        let db = db_init().await;
-        let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new())
-            .await
-            .unwrap();
-        assert_eq!(
-            scanner.check_connectivity("https://v4.ipv6test.app").await,
-            Some(host::Connectivity::IPv4)
-        );
-        assert_eq!(
-            scanner.check_connectivity("https://ipv6test.app").await,
-            Some(host::Connectivity::All)
-        );
-        assert_eq!(
-            scanner.check_connectivity("https://v6.ipv6test.app").await,
-            Some(host::Connectivity::IPv6)
-        );
     }
 }
 
