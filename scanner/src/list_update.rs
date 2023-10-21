@@ -8,13 +8,15 @@ use chrono::Utc;
 use entities::host;
 use entities::prelude::Host;
 use reqwest::Url;
-use sea_orm::{QueryFilter, TransactionTrait, ActiveModelTrait, ActiveValue, ColumnTrait, EntityTrait};
+use sea_orm::{
+    ActiveModelTrait, ActiveValue, ColumnTrait, EntityTrait, QueryFilter, TransactionTrait,
+};
 use sea_query::OnConflict;
 use tokio::task::JoinSet;
 use tracing::instrument;
 
-use crate::Scanner;
 use crate::Result;
+use crate::Scanner;
 
 impl Scanner {
     /// Fetches the list of all instances from the wiki.  
@@ -179,7 +181,7 @@ mod test {
     use entities::state::scanner::Config;
     use tracing_test::traced_test;
 
-    use crate::{Scanner, test::db_init};
+    use crate::{test::db_init, Scanner};
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
     #[traced_test]
@@ -190,15 +192,21 @@ mod test {
             .await
             .unwrap();
         assert_eq!(
-            scanner.check_connectivity(&mut Url::parse("https://v4.ipv6test.app").unwrap()).await,
+            scanner
+                .check_connectivity(&mut Url::parse("https://v4.ipv6test.app").unwrap())
+                .await,
             Some(host::Connectivity::IPv4)
         );
         assert_eq!(
-            scanner.check_connectivity(&mut Url::parse("https://ipv6test.app").unwrap()).await,
+            scanner
+                .check_connectivity(&mut Url::parse("https://ipv6test.app").unwrap())
+                .await,
             Some(host::Connectivity::All)
         );
         assert_eq!(
-            scanner.check_connectivity(&mut Url::parse("https://v6.ipv6test.app").unwrap()).await,
+            scanner
+                .check_connectivity(&mut Url::parse("https://v6.ipv6test.app").unwrap())
+                .await,
             Some(host::Connectivity::IPv6)
         );
     }

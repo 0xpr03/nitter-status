@@ -7,8 +7,8 @@ use sea_orm::QueryFilter;
 use sea_query::Query;
 use tokio::time::interval;
 
-use crate::Scanner;
 use crate::Result;
+use crate::Scanner;
 
 impl Scanner {
     /// Setup scheduled job for cleaning up old data
@@ -37,18 +37,21 @@ impl Scanner {
         let hosts = host::Entity::find().all(&self.inner.db).await?;
         for host in hosts {
             let res = check_errors::Entity::delete_many()
-            .filter(check_errors::Column::Host.eq(host.id))
-            .filter(check_errors::Column::Time.not_in_subquery(
-                Query::select()
-                .column(check_errors::Column::Time)
-                .from(check_errors::Entity)
-                .and_where(check_errors::Column::Host.eq(host.id))
-                .order_by(check_errors::Column::Time, Order::Desc)
-                .limit(self.inner.config.error_retention_per_host as _)
-                .to_owned()
-            ))
-            .exec(&self.inner.db).await?;
-            tracing::debug!(host=host.id,deleted_errors=res.rows_affected);
+                .filter(check_errors::Column::Host.eq(host.id))
+                .filter(
+                    check_errors::Column::Time.not_in_subquery(
+                        Query::select()
+                            .column(check_errors::Column::Time)
+                            .from(check_errors::Entity)
+                            .and_where(check_errors::Column::Host.eq(host.id))
+                            .order_by(check_errors::Column::Time, Order::Desc)
+                            .limit(self.inner.config.error_retention_per_host as _)
+                            .to_owned(),
+                    ),
+                )
+                .exec(&self.inner.db)
+                .await?;
+            tracing::debug!(host = host.id, deleted_errors = res.rows_affected);
         }
 
         Ok(())

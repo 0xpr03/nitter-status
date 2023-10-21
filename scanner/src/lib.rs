@@ -5,20 +5,22 @@ use std::{
 };
 
 use about_parser::AboutParser;
-use chrono::{Utc, DateTime, TimeZone, Duration};
-use entities::{state::{error_cache::HostError, scanner::ScannerConfig, AppState}, health_check};
+use chrono::{DateTime, Duration, TimeZone, Utc};
+use entities::{
+    health_check,
+    state::{error_cache::HostError, scanner::ScannerConfig, AppState},
+};
 use instance_parser::InstanceParser;
-use miette::{IntoDiagnostic, Context};
+use miette::{Context, IntoDiagnostic};
 use profile_parser::ProfileParser;
 use regex::{Regex, RegexBuilder};
 use reqwest::{
     header::{HeaderMap, HeaderValue},
-    Client, ClientBuilder
+    Client, ClientBuilder,
 };
 use sea_orm::{
-    ColumnTrait, ConnectionTrait,
-    DatabaseConnection, DbBackend, EntityTrait, FromQueryResult, Statement,
-    QuerySelect,
+    ColumnTrait, ConnectionTrait, DatabaseConnection, DbBackend, EntityTrait, FromQueryResult,
+    QuerySelect, Statement,
 };
 use thiserror::Error;
 use tokio::time::sleep;
@@ -27,12 +29,12 @@ type Result<T> = std::result::Result<T, ScannerError>;
 
 mod about_parser;
 mod cache_update;
+mod cleanup;
 mod instance_check;
 mod instance_parser;
+mod list_update;
 mod profile_parser;
 mod version_check;
-mod cleanup;
-mod list_update;
 
 const CAPTCHA_TEXT: &'static str = "Enable JavaScript and cookies to continue";
 const CAPTCHA_CODE: u16 = 403;
@@ -119,13 +121,14 @@ pub async fn run_scanner(
     app_state: AppState,
     disable_health_checks: bool,
 ) -> miette::Result<()> {
-    let scanner = Scanner::new(db, config, app_state).await
+    let scanner = Scanner::new(db, config, app_state)
+        .await
         .wrap_err("Initializing scanner!")?;
     scanner.schedule_cleanup().unwrap();
 
     if disable_health_checks {
         tracing::error!("Health checks disabled!");
-        return Ok(())
+        return Ok(());
     }
     tokio::spawn(async move {
         scanner.run().await.expect("Failed to run scanner daemon!");
@@ -191,7 +194,8 @@ impl Scanner {
             .build()
             .into_diagnostic()?;
 
-        let last_uptime_check = Self::query_last_fetch(&db).await
+        let last_uptime_check = Self::query_last_fetch(&db)
+            .await
             .into_diagnostic()
             .wrap_err("Fetching last uptime check failed!")?;
         tracing::info!(?last_uptime_check);
@@ -214,8 +218,11 @@ impl Scanner {
                     .wrap_err("Invalid RSS Content regex!")?,
             }),
         };
-        scanner.update_cache().await.into_diagnostic()
-        .wrap_err("Initial cache update failed!")?;
+        scanner
+            .update_cache()
+            .await
+            .into_diagnostic()
+            .wrap_err("Initial cache update failed!")?;
         Ok(scanner)
     }
 
@@ -237,7 +244,7 @@ impl Scanner {
         .map(|model| model.max)
         .flatten()
         .unwrap_or_default();
-        Ok(Utc.timestamp_opt(time_max,0).unwrap())
+        Ok(Utc.timestamp_opt(time_max, 0).unwrap())
     }
 
     pub async fn query_latest_check<T: ConnectionTrait>(
@@ -287,7 +294,7 @@ impl Scanner {
             self.last_uptime_check() + self.inner.config.instance_check_interval;
 
         let delay_list_update = self.last_list_fetch() + self.inner.config.list_fetch_interval;
-        tracing::debug!(?delay_list_update,?delay_instance_check);
+        tracing::debug!(?delay_list_update, ?delay_instance_check);
         let next_deadline = delay_instance_check.min(delay_list_update);
         let now = Utc::now();
         let sleep_time = next_deadline.signed_duration_since(now);
@@ -310,12 +317,14 @@ impl Scanner {
 
     fn is_instance_check_outdated(&self) -> bool {
         let val = self.last_uptime_check();
-        Utc::now().signed_duration_since(val).to_std().unwrap() >= self.inner.config.instance_check_interval
+        Utc::now().signed_duration_since(val).to_std().unwrap()
+            >= self.inner.config.instance_check_interval
     }
 
     fn is_instance_list_outdated(&self) -> bool {
         let val = self.last_list_fetch();
-        Utc::now().signed_duration_since(val).to_std().unwrap() >= self.inner.config.list_fetch_interval
+        Utc::now().signed_duration_since(val).to_std().unwrap()
+            >= self.inner.config.list_fetch_interval
     }
 
     async fn fetch_instance_list(&self) -> Result<String> {
@@ -379,7 +388,7 @@ mod test {
     use entities::health_check;
     use entities::state::scanner::Config;
     use migration::MigratorTrait;
-    use sea_orm::{ConnectOptions, Database, ActiveValue, ActiveModelTrait};
+    use sea_orm::{ActiveModelTrait, ActiveValue, ConnectOptions, Database};
     use tokio::{fs::File, io::AsyncWriteExt};
 
     pub(crate) async fn db_init() -> DatabaseConnection {

@@ -2,8 +2,8 @@
 use std::cmp;
 use std::collections::HashMap;
 
-use chrono::{TimeZone, Duration};
 use chrono::{Days, Utc};
+use chrono::{Duration, TimeZone};
 use entities::host;
 use entities::prelude::*;
 use entities::state::CacheData;
@@ -139,7 +139,8 @@ impl Scanner {
 
             let host_ping_data = ping_data.remove(&host.id);
             let last_healthy = last_healthy_check.remove(&host.id);
-            let __show_last_seen = last_healthy.map_or(true, |e|(time_now - e) > Duration::hours(12));
+            let __show_last_seen =
+                last_healthy.map_or(true, |e| (time_now - e) > Duration::hours(12));
             host_statistics.push(CacheHost {
                 last_healthy: last_healthy,
                 __show_last_seen,
@@ -163,10 +164,12 @@ impl Scanner {
                 recent_checks: self.query_latest_health_checks(22, host.id).await?,
             })
         }
-        host_statistics.sort_unstable_by(|a,b| {
+        host_statistics.sort_unstable_by(|a, b| {
             if a.points > 0 {
                 match a.points.cmp(&b.points) {
-                    cmp::Ordering::Equal => a.healthy_percentage_overall.cmp(&b.healthy_percentage_overall),
+                    cmp::Ordering::Equal => a
+                        .healthy_percentage_overall
+                        .cmp(&b.healthy_percentage_overall),
                     v => v,
                 }
             } else {
@@ -174,11 +177,11 @@ impl Scanner {
                 if cmp_v.is_ne() {
                     cmp_v
                 } else {
-                    match (a.last_healthy,b.last_healthy) {
-                        (Some(a),Some(b)) => a.cmp(&b),
-                        (Some(_),None) => cmp::Ordering::Greater,
-                        (None,Some(_)) => cmp::Ordering::Less,
-                        (None,None) => cmp::Ordering::Equal,
+                    match (a.last_healthy, b.last_healthy) {
+                        (Some(a), Some(b)) => a.cmp(&b),
+                        (Some(_), None) => cmp::Ordering::Greater,
+                        (None, Some(_)) => cmp::Ordering::Less,
+                        (None, None) => cmp::Ordering::Equal,
                     }
                 }
             }

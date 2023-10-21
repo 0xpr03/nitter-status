@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-use std::{borrow::Cow, net::SocketAddr, sync::Arc, collections::HashMap};
+use std::{borrow::Cow, collections::HashMap, net::SocketAddr, sync::Arc};
 
 use axum::{
     error_handling::HandleErrorLayer,
@@ -7,17 +7,17 @@ use axum::{
     http::HeaderValue,
     response::{Html, Redirect},
     routing::{get, get_service},
-    Router, BoxError,
+    BoxError, Router,
 };
 use chrono::TimeZone;
 use entities::state::{scanner::ScannerConfig, AppState};
 use hyper::{header, StatusCode};
 use reqwest::Client;
 use sea_orm::DatabaseConnection;
-use tera::{Tera, from_value, to_value};
+use tera::{from_value, to_value, Tera};
 use thiserror::Error;
 use tower::ServiceBuilder;
-use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
+use tower_governor::{governor::GovernorConfigBuilder, GovernorLayer};
 use tower_http::{
     cors::CorsLayer,
     limit::RequestBodyLimitLayer,
@@ -70,9 +70,14 @@ pub async fn start(
         tracing::warn!("debug build, sessions are not secure!");
     }
 
-    let pool = tower_sessions::sqlx::SqlitePool::connect(&config.session_db_uri).await.expect("failed to initialize session store");
+    let pool = tower_sessions::sqlx::SqlitePool::connect(&config.session_db_uri)
+        .await
+        .expect("failed to initialize session store");
     let session_store = SqliteStore::new(pool);
-    session_store.migrate().await.expect("failed to migrate session store");
+    session_store
+        .migrate()
+        .await
+        .expect("failed to migrate session store");
     tokio::task::spawn(
         session_store
             .clone()
@@ -127,12 +132,12 @@ pub async fn start(
             .unwrap(),
     );
     let rate_limit_layer = ServiceBuilder::new()
-    .layer(HandleErrorLayer::new(|e: BoxError| async move {
-        tower_governor::errors::display_error(e) // too many requests
-    }))
-    .layer(GovernorLayer {
-        config: Box::leak(per_ip_governor_conf),
-    });
+        .layer(HandleErrorLayer::new(|e: BoxError| async move {
+            tower_governor::errors::display_error(e) // too many requests
+        }))
+        .layer(GovernorLayer {
+            config: Box::leak(per_ip_governor_conf),
+        });
 
     let router = Router::new()
         .nest_service(
@@ -239,11 +244,16 @@ fn fmt_date(args: &HashMap<String, tera::Value>) -> tera::Result<tera::Value> {
             Ok(time_i64) => {
                 let format = match args.get("fmt") {
                     None => "%Y.%m.%d %H:%M:%S",
-                    Some(v) => v.as_str().ok_or_else(||tera::Error::from("fmt has to be a string"))?,
+                    Some(v) => v
+                        .as_str()
+                        .ok_or_else(|| tera::Error::from("fmt has to be a string"))?,
                 };
-                let time = chrono::Utc.timestamp_opt(time_i64,0).single().ok_or_else(||tera::Error::from("Invalid timestamp"))?;
+                let time = chrono::Utc
+                    .timestamp_opt(time_i64, 0)
+                    .single()
+                    .ok_or_else(|| tera::Error::from("Invalid timestamp"))?;
                 Ok(to_value(time.format(format).to_string()).unwrap())
-            },
+            }
             Err(_) => Err("timestamp not an i64".into()),
         },
         None => Err("no value provided".into()),

@@ -116,7 +116,10 @@ pub async fn login(
                 Err(_) => {
                     let mut ids = HashSet::with_capacity(1);
                     ids.insert(host.id);
-                    ActiveLogin { hosts: ids, admin: config.admin_domains.iter().any(|e| e == domain) }
+                    ActiveLogin {
+                        hosts: ids,
+                        admin: config.admin_domains.iter().any(|e| e == domain),
+                    }
                 }
             };
             session.insert(LOGIN_KEY, session_value)?;
@@ -276,7 +279,7 @@ pub async fn overview(
 ) -> Result<axum::response::Response> {
     tracing::info!(?session);
 
-    let (login,hosts) = get_all_login_hosts(&session, db).await?;
+    let (login, hosts) = get_all_login_hosts(&session, db).await?;
 
     let mut context = tera::Context::new();
     let res = {
@@ -385,16 +388,20 @@ async fn get_all_login_hosts(
     let login = get_session_login(&session)?;
 
     let host_res = match login.admin {
-        true => host::Entity::find()
-        .filter(host::Column::Enabled.eq(true))
-        .all(db)
-        .await?,
-        false => host::Entity::find()
-        .filter(host::Column::Id.is_in(login.hosts.iter().map(|v| *v)))
-        .all(db)
-        .await?,
+        true => {
+            host::Entity::find()
+                .filter(host::Column::Enabled.eq(true))
+                .all(db)
+                .await?
+        }
+        false => {
+            host::Entity::find()
+                .filter(host::Column::Id.is_in(login.hosts.iter().map(|v| *v)))
+                .all(db)
+                .await?
+        }
     };
-    Ok((login,host_res))
+    Ok((login, host_res))
 }
 
 /// Get wanted [host::Model] for current [Session] if valid for this user
