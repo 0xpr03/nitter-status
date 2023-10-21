@@ -405,7 +405,7 @@ mod test {
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
     #[ignore]
-    async fn update_instancelist() {
+    async fn test_fetch_instance_list() {
         let db = db_init().await;
         let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new())
             .await

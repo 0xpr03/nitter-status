@@ -1,12 +1,9 @@
 use entities::check_errors;
-use entities::health_check;
 use entities::host;
 use sea_orm::ColumnTrait;
 use sea_orm::EntityTrait;
 use sea_orm::Order;
 use sea_orm::QueryFilter;
-use sea_orm::QueryOrder;
-use sea_orm::QuerySelect;
 use sea_query::Query;
 use tokio::time::interval;
 

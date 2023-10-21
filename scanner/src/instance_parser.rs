@@ -36,20 +36,6 @@ pub struct InstanceParsed {
     pub country: String,
 }
 
-impl InstanceParsed {
-    /// just for testing purposes
-    #[cfg(test)]
-    fn from(domain: &str, url: &str, online: bool, ssl_provider: &str, country: &str) -> Self {
-        Self {
-            domain: domain.to_owned(),
-            url: url.to_owned(),
-            online,
-            ssl_provider: ssl_provider.to_owned(),
-            country: country.to_owned(),
-        }
-    }
-}
-
 /// Instance parser.
 pub(crate) struct InstanceParser {
     selector_wiki: Selector,
@@ -197,8 +183,7 @@ impl InstanceParser {
 #[cfg(test)]
 mod test {
     use csv;
-    use std::io::Write;
-    use std::{collections::HashMap, io::BufWriter};
+    use std::collections::HashMap;
     use tracing_test::traced_test;
 
     use super::*;
@@ -221,16 +206,6 @@ mod test {
         for (_, instance) in res.iter() {
             assert_eq!(Some(instance), expected.get(&instance.domain));
         }
-    }
-
-    fn write_data<'a, T: Iterator<Item = &'a InstanceParsed>>(data: T) {
-        // use to write a new csv
-        let file = std::fs::File::create("test_data/instancelist_expected.csv").unwrap();
-        let mut wtr = csv::Writer::from_writer(file);
-        for entry in data {
-            wtr.serialize(entry).unwrap();
-        }
-        wtr.flush().unwrap();
     }
 
     fn expected_data() -> Vec<InstanceParsed> {
