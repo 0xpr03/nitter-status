@@ -221,12 +221,23 @@ impl Scanner {
 
     /// Retrieves the last uptime fetch that happened
     pub async fn query_last_fetch(db: &DatabaseConnection) -> Result<DateTime<Utc>> {
-        let time = health_check::Entity::find().column_as(health_check::Column::Time.max(), health_check::Column::Time)
+        #[derive(Debug, FromQueryResult, Default)]
+        pub(crate) struct TimeMax {
+            pub max: Option<i64>,
+        }
+        // can't use find().column_as(health_check::Column::Time.max(), health_check::Column::Time)
+        // will crash on an empty DB
+        let time_max = TimeMax::find_by_statement(Statement::from_sql_and_values(
+            DbBackend::Sqlite,
+            r#"SELECT MAX(time) FROM health_check"#,
+            [],
+        ))
         .one(db)
         .await?
-        .map(|model| model.time)
+        .map(|model| model.max)
+        .flatten()
         .unwrap_or_default();
-        Ok(Utc.timestamp_opt(time,0).unwrap())
+        Ok(Utc.timestamp_opt(time_max,0).unwrap())
     }
 
     pub async fn query_latest_check<T: ConnectionTrait>(
