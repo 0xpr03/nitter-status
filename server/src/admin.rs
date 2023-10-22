@@ -178,7 +178,7 @@ async fn login_inner(
         }
         VerificationMethod::HTTP => {
             let fetched_key = fetch_host_txt(&host.url, login_client, &config).await?;
-            verify_key(&fetched_key, &input.key).map(|_| host)
+            verify_key(fetched_key.trim(), &input.key).map(|_| host)
         }
     }
 }
@@ -211,8 +211,7 @@ async fn fetch_host_txt(
         .send()
         .await
         .map_err(|e| LoginError::HttpFailure(request_url.clone(), e))?;
-    match true {
-        // result.status().is_success()
+    match result.status().is_success() {
         true => Ok(result.text().await.map_err(|e: reqwest::Error| {
             LoginError::InvalidResponse(request_url, e.to_string())
         })?),
