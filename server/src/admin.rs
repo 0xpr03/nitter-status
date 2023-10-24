@@ -8,6 +8,8 @@ use axum::response::IntoResponse;
 use axum::response::Redirect;
 use axum::Form;
 use axum::Json;
+use chrono::DateTime;
+use chrono::Utc;
 use constant_time_eq::constant_time_eq;
 use entities::check_errors;
 use entities::health_check;
@@ -39,6 +41,7 @@ use crate::ServerError;
 use crate::ADMIN_OVERVIEW_URL;
 use crate::LOGIN_URL;
 
+/// Stored session login information
 #[derive(Serialize, Deserialize, Default)]
 pub struct ActiveLogin {
     /// Hosts this session has access to.
@@ -183,6 +186,7 @@ async fn login_inner(
     }
 }
 
+/// Admin login form
 #[derive(Deserialize, Debug)]
 pub struct LoginInput {
     domain: String,
@@ -191,10 +195,18 @@ pub struct LoginInput {
     verification_method: VerificationMethod,
 }
 
+/// Part of the admin login form
 #[derive(Serialize, Deserialize, Debug)]
 enum VerificationMethod {
     DNS,
     HTTP,
+}
+
+/// Json passed to select a date range
+#[derive(Deserialize, Debug)]
+pub struct DateRangeInput {
+    start: DateTime<Utc>,
+    end: DateTime<Utc>,
 }
 
 async fn fetch_host_txt(
@@ -278,7 +290,7 @@ pub async fn overview(
 ) -> Result<axum::response::Response> {
     tracing::info!(?session);
 
-    let (login, hosts) = get_all_login_hosts(&session, db).await?;
+    let (login, hosts) = get_all_login_hosts(&session, db,true).await?;
 
     let mut context = tera::Context::new();
     let res = {
@@ -300,15 +312,37 @@ pub async fn overview(
 
 pub async fn history_json(
     State(ref db): State<DatabaseConnection>,
-    Path(host): Path<i32>,
     session: Session,
+    Json(input): Json<DateRangeInput>,
+) -> Result<axum::response::Response> {
+    #[derive(Debug, Serialize)]
+    struct ReturnData {
+        pub global: Vec<health_check::HealthyAmount>,
+        pub user: Vec<health_check::HealthyAmount>,
+    }
+    let (_login, hosts) = get_all_login_hosts(&session, db, false).await?;
+    let host_ids: Vec<_> = hosts.iter().map(|host|host.id).collect();
+    let data_owned = health_check::HealthyAmount::fetch(db, input.start, input.end,Some(&host_ids)).await?;
+    let data_global = health_check::HealthyAmount::fetch(db, input.start, input.end,None).await?;
+
+    Ok(Json(ReturnData {
+        global: data_global,
+        user: data_owned,
+    }).into_response())
+}
+
+pub async fn history_json_specific(
+    State(ref db): State<DatabaseConnection>,
+    session: Session,
+    Path(host): Path<i32>,
+    Json(input): Json<DateRangeInput>,
 ) -> Result<axum::response::Response> {
     let host = get_specific_login_host(host, &session, db).await?;
 
     let history: Vec<health_check::Model> = health_check::Entity::find()
         .filter(health_check::Column::Host.eq(host.id))
         .order_by_asc(health_check::Column::Time)
-        .limit(20)
+        .filter(health_check::Column::Time.between(input.start.timestamp(), input.end.timestamp()))
         .all(db)
         .await?;
 
@@ -343,16 +377,16 @@ pub async fn history_view(
     Ok(res)
 }
 
-pub async fn errors_view(
+pub async fn instance_view(
     State(ref app_state): State<AppState>,
     State(ref template): State<Arc<tera::Tera>>,
     State(ref db): State<DatabaseConnection>,
-    Path(host): Path<i32>,
+    Path(instance): Path<i32>,
     session: Session,
 ) -> Result<axum::response::Response> {
     tracing::info!(?session);
 
-    let host = get_specific_login_host(host, &session, db).await?;
+    let host = get_specific_login_host(instance, &session, db).await?;
 
     let errors = check_errors::Entity::find()
         .filter(check_errors::Column::Host.eq(host.id))
@@ -371,22 +405,24 @@ pub async fn errors_view(
         context.insert("last_updated", &time);
         context.insert("ERRORS", &errors);
         context.insert("HOST_DOMAIN", &host.domain);
+        context.insert("HOST_ID", &instance);
 
-        let res = Html(template.render("errors_admin.html.j2", &context)?).into_response();
+        let res = Html(template.render("instance_admin.html.j2", &context)?).into_response();
         drop(guard);
         res
     };
     Ok(res)
 }
 
-/// Get all [host::Model] for current [Session]
+/// Get all [host::Model] for current [Session], optionally return all hosts for admins
 async fn get_all_login_hosts(
     session: &Session,
     db: &DatabaseConnection,
+    return_admin_hosts: bool,
 ) -> Result<(ActiveLogin, Vec<host::Model>)> {
     let login = get_session_login(&session)?;
 
-    let host_res = match login.admin {
+    let host_res = match login.admin && return_admin_hosts {
         true => {
             host::Entity::find()
                 .filter(host::Column::Enabled.eq(true))

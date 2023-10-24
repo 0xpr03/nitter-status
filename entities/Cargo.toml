@@ -11,4 +11,11 @@ path = "src/mod.rs"
 [dependencies]
 chrono = { workspace = true }
 sea-orm = { workspace = true }
+sea-query = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full"] }
+
+[dev-dependencies.migration]
+path = "../migration"

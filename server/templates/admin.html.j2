@@ -15,7 +15,23 @@
     <p><a href="/admin/logout">Logout</a> <a href="/admin/login">Add more instances</a></p>
     
     <h4>Instances</h4>
-    {% if is_admin %}<p class="text-danger-emphasis">Admin mode.</p>{% endif %}
+    {% if is_admin %}<p class="text-danger-emphasis">root mode</p>{% endif %}
+    <div><canvas id="graph" width="600" height="200"></canvas><noscript>History feature works only with javascript enabled.</noscript></div>
+    <div class="container mt-5">
+      <form>
+          <div class="row">
+            <div class="col">
+                <label for="startDate">Start Date:</label>
+                <input type="date" class="form-control" id="startDate" name="startDate">
+            </div>
+            <div class="col">
+                <label for="endDate">End Date:</label>
+                <input type="date" class="form-control" id="endDate" name="endDate">
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary mt-1" id="submitDateRange">Change</button>
+      </form>
+    </div>
     <div class="table-responsive">
       <table id="status-tbl" class="table sortable table-hover table-sm">
       <thead>
@@ -28,13 +44,15 @@
         <tr>
           <td>{{instance.domain}}</td>
           {# <td><a href="/admin/history/{{instance.id}}">History</a></td> #}
-          <td><a href="/admin/errors/{{instance.id}}">Errors</a></td>
+          <td><a href="/admin/instance/{{instance.id}}">Errors</a></td>
         </tr>
         {%- endfor %}
       </tbody>
       </table>
     </div>
-
-    <p>License: AGPL3</p>
+    <script src="/static/moment.min_2.29.4.js"></script>
+    <script src="/static/chart.min_4.4.0.js"></script>
+    <script src="/static/chartjs-adapter-moment_1.0.1.js"></script>
+    <script src="/static/admin.js"></script>
   </body>
 </html>

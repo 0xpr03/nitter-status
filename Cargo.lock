@@ -1057,8 +1057,11 @@ name = "entities"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "migration",
  "sea-orm",
+ "sea-query",
  "serde",
+ "tokio",
 ]
 
 [[package]]

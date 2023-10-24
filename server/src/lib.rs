@@ -6,7 +6,7 @@ use axum::{
     extract::DefaultBodyLimit,
     http::HeaderValue,
     response::{Html, Redirect},
-    routing::{get, get_service},
+    routing::{get, get_service, post},
     BoxError, Router,
 };
 use chrono::TimeZone;
@@ -147,9 +147,10 @@ pub async fn start(
         .route("/api/v1/instances", get(api::instances))
         .nest(ADMIN_OVERVIEW_URL, Router::new()
             .route("/", get(admin::overview))
-            .route("/errors/:host", get(admin::errors_view))
+            .route("/instance/:instance", get(admin::instance_view))
             // .route("/history/:host", get(admin::history_view))
-            // .route("/api/history", get(admin::history_json))
+            .route("/api/history/:instance", post(admin::history_json_specific))
+            .route("/api/history", post(admin::history_json))
             .route("/login", get(admin::login_view).post(admin::login).route_layer(rate_limit_layer))
             .route("/logout", get(admin::logout))
             // .layer(ServiceBuilder::new().layer(SetResponseHeaderLayer::overriding(header::CACHE_CONTROL, "must-revalidate")))

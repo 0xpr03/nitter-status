@@ -13,7 +13,22 @@
     <div class="container">
     <h1>Admin Interface</h1>
     <p><a href="/admin">Overview</a> <a href="/admin/logout">Logout</a> <a href="/admin/login">Add more instances</a></p>
-    
+    <div><canvas data-host="{{HOST_ID}}" id="graph" width="600" height="200"></canvas><noscript>History feature works only with javascript enabled.</noscript></div>
+    <div class="container mt-5">
+      <form>
+          <div class="row">
+            <div class="col">
+                <label for="startDate">Start Date:</label>
+                <input type="date" class="form-control" id="startDate" name="startDate">
+            </div>
+            <div class="col">
+                <label for="endDate">End Date:</label>
+                <input type="date" class="form-control" id="endDate" name="endDate">
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary mt-1" id="submitDateRange">Change</button>
+      </form>
+    </div>
     <h4>Last errors from {{HOST_DOMAIN}}</h4>
     <div class="table-responsive">
       <table id="status-tbl" class="table sortable table-hover table-sm">
@@ -27,7 +42,7 @@
       </thead>
       <tbody>
         {% for error in ERRORS -%}
-        <tr>
+        <tr id="error_{{error.time}}">
           <td>{{fmt_date(value=error.time)}}</td>
           <td>{{error.message}}</td>
           <td>{{error.http_body}}</td>
@@ -37,7 +52,9 @@
       </tbody>
       </table>
     </div>
-
-    <p>License: AGPL3</p>
+    <script src="/static/moment.min_2.29.4.js"></script>
+    <script src="/static/chart.min_4.4.0.js"></script>
+    <script src="/static/chartjs-adapter-moment_1.0.1.js"></script>
+    <script src="/static/instance.js"></script>
   </body>
 </html>
