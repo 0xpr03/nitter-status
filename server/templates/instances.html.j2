@@ -54,7 +54,7 @@
           {%- else -%}
             ❌
           {%- endif -%}</td>
-          <td {%- if not host.recent_checks %} colspan="2" {% endif -%}>
+          <td>
             {%- set height = 28 -%}
             {%- set width = 110 -%}
             {%- set width_bar = 5  -%}
@@ -82,10 +82,8 @@
               {%- endif -%}
             {%- endif -%}
           </td>
-          {%- if host.recent_checks -%}
-          <td data-name="average">{{host.ping_avg}}ms</td>
-          {% endif %}
-          <td>{{host.healthy_percentage_overall}}</td>
+          <td data-name="average">{%- if not host.__show_last_seen -%}{{host.ping_avg}}ms{% endif %}</td>
+          <td>{{host.healthy_percentage_overall}}%</td>
           <td data-name="rss">{% if host.rss -%} ✅ {%- else -%} ❌ {%- endif -%}</td>
           {%- if host.healthy and not host.version -%}
             {%- set version = "Dmissing" -%}
@@ -116,7 +114,6 @@
                 <span class="ms-1 badge bg-info">outdated</span>
               {%- endif -%}
           </td>
-          {# <td>{%- if host.connectivity ==  -%}</td> #}
           <td data-name="connectivity">{{host.connectivity}}</td>
           <td>{{host.points}}</td>
           </tr>
