@@ -70,10 +70,12 @@ pub enum ScannerError {
 pub enum FetchError {
     #[error("Http fetch error {0:?}")]
     Reqwest(#[from] reqwest::Error),
+    /// http code, code name, body
     #[error("Url fetching failed, host responded with status {0} '{1}'. Response body: '{2}'")]
     HttpResponseStatus(u16, String, String),
+    /// http code, code name, body
     #[error("Url fetching failed, host responded with status {0} '{1}'")]
-    KnownHttpResponseStatus(u16, String),
+    KnownHttpResponseStatus(u16, String, String),
     #[error("Reading response body failed for Host {0}: {1}")]
     RetrievingBody(String, reqwest::Error),
     #[error("Host responded with captcha")]
@@ -86,7 +88,7 @@ impl FetchError {
         match self {
             FetchError::Reqwest(e) => e.status().map(|v| v.as_u16()),
             FetchError::HttpResponseStatus(code, _, _) => Some(*code),
-            FetchError::KnownHttpResponseStatus(code, _) => Some(*code),
+            FetchError::KnownHttpResponseStatus(code, _, _body) => Some(*code),
             FetchError::Captcha | FetchError::RetrievingBody(_, _) => None,
         }
     }
@@ -97,8 +99,9 @@ impl FetchError {
             FetchError::HttpResponseStatus(http_status, _code_msg, http_body) => {
                 HostError::new(format!("failed to fetch"), http_body, http_status)
             }
-            FetchError::KnownHttpResponseStatus(http_status, _) => {
-                HostError::new_without_body(self.to_string(), http_status)
+            FetchError::KnownHttpResponseStatus(http_status, code_msg, body) => {
+                let msg = format!("Known bad response on status {code_msg}");
+                HostError::new(msg, body, http_status)
             }
             FetchError::RetrievingBody(_url, reqwest_error) => {
                 HostError::new_message(reqwest_error.to_string())
@@ -350,24 +353,24 @@ impl Scanner {
             }
             if code == 403 && body_text.contains("You have been blocked") {
                 // cloudflare block
-                return Err(FetchError::KnownHttpResponseStatus(code, message));
+                return Err(FetchError::KnownHttpResponseStatus(code, message, body_text));
             }
             if code == 429 && body_text.contains("Instance has been rate limited") {
                 // out of non-limited accounts
-                return Err(FetchError::KnownHttpResponseStatus(code, message));
+                return Err(FetchError::KnownHttpResponseStatus(code, message, body_text));
             }
             if code == 404 {
                 // don't spam the body on 404s
-                return Err(FetchError::KnownHttpResponseStatus(code, message));
+                return Err(FetchError::KnownHttpResponseStatus(code, message, body_text));
             }
             if code >= 502 && code <= 504 {
                 // don't spam the body on Bad Gateway/Service Unavailable/Gateway Timeout
-                return Err(FetchError::KnownHttpResponseStatus(code, message));
+                return Err(FetchError::KnownHttpResponseStatus(code, message, body_text));
             }
             if code >= 520 && code <= 527 {
                 // don't spam the body on Cloudflare errors
                 // https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
-                return Err(FetchError::KnownHttpResponseStatus(code, message));
+                return Err(FetchError::KnownHttpResponseStatus(code, message, body_text));
             }
             return Err(FetchError::HttpResponseStatus(code, message, body_text));
         }
