@@ -24,25 +24,23 @@
       {%- endfor %}
     </ul>
 
-    <p>
-      <h4>Table Explanations</h4>
-      <ul>
-        <li><code>Country</code> for the host country reported in the instance wiki.</li>
-        <li><code>Healthy</code> stands for hosts which are reachable and pass a content check. Known bad hosts are marked with a ❓, these instances block healthchecks.</li>
-        <li><code>Average Time</code> is the response time average over the last {{ping_avg_interval_h}} hours. This is not a network ping.</li>
-        <li><code>All Time %</code> for all time percentage of the instance being healthy.</li>
-        <li><code>RSS</code> whether the host has RSS feeds enabled.</li>
-        <li><code>LSH</code> Last Seen Healthy, for the last time an instance was seen healthy.</li>
-        <li><code>Nitter Version</code> which nitter version the host reports.</li>
-        <li><code>Connectivity</code> the IP connectivity support. One of All, IPv4, IPv6</li>
-        <li><code>Points</code> is a weighted instance score based on the availability over the last 3h, 30 and 120 days, together with the version.</li>
-      </ul>
-    </p>
+    <h4>Table Explanations</h4>
+    <ul>
+      <li><code>Country</code> for the host country reported in the instance wiki.</li>
+      <li><code>Healthy</code> stands for hosts which are reachable and pass a content check. Known bad hosts are marked with a ❓, these instances block healthchecks.</li>
+      <li><code>Average Time</code> is the response time average over the last {{ping_avg_interval_h}} hours. This is not a network ping.</li>
+      <li><code>All Time %</code> for all time percentage of the instance being healthy.</li>
+      <li><code>RSS</code> whether the host has RSS feeds enabled.</li>
+      <li><code>LSH</code> Last Seen Healthy, for the last time an instance was seen healthy.</li>
+      <li><code>Nitter Version</code> which nitter version the host reports.</li>
+      <li><code>Connectivity</code> the IP connectivity support. One of All, IPv4, IPv6</li>
+      <li><code>Points</code> is a weighted instance score based on the availability over the last 3h, 30 and 120 days, together with the version.</li>
+    </ul>
 
     <p>Settings for visible columns are stored locally per client.</p>
 
+    <h4>API</h4>
     <p id="api">
-      <h4>API</h4>
       The same data as visible in the website/table can also be fetched as JSON from <code>/api/v1/instances</code> (<a rel="nofollow" href="/api/v1/instances">link</a>).
       Note that the data only changes in the intervals stated <a href="#update-interval">above</a>. Thus requesting it very often will get you rate limited.
     </p>
@@ -54,5 +52,6 @@
 
     <p><a rel="nofollow" href="https://github.com/0xpr03/nitter-status">Sourcecode</a></p>
     <p>License: AGPL3</p>
+    </div>
   </body>
 </html>
