@@ -2244,7 +2244,7 @@ checksum = "e4a24736216ec316047a1fc4252e27dabb04218aa4a3f37c6e7ddbf1f9782b54"
 
 [[package]]
 name = "nitter-status"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "chrono",
  "clap",
@@ -3229,6 +3229,7 @@ dependencies = [
  "sea-orm",
  "sea-query",
  "serde",
+ "serde_json",
  "thiserror",
  "tokio",
  "tracing",

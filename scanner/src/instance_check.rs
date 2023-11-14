@@ -40,6 +40,7 @@ impl Scanner {
                 .map_or(false, |check| !check.healthy);
             join_set.spawn(async move {
                 scanner.health_check_host(model, muted_host).await;
+                
             });
         }
         // wait till all of them are finished, preventing DoS

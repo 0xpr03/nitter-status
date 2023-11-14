@@ -59,6 +59,10 @@ impl Scanner {
         let found_instances: usize = parsed_instances.len();
         // find last update checks to detect spam
         let last_status = self.query_latest_check(&transaction).await?;
+        // prevent blocking the DB forever during host updates
+        // worst case we disable hosts that should be disabled and add no new ones
+        transaction.commit().await?;
+
         let mut join_set = JoinSet::new();
         for (_, instance) in parsed_instances {
             // TODO: parallelize this!
@@ -112,25 +116,30 @@ impl Scanner {
                 }
             });
         }
+
+        let mut update_models = Vec::with_capacity(join_set.len());
         while let Some(update_model) = join_set.join_next().await.map(|v| v.unwrap()) {
-            Host::insert(update_model)
-                .on_conflict(
-                    OnConflict::column(host::Column::Domain)
-                        .update_columns([
-                            host::Column::Enabled,
-                            host::Column::Updated,
-                            host::Column::Url,
-                            host::Column::Rss,
-                            host::Column::Version,
-                            host::Column::VersionUrl,
-                            host::Column::Country,
-                            host::Column::Connectivity,
-                        ])
-                        .to_owned(),
-                )
-                .exec(&transaction)
-                .await?;
+            update_models.push(update_model);
         }
+        // insert all at once
+        let transaction = self.inner.db.begin().await?;
+        Host::insert_many(update_models)
+        .on_conflict(
+            OnConflict::column(host::Column::Domain)
+                .update_columns([
+                    host::Column::Enabled,
+                    host::Column::Updated,
+                    host::Column::Url,
+                    host::Column::Rss,
+                    host::Column::Version,
+                    host::Column::VersionUrl,
+                    host::Column::Country,
+                    host::Column::Connectivity,
+                ])
+                .to_owned(),
+        )
+        .exec(&transaction)
+        .await?;
 
         transaction.commit().await?;
         let end = Instant::now();

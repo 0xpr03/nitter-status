@@ -56,7 +56,7 @@ pub(crate) fn fetch_git_state(config: ScannerConfig) -> Result<CurrentVersion> {
             version: commit,
             config,
         })
-        .ok_or(ScannerError::GitBranch)?)
+        .ok_or(ScannerError::GitBranchNotFound)?)
 }
 
 #[cfg(test)]

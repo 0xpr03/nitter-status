@@ -4,3 +4,4 @@
 /.env
 /sqlite.db-journal
 /out.txt
+/sessions.db

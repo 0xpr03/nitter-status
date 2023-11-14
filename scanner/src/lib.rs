@@ -35,6 +35,7 @@ mod instance_parser;
 mod list_update;
 mod profile_parser;
 mod version_check;
+mod update_stats;
 
 const CAPTCHA_TEXT: &'static str = "Enable JavaScript and cookies to continue";
 const CAPTCHA_CODE: u16 = 403;
@@ -62,8 +63,18 @@ pub enum ScannerError {
     FetchError(#[from] FetchError),
     #[error("Failed fetching git: {0}")]
     GitFetch(#[from] git2::Error),
-    #[error("Couldn't find git branch")]
-    GitBranch,
+    /// Configured git branch can't be found
+    #[error("Couldn't find configured git branch")]
+    GitBranchNotFound,
+    /// Failed to parse .health endpoint
+    #[error("Failed to parse .health endpoint. {0} Body: {1}")]
+    StatsParsing(serde_json::Error, String),
+    /// Generic error for parsing an instance URL to [reqwest::Url]
+    #[error("Can't parse instance URL")]
+    InstanceUrlParse,
+    /// Failed to join a tokio thread in a JoinSet
+    #[error("Failed to join worker task {0}")]
+    JoinError(#[from] tokio::task::JoinError)
 }
 
 #[derive(Error, Debug)]
@@ -154,6 +165,7 @@ struct InnerScanner {
     about_parser: AboutParser,
     profile_parser: ProfileParser,
     last_list_fetch: Mutex<DateTime<Utc>>,
+    last_stats_fetch: Mutex<DateTime<Utc>>,
     last_uptime_check: Mutex<DateTime<Utc>>,
     rss_check_regex: Regex,
     client_ipv4: Client,
@@ -197,11 +209,16 @@ impl Scanner {
             .build()
             .into_diagnostic()?;
 
-        let last_uptime_check = Self::query_last_fetch(&db)
+        let last_uptime_check = Self::query_last_entry_for_table(&db,"health_check")
             .await
             .into_diagnostic()
             .wrap_err("Fetching last uptime check failed!")?;
-        tracing::info!(?last_uptime_check);
+
+        let last_stats_check = Self::query_last_entry_for_table(&db,"instance_stats")
+            .await
+            .into_diagnostic()
+            .wrap_err("Fetching last stats check failed!")?;
+        tracing::info!(?last_uptime_check, ?last_stats_check);// TODO: wrong timestamp
         let scanner = Self {
             inner: Arc::new(InnerScanner {
                 db,
@@ -215,6 +232,7 @@ impl Scanner {
                 profile_parser: ProfileParser::new(),
                 last_list_fetch: Mutex::new(last_uptime_check),
                 last_uptime_check: Mutex::new(last_uptime_check),
+                last_stats_fetch: Mutex::new(last_stats_check),
                 rss_check_regex: builder_regex_rss
                     .build()
                     .into_diagnostic()
@@ -229,8 +247,8 @@ impl Scanner {
         Ok(scanner)
     }
 
-    /// Retrieves the last uptime fetch that happened
-    pub async fn query_last_fetch(db: &DatabaseConnection) -> Result<DateTime<Utc>> {
+    /// Retrieves the last stats fetching that happened
+    pub async fn query_last_entry_for_table(db: &DatabaseConnection, table: &str) -> Result<DateTime<Utc>> {
         #[derive(Debug, FromQueryResult, Default)]
         pub(crate) struct TimeMax {
             pub max: Option<i64>,
@@ -239,7 +257,7 @@ impl Scanner {
         // will crash on an empty DB
         let time_max = TimeMax::find_by_statement(Statement::from_sql_and_values(
             DbBackend::Sqlite,
-            r#"SELECT MAX(time) FROM health_check"#,
+            format!("SELECT MAX(time) as max FROM {table}"),
             [],
         ))
         .one(db)
@@ -282,23 +300,28 @@ impl Scanner {
             }
             if self.is_instance_check_outdated() {
                 if let Err(e) = self.check_uptime().await {
-                    tracing::error!(error=?e,"Failed checking instance");
+                    tracing::error!(error=?e,"Failed checking instances for health");
+                }
+            }
+            if self.is_instance_stats_outdated() {
+                if let Err(e) = self.check_health().await {
+                    tracing::error!(error=?e,"Failed checking instances for stats");
                 }
             }
             if let Err(e) = self.update_cache().await {
-                tracing::error!(error=?e,"Failed updating cache!");
+                tracing::error!(error=?e,"Failed to update cache!");
             }
             self.sleep_till_deadline().await;
         }
     }
 
     async fn sleep_till_deadline(&self) {
-        let delay_instance_check =
-            self.last_uptime_check() + self.inner.config.instance_check_interval;
-
+        let delay_instance_check = self.last_uptime_check() + self.inner.config.instance_check_interval;
         let delay_list_update = self.last_list_fetch() + self.inner.config.list_fetch_interval;
-        tracing::debug!(?delay_list_update, ?delay_instance_check);
-        let next_deadline = delay_instance_check.min(delay_list_update);
+        let delay_stats_update = self.last_stats_fetch() + self.inner.config.instance_stats_interval;
+        tracing::debug!(?delay_list_update, ?delay_instance_check, ?delay_stats_update);
+
+        let next_deadline = delay_instance_check.min(delay_list_update).min(delay_stats_update);
         let now = Utc::now();
         let sleep_time = next_deadline.signed_duration_since(now);
         if sleep_time <= Duration::zero() {
@@ -318,6 +341,10 @@ impl Scanner {
         *self.inner.last_list_fetch.lock().unwrap()
     }
 
+    fn last_stats_fetch(&self) -> DateTime<Utc> {
+        *self.inner.last_stats_fetch.lock().unwrap()
+    }
+
     fn is_instance_check_outdated(&self) -> bool {
         let val = self.last_uptime_check();
         Utc::now().signed_duration_since(val).to_std().unwrap()
@@ -328,6 +355,12 @@ impl Scanner {
         let val = self.last_list_fetch();
         Utc::now().signed_duration_since(val).to_std().unwrap()
             >= self.inner.config.list_fetch_interval
+    }
+
+    fn is_instance_stats_outdated(&self) -> bool {
+        let val = self.last_stats_fetch();
+        Utc::now().signed_duration_since(val).to_std().unwrap()
+            >= self.inner.config.instance_stats_interval
     }
 
     async fn fetch_instance_list(&self) -> Result<String> {

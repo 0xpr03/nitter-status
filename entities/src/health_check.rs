@@ -46,6 +46,7 @@ pub struct HealthyAmount {
 }
 
 impl HealthyAmount {
+    /// Fetch health check graph data for all or selected hosts in the selected time range. 
     pub async fn fetch(db: &DatabaseConnection, from: DateTimeUtc, to: DateTimeUtc, hosts: Option<&[i32]>) -> Result<Vec<HealthyAmount>,DbErr> {
         let builder = db.get_database_backend();
         let mut stmt: sea_query::SelectStatement = Query::select();
@@ -90,6 +91,6 @@ mod test {
             .checked_sub_signed(chrono::Duration::days(14))
             .unwrap();
         let hosts = vec![1,2,3];
-        dbg!(HealthyAmount::fetch(&db, time_3h, time_now,Some(&hosts)).await.unwrap());
+        HealthyAmount::fetch(&db, time_3h, time_now,Some(&hosts)).await.unwrap();
     }
 }

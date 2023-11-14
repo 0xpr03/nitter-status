@@ -7,6 +7,8 @@ pub struct Config {
     pub list_fetch_interval: Duration,
     /// time until next instance ping check
     pub instance_check_interval: Duration,
+    /// time until next instance statistics check
+    pub instance_stats_interval: Duration,
     /// instances list URL
     pub instance_list_url: String,
     /// profile path for health check
@@ -48,8 +50,9 @@ pub struct Config {
 impl Config {
     pub fn test_defaults() -> ScannerConfig {
         Arc::new(Config {
-            list_fetch_interval: Duration::from_secs(60 * 5),
-            instance_check_interval: Duration::from_secs(60 * 5),
+            instance_stats_interval: Duration::from_secs(15 * 60),
+            list_fetch_interval: Duration::from_secs(15 * 60),
+            instance_check_interval: Duration::from_secs(15 * 60),
             instance_list_url: String::from("https://github.com/zedeus/nitter/wiki/Instances"),
             profile_path: String::from("/jack"),
             rss_path: String::from("/jack/rss"),

@@ -19,6 +19,8 @@ regex = { workspace = true }
 git2 = "0.17.2"
 # testing
 serde = { workspace = true, features = ["derive"] }
+# health parsing
+serde_json = "1"
 
 [dev-dependencies]
 tracing-test = { workspace = true }

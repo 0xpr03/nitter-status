@@ -25,6 +25,24 @@ document.addEventListener("DOMContentLoaded", function() {
     fetchDataAndCreateChart(initialStartDate,initialEndDate);
 });
 
+function mapKey(key) {
+    const keyMappings = {
+        "limited_accs": "Limited Accs",
+        "total_accs": "Total Accs",
+        "total_requests": "Total Requests",
+        "req_photo_rail": "PhotoRail Requests",
+        "req_user_screen_name": "UserScreeName Req.",
+        "req_search": "Search Requests",
+        "req_list_tweets": "ListTeweets Req.",
+        "req_user_media": "UserMedia Req.",
+        "req_tweet_detail": "TweetDetail Req.",
+        "req_list": "List Requests",
+        "req_user_tweets": "UserTweets Req.",
+        "req_user_tweets_and_replies": "UserTweetsAndReplies Req.",
+    }
+    return keyMappings[key];
+}
+
 async function fetchDataAndCreateChart(startDate,endDate) {
     let jsonData;
     try {
@@ -41,15 +59,14 @@ async function fetchDataAndCreateChart(startDate,endDate) {
         console.error('Failed to fetch data:', error);
     }
     if (jsonData) {
-        createChart(jsonData);
+        createChartOverview(jsonData);
     }
 }
 
-function createChart(jsonData) {
-    const timeLabels = jsonData.map(dataPoint => new Date(dataPoint.time * 1000));
-    console.log(timeLabels);
-    const healthyData = jsonData.map(dataPoint => dataPoint.healthy ? (dataPoint.resp_time ? dataPoint.resp_time : 0) : null);
-    const unhealthyData = jsonData.map(dataPoint => dataPoint.healthy ? null : (dataPoint.resp_time ? dataPoint.resp_time : 0));
+function createChartOverview(jsonData) {
+    const healthyData = jsonData.health.filter(entry => entry.healthy).map(entry => ({x: moment.unix(entry.time), y: entry.resp_time}));
+    const unhealthyData = jsonData.health.filter(entry => !entry.healthy).map(entry => ({x: moment.unix(entry.time), y: entry.resp_time}));
+    const statsData = jsonData.stats.map(entry => ({x: moment.unix(entry.time), y: entry.total_requests}));
 
     const ctx = document.getElementById('graph').getContext('2d');
     if (chart) {
@@ -58,23 +75,33 @@ function createChart(jsonData) {
     chart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: timeLabels,
             datasets: [
                 {
-                    label: 'Healthy',
+                    label: 'Healthy Response Time (ms)',
                     data: healthyData,
                     borderColor: 'green',
                     fill: false,
                 },
                 {
-                    label: 'Unhealthy',
+                    label: 'Unhealthy Response Time (ms)',
                     data: unhealthyData,
                     borderColor: 'red',
                     fill: false,
                 },
+                {
+                    label: 'Total API Requests',
+                    data: statsData,
+                    borderColor: 'blue',
+                    fill: false,
+                    yAxisID: 'yStats',
+                },
             ]
         },
         options: {
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
             scales: {
                 x: {
                     type: 'time',
@@ -90,6 +117,12 @@ function createChart(jsonData) {
                     scaleLabel: {
                         display: true,
                         labelString: 'Response Time'
+                    }
+                },
+                yStats: {
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Requests'
                     }
                 }
             }

@@ -3,3 +3,4 @@
 pub use super::check_errors::Entity as CheckErrors;
 pub use super::health_check::Entity as HealthCheck;
 pub use super::host::Entity as Host;
+pub use super::instance_stats::Entity as InstanceStats;

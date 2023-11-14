@@ -14,6 +14,7 @@ use constant_time_eq::constant_time_eq;
 use entities::check_errors;
 use entities::health_check;
 use entities::host;
+use entities::instance_stats;
 use entities::state::AppState;
 use hyper::header::REFERER;
 use hyper::HeaderMap;
@@ -319,15 +320,18 @@ pub async fn history_json(
     struct ReturnData {
         pub global: Vec<health_check::HealthyAmount>,
         pub user: Vec<health_check::HealthyAmount>,
+        pub stats: Vec<instance_stats::StatsAmount>,
     }
     let (_login, hosts) = get_all_login_hosts(&session, db, false).await?;
     let host_ids: Vec<_> = hosts.iter().map(|host|host.id).collect();
     let data_owned = health_check::HealthyAmount::fetch(db, input.start, input.end,Some(&host_ids)).await?;
     let data_global = health_check::HealthyAmount::fetch(db, input.start, input.end,None).await?;
+    let data_stats = instance_stats::StatsAmount::fetch(db, input.start, input.end,None).await?;
 
     Ok(Json(ReturnData {
         global: data_global,
         user: data_owned,
+        stats: data_stats,
     }).into_response())
 }
 
@@ -338,15 +342,29 @@ pub async fn history_json_specific(
     Json(input): Json<DateRangeInput>,
 ) -> Result<axum::response::Response> {
     let host = get_specific_login_host(host, &session, db).await?;
+    #[derive(Debug, Serialize)]
+    struct ReturnData {
+        pub stats: Vec<instance_stats::Model>,
+        pub health: Vec<health_check::Model>,
+    }
 
-    let history: Vec<health_check::Model> = health_check::Entity::find()
+    let history_health: Vec<health_check::Model> = health_check::Entity::find()
         .filter(health_check::Column::Host.eq(host.id))
         .order_by_asc(health_check::Column::Time)
         .filter(health_check::Column::Time.between(input.start.timestamp(), input.end.timestamp()))
         .all(db)
         .await?;
+    let history_stats: Vec<instance_stats::Model> = instance_stats::Entity::find()
+        .filter(instance_stats::Column::Host.eq(host.id))
+        .order_by_asc(instance_stats::Column::Time)
+        .filter(instance_stats::Column::Time.between(input.start.timestamp(), input.end.timestamp()))
+        .all(db)
+        .await?;
 
-    Ok(Json(history).into_response())
+    Ok(Json(ReturnData{
+        health: history_health,
+        stats: history_stats
+    }).into_response())
 }
 
 pub async fn history_view(

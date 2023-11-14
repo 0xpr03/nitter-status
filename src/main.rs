@@ -135,8 +135,12 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
     let error_retention_per_host: usize = require_env_str("ERROR_RETENTION_PER_HOST")?
         .parse()
         .expect("CLEANUP_INTERVAL_S must be a number");
+    let instance_stats_interval: u64 = require_env_str("STATS_INTERVAL_S")?
+        .parse()
+        .expect("STATS_INTERVAL_S must be a positive number");
 
     Ok(Arc::new(entities::state::scanner::Config {
+        instance_stats_interval: Duration::from_secs(instance_stats_interval),
         list_fetch_interval: Duration::from_secs(instance_list_interval),
         instance_check_interval: Duration::from_secs(instance_ping_interval),
         instance_list_url: nitter_instancelist,
