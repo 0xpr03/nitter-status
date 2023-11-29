@@ -2,21 +2,37 @@
 
 use std::sync::Arc;
 
+use axum::extract::Path;
 use axum::extract::State;
+use axum::response::Html;
+use axum::response::IntoResponse;
 use entities::state::AppState;
 use sea_orm::DatabaseConnection;
+use sea_orm::EntityTrait;
+use sea_orm::ModelTrait;
+use sea_orm::Related;
 use tower_sessions::Session;
 
-use super::get_all_login_hosts;
+use super::get_specific_login_host;
 use super::Result;
+use entities::instance_alerts;
+use entities::instance_mail;
 
 pub async fn view(
-    State(ref app_state): State<AppState>,
     State(ref template): State<Arc<tera::Tera>>,
     State(ref db): State<DatabaseConnection>,
+    Path(instance): Path<i32>,
     session: Session,
 ) -> Result<axum::response::Response> {
-    let (login, hosts) = get_all_login_hosts(&session, db, true).await?;
+    let host = get_specific_login_host(instance, &session, db).await?;
+    let mail = host.find_related(instance_mail::Entity).one(db).await?;
+    let alerts = host.find_related(instance_alerts::Entity).one(db).await?;
+    let mut context = tera::Context::new();
+    context.insert("HOST_DOMAIN", &host.domain);
+    context.insert("HOST_ID", &instance);
+    context.insert("MAIL", &mail);
+    context.insert("ALERTS", &alerts);
 
-    todo!()
+    let res = Html(template.render("alerts.html.j2", &context)?).into_response();
+    Ok(res)
 }

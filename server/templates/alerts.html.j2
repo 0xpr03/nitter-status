@@ -1,0 +1,37 @@
+{# SPDX-License-Identifier: AGPL-3.0-only #}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <link href="/static/bootstrap.min.css" rel="stylesheet">
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="" />
+    <title>Alerts {{HOST_DOMAIN}}</title>
+  </head>
+  <body>
+    <div class="container">
+        <h1>Alerts {{HOST_DOMAIN}}</h1>
+        <p><a href="/admin">Overview</a> <a href="/admin/logout">Logout</a> <a href="/admin/login">Add more instances</a></p>
+        <div class="container mt-5">
+        {% if MAIL and MAIL.verified %}
+        <div>Alert email {{MAIL.mail}}</div>
+        
+        {% else %}
+        <p>You can get email alerts by adding an address for this host and verifying it.</p>
+        <p>We won't publish or otherwise use your email.
+        If you want to stay anonymous it is recommended to use an email you have no problem associating with your host in case of leaks.</p>
+        <form>
+            <div class="row">
+                <div class="col">
+                    <label for="email">E-Mail:</label>
+                    <input type="email" class="form-control" id="email" name="email">
+                </div>
+            </div>
+            <button type="button" class="btn btn-primary mt-1" id="submitDateRange">Submit</button>
+        </form>
+        {% endif %}
+        </div>
+    </div>
+  </body>
+</html>
