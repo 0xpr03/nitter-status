@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 use std::collections::HashSet;
 use std::sync::Arc;
 
@@ -41,6 +42,8 @@ use crate::Result;
 use crate::ServerError;
 use crate::ADMIN_OVERVIEW_URL;
 use crate::LOGIN_URL;
+
+pub mod alerts;
 
 /// Stored session login information
 #[derive(Serialize, Deserialize, Default)]
@@ -291,7 +294,7 @@ pub async fn overview(
 ) -> Result<axum::response::Response> {
     tracing::info!(?session);
 
-    let (login, hosts) = get_all_login_hosts(&session, db,true).await?;
+    let (login, hosts) = get_all_login_hosts(&session, db, true).await?;
 
     let mut context = tera::Context::new();
     let res = {
@@ -323,16 +326,18 @@ pub async fn history_json(
         pub stats: Vec<instance_stats::StatsAmount>,
     }
     let (_login, hosts) = get_all_login_hosts(&session, db, false).await?;
-    let host_ids: Vec<_> = hosts.iter().map(|host|host.id).collect();
-    let data_owned = health_check::HealthyAmount::fetch(db, input.start, input.end,Some(&host_ids)).await?;
-    let data_global = health_check::HealthyAmount::fetch(db, input.start, input.end,None).await?;
-    let data_stats = instance_stats::StatsAmount::fetch(db, input.start, input.end,None).await?;
+    let host_ids: Vec<_> = hosts.iter().map(|host| host.id).collect();
+    let data_owned =
+        health_check::HealthyAmount::fetch(db, input.start, input.end, Some(&host_ids)).await?;
+    let data_global = health_check::HealthyAmount::fetch(db, input.start, input.end, None).await?;
+    let data_stats = instance_stats::StatsAmount::fetch(db, input.start, input.end, None).await?;
 
     Ok(Json(ReturnData {
         global: data_global,
         user: data_owned,
         stats: data_stats,
-    }).into_response())
+    })
+    .into_response())
 }
 
 pub async fn history_json_specific(
@@ -357,14 +362,17 @@ pub async fn history_json_specific(
     let history_stats: Vec<instance_stats::Model> = instance_stats::Entity::find()
         .filter(instance_stats::Column::Host.eq(host.id))
         .order_by_asc(instance_stats::Column::Time)
-        .filter(instance_stats::Column::Time.between(input.start.timestamp(), input.end.timestamp()))
+        .filter(
+            instance_stats::Column::Time.between(input.start.timestamp(), input.end.timestamp()),
+        )
         .all(db)
         .await?;
 
-    Ok(Json(ReturnData{
+    Ok(Json(ReturnData {
         health: history_health,
-        stats: history_stats
-    }).into_response())
+        stats: history_stats,
+    })
+    .into_response())
 }
 
 pub async fn history_view(
