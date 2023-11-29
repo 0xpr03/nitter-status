@@ -66,11 +66,6 @@ impl PrimaryKeyTrait for PrimaryKey {
     }
 }
 
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {
-    UpdateCheck,
-}
-
 impl ColumnTrait for Column {
     type EntityName = Entity;
     fn def(&self) -> ColumnDef {
@@ -101,18 +96,50 @@ impl ColumnTrait for Column {
     // }
 }
 
-impl RelationTrait for Relation {
-    fn def(&self) -> RelationDef {
-        match self {
-            Self::UpdateCheck => Entity::has_many(super::health_check::Entity).into(),
-        }
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {
+    #[sea_orm(has_many = "super::check_errors::Entity")]
+    CheckErrors,
+    #[sea_orm(has_many = "super::health_check::Entity")]
+    HealthCheck,
+    #[sea_orm(has_many = "super::instance_alerts::Entity")]
+    InstanceAlerts,
+    #[sea_orm(has_many = "super::instance_mail::Entity")]
+    InstanceMail,
+    #[sea_orm(has_many = "super::instance_stats::Entity")]
+    InstanceStats,
+}
+
+
+impl Related<super::check_errors::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::CheckErrors.def()
     }
 }
 
 impl Related<super::health_check::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::UpdateCheck.def()
+        Relation::HealthCheck.def()
     }
 }
+
+impl Related<super::instance_alerts::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::InstanceAlerts.def()
+    }
+}
+
+impl Related<super::instance_mail::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::InstanceMail.def()
+    }
+}
+
+impl Related<super::instance_stats::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::InstanceStats.def()
+    }
+}
+
 
 impl ActiveModelBehavior for ActiveModel {}
