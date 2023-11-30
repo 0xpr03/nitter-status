@@ -46,7 +46,7 @@ async fn _main() -> miette::Result<()> {
                 .into();
                 #[cfg(not(debug_assertions))]
                 return format!(
-                    "warn,tower_http=debug,migration=debug,scanner=info,server=info,{}=debug",
+                    "warn,migration=debug,scanner=info,server=info,{}=debug",
                     env!("CARGO_PKG_NAME")
                 )
                 .into();
@@ -190,6 +190,13 @@ fn read_server_config(instance_ping_interval: usize) -> miette::Result<server::C
         .map(|v| v.trim().to_string())
         .collect();
     let session_db_uri = require_env_str("SESSION_DB_URI")?;
+    let mail_from = require_env_str("MAIL_FROM")?;
+    let mail_smtp_host = require_env_str("MAIL_SMTP_HOST")?;
+    let mail_smtp_user = require_env_str("MAIL_SMTP_USER")?;
+    let mail_smtp_password = require_env_str("MAIL_SMTP_PASSWORD")?;
+    let mail_token_ttl_s = require_env_str("MAIL_VALIDATION_TOKEN_TTL_S")?
+        .parse()
+        .expect("MAIL_VALIDATION_TOKEN_TTL_S must be a positive number");
 
     Ok(server::Config {
         site_url,
@@ -198,6 +205,11 @@ fn read_server_config(instance_ping_interval: usize) -> miette::Result<server::C
         login_token_name,
         admin_domains,
         session_db_uri,
+        mail_from,
+        mail_smtp_host,
+        mail_smtp_user,
+        mail_smtp_password,
+        mail_token_ttl_s,
     })
 }
 

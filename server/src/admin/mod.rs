@@ -23,6 +23,7 @@ use hyper::StatusCode;
 use reqwest::Client;
 use reqwest::Url;
 use sea_orm::ColumnTrait;
+use sea_orm::ConnectionTrait;
 use sea_orm::DatabaseConnection;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
@@ -466,11 +467,12 @@ async fn get_all_login_hosts(
 }
 
 /// Get wanted [host::Model] for current [Session] if valid for this user
-async fn get_specific_login_host(
+async fn get_specific_login_host<T>(
     wanted_host_id: i32,
     session: &Session,
-    db: &DatabaseConnection,
-) -> Result<host::Model> {
+    db: &T,
+) -> Result<host::Model>
+where T: ConnectionTrait {
     let login = get_session_login(&session)?;
 
     if !login.hosts.contains(&wanted_host_id) && !login.admin {
@@ -498,4 +500,14 @@ fn get_session_login(session: &Session) -> Result<ActiveLogin> {
         }
     }
     Err(ServerError::NoLogin)
+}
+
+/// Helper to render a human error page
+fn render_error_page(template: &Arc<tera::Tera>,title: &str, message: &str, url_back: &str) -> Result<axum::response::Response> {
+    let mut context = tera::Context::new();
+    context.insert("TITLE", title);
+    context.insert("ERROR_INFO", message);
+    context.insert("URL_BACK", url_back);
+    let res = Html(template.render("error.html.j2", &context)?).into_response();
+    Ok(res)
 }

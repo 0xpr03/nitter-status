@@ -42,6 +42,11 @@ pub struct Config {
     pub login_token_name: String,
     pub admin_domains: Vec<String>,
     pub session_db_uri: String,
+    pub mail_from: String,
+    pub mail_smtp_host: String,
+    pub mail_smtp_user: String,
+    pub mail_smtp_password: String,
+    pub mail_token_ttl_s: i64,
 }
 
 #[derive(Clone, axum::extract::FromRef)]
@@ -152,6 +157,7 @@ pub async fn start(
             .route("/api/history/:instance", post(admin::history_json_specific))
             .route("/api/history", post(admin::history_json))
             .route("/alerts/:instance", get(admin::alerts::view))
+            .route("/mail/:instance/add", post(admin::alerts::add_mail))
             .route("/login", get(admin::login_view).post(admin::login).route_layer(rate_limit_layer))
             .route("/logout", get(admin::logout))
             // .layer(ServiceBuilder::new().layer(SetResponseHeaderLayer::overriding(header::CACHE_CONTROL, "must-revalidate")))
@@ -212,6 +218,10 @@ pub enum ServerError {
     HostNotFound(i32),
     #[error("No permission to access this resource")]
     MissingPermission,
+    #[error("Failed to parse email-from address as valid email address")]
+    MailFromError(#[from] lettre::address::AddressError),
+    #[error("Failed to construct lettre mail")]
+    MailError(#[from] lettre::error::Error),
 }
 
 impl axum::response::IntoResponse for ServerError {
@@ -227,7 +237,7 @@ impl axum::response::IntoResponse for ServerError {
                 StatusCode::FORBIDDEN,
                 Cow::Borrowed("Missing permission to access this resource"),
             ),
-            MutexFailure | Templating(_) | DBError(_) | SessionError(_) | HostNotFound(_) => (
+            MutexFailure | Templating(_) | DBError(_) | SessionError(_) | HostNotFound(_) | MailFromError(_) | MailError(_) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Cow::Borrowed("Internal Server Error"),
             ),

@@ -20,7 +20,7 @@ impl MigrationTrait for Migration {
         ) WITHOUT ROWID, STRICT;"#;
         let cmd_verification = r#"CREATE TABLE "mail_verification_tokens" (
             "host" integer NOT NULL PRIMARY KEY,
-            "known_part" text NOT NULL,
+            "public_part" text NOT NULL UNIQUE,
             "secret_part" text NOT NULL,
             "eol_date" integer NOT NULL,
             FOREIGN KEY ("host") REFERENCES "host" ("id") ON DELETE CASCADE ON UPDATE CASCADE

@@ -21,7 +21,7 @@ serde = { workspace = true, features = ["derive"] }
 reqwest = { workspace = true, features = ["deflate","gzip","brotli","cookies", "rustls-tls"] }
 sha2 = "0.10"
 constant_time_eq = "0.3"
-base16ct = "0.2"
+base16ct = { version = "0.2", features = ["alloc"]}
 thiserror = { workspace = true }
 trust-dns-resolver = { version = "0.23.0", features = ["dns-over-rustls"] }
 
@@ -34,6 +34,10 @@ time = { workspace = true }
 
 # login rate limits
 tower_governor = "0.1"
+
+# mail verification
+rand = "0.8"
+lettre = "0.11.2"
 
 [dependencies.entities]
 path = "../entities"
