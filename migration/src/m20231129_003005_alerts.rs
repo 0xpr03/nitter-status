@@ -18,12 +18,21 @@ impl MigrationTrait for Migration {
             "avg_account_age_days" integer,
             FOREIGN KEY ("host") REFERENCES "host" ("id") ON DELETE CASCADE ON UPDATE CASCADE
         ) WITHOUT ROWID, STRICT;"#;
+        let cmd_verification = r#"CREATE TABLE "mail_verification_tokens" (
+            "host" integer NOT NULL PRIMARY KEY,
+            "known_part" text NOT NULL,
+            "secret_part" text NOT NULL,
+            "eol_date" integer NOT NULL,
+            FOREIGN KEY ("host") REFERENCES "host" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+        ) WITHOUT ROWID, STRICT;"#;
         let db = manager.get_connection();
         db.execute_unprepared("BEGIN EXCLUSIVE").await?;
         tracing::info!("adding instance_mail table..");
         db.execute_unprepared(cmd_mail).await?;
         tracing::info!("adding instance_alerts table..");
         db.execute_unprepared(cmd_alerts).await?;
+        tracing::info!("adding verification_tokens table..");
+        db.execute_unprepared(cmd_verification).await?;
         db.execute_unprepared("COMMIT TRANSACTION").await?;
         db.execute_unprepared("VACUUM").await?;
         Ok(())

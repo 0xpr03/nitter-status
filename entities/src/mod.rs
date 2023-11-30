@@ -8,6 +8,7 @@ pub mod host;
 pub mod instance_alerts;
 pub mod instance_mail;
 pub mod instance_stats;
+pub mod mail_verification_tokens;
 
 // has to be re-added on entity regeneration
 pub mod state;

@@ -108,6 +108,8 @@ pub enum Relation {
     InstanceMail,
     #[sea_orm(has_many = "super::instance_stats::Entity")]
     InstanceStats,
+    #[sea_orm(has_many = "super::mail_verification_tokens::Entity")]
+    MailVerificationTokens,
 }
 
 
@@ -141,5 +143,10 @@ impl Related<super::instance_stats::Entity> for Entity {
     }
 }
 
+impl Related<super::mail_verification_tokens::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::MailVerificationTokens.def()
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {}

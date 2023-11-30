@@ -8,7 +8,7 @@ mod m20230829_201916_country;
 mod m20230914_231514_connectivity;
 mod m20231011_231223_errors;
 mod m20231112_142206_stats;
-mod m20231129_003005_mail;
+mod m20231129_003005_alerts;
 
 
 pub struct Migrator;
@@ -25,7 +25,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20230914_231514_connectivity::Migration),
             Box::new(m20231011_231223_errors::Migration),
             Box::new(m20231112_142206_stats::Migration),
-            Box::new(m20231129_003005_mail::Migration),
+            Box::new(m20231129_003005_alerts::Migration),
         ]
     }
 }

@@ -6,3 +6,4 @@ pub use super::host::Entity as Host;
 pub use super::instance_alerts::Entity as InstanceAlerts;
 pub use super::instance_mail::Entity as InstanceMail;
 pub use super::instance_stats::Entity as InstanceStats;
+pub use super::mail_verification_tokens::Entity as MailVerificationTokens;
