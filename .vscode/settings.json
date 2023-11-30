@@ -1,5 +1,6 @@
 {
     "rust-analyzer.linkedProjects": [
+        ".\\server\\Cargo.toml",
         ".\\server\\Cargo.toml"
     ],
     "cSpell.words": [
