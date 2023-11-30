@@ -511,3 +511,7 @@ fn render_error_page(template: &Arc<tera::Tera>,title: &str, message: &str, url_
     let res = Html(template.render("error.html.j2", &context)?).into_response();
     Ok(res)
 }
+
+const fn url_overview() -> &'static str {
+    "/admin"
+}

@@ -9,7 +9,6 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub host: i32,
     pub mail: String,
-    pub verified: bool,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

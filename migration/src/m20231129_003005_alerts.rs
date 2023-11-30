@@ -9,7 +9,6 @@ impl MigrationTrait for Migration {
         let cmd_mail = r#"CREATE TABLE "instance_mail" (
             "host" integer NOT NULL PRIMARY KEY,
             "mail" text NOT NULL,
-            "verified" integer NOT NULL,
             FOREIGN KEY ("host") REFERENCES "host" ("id") ON DELETE CASCADE ON UPDATE CASCADE
         ) WITHOUT ROWID, STRICT;"#;
         let cmd_alerts = r#"CREATE TABLE "instance_alerts" (
@@ -22,6 +21,7 @@ impl MigrationTrait for Migration {
             "host" integer NOT NULL PRIMARY KEY,
             "public_part" text NOT NULL UNIQUE,
             "secret_part" text NOT NULL,
+            "mail" text NOT NULL,
             "eol_date" integer NOT NULL,
             FOREIGN KEY ("host") REFERENCES "host" ("id") ON DELETE CASCADE ON UPDATE CASCADE
         ) WITHOUT ROWID, STRICT;"#;

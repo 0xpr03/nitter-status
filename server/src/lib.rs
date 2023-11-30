@@ -158,6 +158,7 @@ pub async fn start(
             .route("/api/history", post(admin::history_json))
             .route("/alerts/:instance", get(admin::alerts::view))
             .route("/mail/:instance/add", post(admin::alerts::add_mail))
+            .route("/mail/activate/:public/:secret", get(admin::alerts::activate_mail_view).post(admin::alerts::activate_mail))
             .route("/login", get(admin::login_view).post(admin::login).route_layer(rate_limit_layer))
             .route("/logout", get(admin::logout))
             // .layer(ServiceBuilder::new().layer(SetResponseHeaderLayer::overriding(header::CACHE_CONTROL, "must-revalidate")))

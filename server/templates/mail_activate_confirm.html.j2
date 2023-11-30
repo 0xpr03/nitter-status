@@ -1,0 +1,23 @@
+{# SPDX-License-Identifier: AGPL-3.0-only #}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <link href="/static/bootstrap.min.css" rel="stylesheet">
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="" />
+    <title>Activate Mail</title>
+  </head>
+  <body>
+    <div class="container">
+        <h1>Activation Email Send</h1>
+        <p>Please the button below to activate {{EMAIL}} for alerts on {{SITE_URL}}.</p>
+        <form class="p-3" method="post">
+          <input type="hidden" id="public" name="public" value="{{MAIL_PUBLIC_TOKEN}}" />
+          <input type="hidden" id="secret" name="secret" value="{{MAIL_SECRET_TOKEN}}" />
+          <button type="submit" class="btn btn-primary">Activate Email</button>
+        </form>
+    </div>
+  </body>
+</html>
