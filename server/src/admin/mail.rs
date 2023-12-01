@@ -10,6 +10,7 @@ use axum::Form;
 use chrono::Duration;
 use chrono::TimeZone;
 use chrono::Utc;
+use constant_time_eq::constant_time_eq;
 use entities::mail_verification_tokens;
 use lettre::message::Mailbox;
 use lettre::Message;
@@ -18,6 +19,7 @@ use lettre::Transport;
 use rand::distributions::Alphanumeric;
 use rand::distributions::DistString;
 use reqwest::Url;
+use sea_orm::sea_query::OnConflict;
 use sea_orm::ActiveModelTrait;
 use sea_orm::ActiveValue;
 use sea_orm::ColumnTrait;
@@ -189,12 +191,12 @@ pub async fn activate_mail(
     State(ref config): State<Arc<crate::Config>>,
     State(ref template): State<Arc<tera::Tera>>,
     State(ref db): State<DatabaseConnection>,
-    Form(instance): Form<ActivateEmailPath>,
+    Form(form): Form<ActivateEmailPath>,
 ) -> Result<axum::response::Response> {
     let transaction = db.begin().await?;
 
     let verification_token = mail_verification_tokens::Entity::find()
-        .filter(mail_verification_tokens::Column::KnownPart.eq(&instance.public))
+        .filter(mail_verification_tokens::Column::KnownPart.eq(&form.public))
         .one(&transaction)
         .await?;
 
@@ -219,11 +221,32 @@ pub async fn activate_mail(
         );
     }
 
+    if !verify_token(&form.secret, &verification_token.secret_part) {
+        return super::render_error_page(
+            template,
+            "Invalid secret token",
+            "Secret part is invalid.",
+            url_overview(),
+        );
+    }
+
+    instance_mail::Entity::insert(instance_mail::ActiveModel {
+        host: ActiveValue::Set(verification_token.host),
+        mail: ActiveValue::Set(verification_token.mail),
+    })
+    .on_conflict(
+        OnConflict::column(instance_mail::Column::Host)
+            .update_columns([instance_mail::Column::Mail])
+            .to_owned(),
+    )
+    .exec(&transaction)
+    .await?;
+
     transaction.commit().await?;
 
     let mut context = tera::Context::new();
     context.insert("EMAIL", &config.site_url);
-    context.insert("URL_BACK", &instance.public);
+    context.insert("URL_BACK", &form.public);
 
     let res = Html(template.render("mail_activate_success.html.j2", &context)?).into_response();
     Ok(res)
@@ -240,8 +263,7 @@ fn generate_mail_token(
     let secret_hashed_encoded: String = {
         let mut hasher: Sha256 = Sha256::new();
         hasher.update(&secret);
-        let res = hasher.finalize();
-        let mut secret_hashed = [0; 32];
+        let secret_hashed = hasher.finalize();
         base16ct::upper::encode_string(&secret_hashed)
     };
 
@@ -257,6 +279,15 @@ fn generate_mail_token(
             eol_date: ActiveValue::Set(eol.timestamp()),
         },
     )
+}
+
+fn verify_token(secret: &str, sha: &str) -> bool {
+    let mut hasher: Sha256 = Sha256::new();
+    hasher.update(&secret);
+    let secret_hashed = hasher.finalize();
+    let hex_hashes_secret = base16ct::upper::encode_string(&secret_hashed);
+
+    constant_time_eq(sha.as_bytes(), hex_hashes_secret.as_bytes())
 }
 
 fn back_url_host_alerts(instance: i32) -> String {
