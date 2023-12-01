@@ -32,8 +32,10 @@ impl MigrationTrait for Migration {
             FOREIGN KEY ("host") REFERENCES "host" ("id") ON DELETE CASCADE ON UPDATE CASCADE
         ) WITHOUT ROWID, STRICT;"#;
         let cmd_last_mail = r#"CREATE TABLE "last_mail_send" (
-            "mail" string NOT NULL PRIMARY KEY,
-            "date" integer NOT NULL
+            "mail" text NOT NULL,
+            "kind" integer NOT NULL,
+            "time" integer NOT NULL,
+            PRIMARY KEY("mail","kind")
         ) WITHOUT ROWID, STRICT;"#;
         let db = manager.get_connection();
         db.execute_unprepared("BEGIN EXCLUSIVE").await?;

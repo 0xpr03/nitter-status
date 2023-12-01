@@ -9,6 +9,7 @@ pub mod instance_alerts;
 pub mod instance_mail;
 pub mod instance_stats;
 pub mod mail_verification_tokens;
+pub mod last_mail_send;
 
 // has to be re-added on entity regeneration
 pub mod state;

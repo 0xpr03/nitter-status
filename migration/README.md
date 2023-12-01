@@ -8,6 +8,8 @@ New entities:
 
 Run the following command to re-generate the entities.
 `sea-orm-cli generate entity -o entities/src --with-serde serialize`
+If you can use the precise version using
+`sea-orm-cli generate entity -o entities/src --with-serde serialize -t <table>`
 
 Note that you have to check for unwanted changes such as `DateTime` & `Date` types. These are likely replaced with String by the sea-orm CLI. Same with additional modules like `web`.
 

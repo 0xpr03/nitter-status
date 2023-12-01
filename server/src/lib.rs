@@ -47,6 +47,7 @@ pub struct Config {
     pub mail_smtp_user: String,
     pub mail_smtp_password: String,
     pub mail_token_ttl_s: i64,
+    pub mail_verification_timeout_s: i64,
 }
 
 #[derive(Clone, axum::extract::FromRef)]

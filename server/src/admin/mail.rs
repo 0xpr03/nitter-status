@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use std::ops::Sub;
 use std::sync::Arc;
 
 use axum::extract::Path;
@@ -11,6 +12,7 @@ use chrono::Duration;
 use chrono::TimeZone;
 use chrono::Utc;
 use constant_time_eq::constant_time_eq;
+use entities::last_mail_send;
 use entities::mail_verification_tokens;
 use lettre::message::Mailbox;
 use lettre::Message;
@@ -43,7 +45,8 @@ pub struct AddEmailForm {
     mail: String,
     instance: i32,
 }
-//let verifier_entry = mail_verification_tokens::Entity::find().filter(mail_verification_tokens::Column::KnownPart.eq(input.))
+
+/// Mail verification link
 pub async fn add_mail(
     State(ref config): State<Arc<crate::Config>>,
     State(ref template): State<Arc<tera::Tera>>,
@@ -53,10 +56,15 @@ pub async fn add_mail(
 ) -> Result<axum::response::Response> {
     let back_url: String = back_url_host_alerts(form.instance);
 
-    let transaction = db.begin().await?;
+    // create potential CPU intense verification link pre transaction lock
+    let (secret, new_token_model) =
+        generate_mail_token(&form.mail, form.instance, config.mail_token_ttl_s);
 
+    let transaction = db.begin().await?;
+    // verify login
     let host = get_specific_login_host(form.instance, &session, &transaction).await?;
 
+    // no existing mail on the host
     let mail = host
         .find_related(instance_mail::Entity)
         .one(&transaction)
@@ -73,13 +81,32 @@ pub async fn add_mail(
         );
     }
 
+    // verification mail isn't in cooldown
+    let last_mail_send = last_mail_send::Entity::find()
+        .filter(last_mail_send::Column::Mail.eq(&form.mail))
+        .filter(last_mail_send::Column::Kind.eq(last_mail_send::KIND_VERIFICATION))
+        .one(&transaction)
+        .await?;
+    if let Some(last_mail_send) = last_mail_send {
+        let diff = Utc::now() - Utc.timestamp_opt(last_mail_send.time, 0).unwrap();
+        if diff.abs().num_seconds() < config.mail_verification_timeout_s {
+            tracing::debug!(diff=?diff,mail=form.mail,"verification mail still in cooldown");
+            transaction.rollback().await?;
+            return super::render_error_page(
+                template,
+                "Activation Mail Cooldown",
+                "Can't send another activation mail, please watch your inbox or retry later.",
+                Some(&back_url),
+                None,
+            );
+        }
+    }
+
     // invalidate old tokens
     mail_verification_tokens::Entity::delete_by_id(host.id)
         .exec(&transaction)
         .await?;
     // insert new validation token
-    let (secret, new_token_model) =
-        generate_mail_token(&form.mail, host.id, config.mail_token_ttl_s);
     let token_model = new_token_model.insert(&transaction).await?;
     tracing::trace!(secret = secret, hashed = token_model.secret_part);
 
@@ -133,6 +160,7 @@ pub async fn add_mail(
         Ok(_) => (),
         Err(e) => {
             tracing::info!(error=?e, address=form.mail,"Failed to send validation mail");
+            transaction.rollback().await?;
             return super::render_error_page(
                 template,
                 "Failed to send email",
@@ -142,6 +170,9 @@ pub async fn add_mail(
             );
         }
     }
+
+    // create entry for last-activation email
+    last_mail_send::Model::update_last_send(&transaction,form.mail,last_mail_send::KIND_VERIFICATION).await?;
 
     transaction.commit().await?;
 

@@ -197,6 +197,9 @@ fn read_server_config(instance_ping_interval: usize) -> miette::Result<server::C
     let mail_token_ttl_s = require_env_str("MAIL_VALIDATION_TOKEN_TTL_S")?
         .parse()
         .expect("MAIL_VALIDATION_TOKEN_TTL_S must be a positive number");
+    let mail_verification_timeout_s = require_env_str("MAIL_VERIFICATION_TIMEOUT_S")?
+    .parse()
+    .expect("MAIL_VERIFICATION_TIMEOUT_S must be a positive number");
 
     Ok(server::Config {
         site_url,
@@ -210,6 +213,7 @@ fn read_server_config(instance_ping_interval: usize) -> miette::Result<server::C
         mail_smtp_user,
         mail_smtp_password,
         mail_token_ttl_s,
+        mail_verification_timeout_s,
     })
 }
 
