@@ -40,7 +40,7 @@ async fn _main() -> miette::Result<()> {
             var("RUST_LOG").unwrap_or_else(|_| {
                 #[cfg(debug_assertions)]
                 return format!(
-                    "warn,tower_http=debug,migration=debug,scanner=trace,server=debug,{}=debug",
+                    "warn,tower_http=debug,migration=debug,scanner=trace,server=trace,{}=debug",
                     env!("CARGO_PKG_NAME")
                 )
                 .into();

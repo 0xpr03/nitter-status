@@ -21,14 +21,15 @@
         <p>You can get email alerts by adding an address for this host and verifying it.</p>
         <p>We won't publish or otherwise use your email.
         If you want to stay anonymous it is recommended to use an email you have no problem associating with your host in case of leaks.</p>
-        <form>
+        <form method="post" action="/admin/mail/add" >
             <div class="row">
                 <div class="col">
                     <label for="email">E-Mail:</label>
-                    <input type="email" class="form-control" id="email" name="email">
+                    <input type="email" class="form-control" id="email" name="mail">
                 </div>
             </div>
-            <button type="button" class="btn btn-primary mt-1" id="submitDateRange">Submit</button>
+            <input type="hidden" name="instance" value="{{HOST_ID}}" />
+            <button type="submit" class="btn btn-primary">Submit</button>
         </form>
         {% endif %}
         </div>

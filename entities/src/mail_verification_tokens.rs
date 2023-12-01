@@ -9,7 +9,7 @@ use serde::Serialize;
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub host: i32,
-    pub known_part: String,
+    pub public_part: String,
     pub secret_part: String,
     pub mail: String,
     pub eol_date: i64,

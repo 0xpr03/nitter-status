@@ -1,3 +1,4 @@
+use std::fmt::format;
 // SPDX-License-Identifier: AGPL-3.0-only
 use std::sync::Arc;
 
@@ -13,6 +14,7 @@ use entities::health_check;
 use entities::host;
 use entities::instance_stats;
 use entities::state::AppState;
+use hyper::StatusCode;
 use sea_orm::ColumnTrait;
 use sea_orm::ConnectionTrait;
 use sea_orm::DatabaseConnection;
@@ -261,10 +263,17 @@ fn render_error_page(template: &Arc<tera::Tera>,title: &str, message: &str, url_
     context.insert("TITLE", title);
     context.insert("ERROR_INFO", message);
     context.insert("URL_BACK", url_back);
-    let res = Html(template.render("error.html.j2", &context)?).into_response();
+    let mut res = Html(template.render("error.html.j2", &context)?).into_response();
+    *res.status_mut() = StatusCode::BAD_REQUEST;
     Ok(res)
 }
 
-const fn url_overview() -> &'static str {
+/// Url path for admin main page
+const fn url_path_overview() -> &'static str {
     "/admin"
+}
+
+/// URL path for host alerts
+fn url_path_alerts(host: i32) -> String {
+    format!("/admin/alerts/{host}")
 }

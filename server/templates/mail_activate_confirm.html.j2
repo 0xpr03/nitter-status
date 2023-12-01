@@ -11,13 +11,14 @@
   </head>
   <body>
     <div class="container">
-        <h1>Activation Email Send</h1>
-        <p>Please the button below to activate {{EMAIL}} for alerts on {{SITE_URL}}.</p>
-        <form class="p-3" method="post">
-          <input type="hidden" id="public" name="public" value="{{MAIL_PUBLIC_TOKEN}}" />
-          <input type="hidden" id="secret" name="secret" value="{{MAIL_SECRET_TOKEN}}" />
-          <button type="submit" class="btn btn-primary">Activate Email</button>
-        </form>
+      <h1>Activate Email Address</h1>
+      <p>Please click the button below to activate <b>{{MAIL}}</b> for alerts on </b>{{SITE_URL}}</b>.</p>
+      <p>This is necessary to prevent drive-by activation.</p>
+      <form class="p-3" method="post">
+        <input type="hidden" id="public" name="public" value="{{MAIL_PUBLIC_TOKEN}}" />
+        <input type="hidden" id="secret" name="secret" value="{{MAIL_SECRET_TOKEN}}" />
+        <button type="submit" class="btn btn-primary">Confirm Activation</button>
+      </form>
     </div>
   </body>
 </html>

@@ -157,7 +157,7 @@ pub async fn start(
             .route("/api/history/:instance", post(admin::history_json_specific))
             .route("/api/history", post(admin::history_json))
             .route("/alerts/:instance", get(admin::alerts::view))
-            .route("/mail/:instance/add", post(admin::mail::add_mail))
+            .route("/mail/add", post(admin::mail::add_mail))
             .route("/mail/activate/:public/:secret", get(admin::mail::activate_mail_view).post(admin::mail::activate_mail))
             .route("/login", get(admin::session::login_view).post(admin::session::login).route_layer(rate_limit_layer))
             .route("/logout", get(admin::session::logout))
