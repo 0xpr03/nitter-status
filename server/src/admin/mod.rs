@@ -258,11 +258,16 @@ fn get_session_login(session: &Session) -> Result<ActiveLogin> {
 }
 
 /// Helper to render a human error page
-fn render_error_page(template: &Arc<tera::Tera>,title: &str, message: &str, url_back: &str) -> Result<axum::response::Response> {
+fn render_error_page(template: &Arc<tera::Tera>,title: &str, message: &str, url_back: Option<&str>, url_home: Option<&str>) -> Result<axum::response::Response> {
     let mut context = tera::Context::new();
     context.insert("TITLE", title);
     context.insert("ERROR_INFO", message);
-    context.insert("URL_BACK", url_back);
+    if let Some(url) = url_back {
+        context.insert("URL_BACK", url);
+    }
+    if let Some(url) = url_home {
+        context.insert("URL_HOME", url);
+    }
     let mut res = Html(template.render("error.html.j2", &context)?).into_response();
     *res.status_mut() = StatusCode::BAD_REQUEST;
     Ok(res)

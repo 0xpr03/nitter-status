@@ -156,7 +156,7 @@ pub async fn start(
             // .route("/history/:host", get(admin::history_view))
             .route("/api/history/:instance", post(admin::history_json_specific))
             .route("/api/history", post(admin::history_json))
-            .route("/alerts/:instance", get(admin::alerts::view))
+            .route("/alerts/:instance", get(admin::alerts::view).post(admin::alerts::update))
             .route("/mail/add", post(admin::mail::add_mail))
             .route("/mail/activate/:public/:secret", get(admin::mail::activate_mail_view).post(admin::mail::activate_mail))
             .route("/login", get(admin::session::login_view).post(admin::session::login).route_layer(rate_limit_layer))
@@ -223,6 +223,8 @@ pub enum ServerError {
     MailFromError(#[from] lettre::address::AddressError),
     #[error("Failed to construct lettre mail")]
     MailError(#[from] lettre::error::Error),
+    #[error("Invalid form parameter value in {0}")]
+    FormValueError(&'static str),
 }
 
 impl axum::response::IntoResponse for ServerError {
@@ -237,6 +239,10 @@ impl axum::response::IntoResponse for ServerError {
             MissingPermission => (
                 StatusCode::FORBIDDEN,
                 Cow::Borrowed("Missing permission to access this resource"),
+            ),
+            FormValueError(_) => (
+                StatusCode::BAD_REQUEST,
+                Cow::Owned(self.to_string())
             ),
             MutexFailure | Templating(_) | DBError(_) | SessionError(_) | HostNotFound(_) | MailFromError(_) | MailError(_) => (
                 StatusCode::INTERNAL_SERVER_ERROR,

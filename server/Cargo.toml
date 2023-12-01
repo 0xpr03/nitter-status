@@ -7,7 +7,7 @@ publish = false
 [lib]
 
 [dependencies]
-axum = { version = "0.6.4", features = ["json", "macros", "query", "headers", "multipart"] }
+axum = { workspace = true, features = ["json", "macros", "query", "headers", "multipart"] }
 axum-extra = { version = "0.7.5" }
 sea-orm = { workspace = true, features = [ "sqlx-sqlite", "runtime-tokio-native-tls", "macros" ] }
 hyper = { version = "0.14.20", features = ["full"] }

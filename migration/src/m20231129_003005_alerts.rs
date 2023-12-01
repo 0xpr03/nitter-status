@@ -13,8 +13,14 @@ impl MigrationTrait for Migration {
         ) WITHOUT ROWID, STRICT;"#;
         let cmd_alerts = r#"CREATE TABLE "instance_alerts" (
             "host" integer NOT NULL PRIMARY KEY,
-            "host_down_retries" integer,
+            "host_down_amount" integer,
+            "host_down_amount_enable" integer,
+            "alive_accs_min_threshold" integer,
+            "alive_accs_min_threshold_enable" integer,
+            "alive_accs_min_percent" integer,
+            "alive_accs_min_percent_enable" integer,
             "avg_account_age_days" integer,
+            "avg_account_age_days_enable" integer,
             FOREIGN KEY ("host") REFERENCES "host" ("id") ON DELETE CASCADE ON UPDATE CASCADE
         ) WITHOUT ROWID, STRICT;"#;
         let cmd_verification = r#"CREATE TABLE "mail_verification_tokens" (
@@ -25,6 +31,10 @@ impl MigrationTrait for Migration {
             "eol_date" integer NOT NULL,
             FOREIGN KEY ("host") REFERENCES "host" ("id") ON DELETE CASCADE ON UPDATE CASCADE
         ) WITHOUT ROWID, STRICT;"#;
+        let cmd_last_mail = r#"CREATE TABLE "last_mail_send" (
+            "mail" string NOT NULL PRIMARY KEY,
+            "date" integer NOT NULL
+        ) WITHOUT ROWID, STRICT;"#;
         let db = manager.get_connection();
         db.execute_unprepared("BEGIN EXCLUSIVE").await?;
         tracing::info!("adding instance_mail table..");
@@ -33,6 +43,8 @@ impl MigrationTrait for Migration {
         db.execute_unprepared(cmd_alerts).await?;
         tracing::info!("adding verification_tokens table..");
         db.execute_unprepared(cmd_verification).await?;
+        tracing::info!("adding last_mail_send table..");
+        db.execute_unprepared(cmd_last_mail).await?;
         db.execute_unprepared("COMMIT TRANSACTION").await?;
         db.execute_unprepared("VACUUM").await?;
         Ok(())

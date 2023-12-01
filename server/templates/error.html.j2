@@ -12,8 +12,9 @@
   <body>
     <div class="container">
         <h1>{{TITLE}}</h1>
-        <p>{{ERROR_INFO}}</p>
-        <p><a href="{{URL_BACK}}">Back</a></p>
+        <p class="alert alert-warning">{{ERROR_INFO}}</p>
+        {% if URL_BACK %}<p><a href="{{URL_BACK}}">Back</a></p>{% endif %}
+        {% if URL_HOME %}<p><a href="{{URL_HOME}}">Home</a></p>{% endif %}
     </div>
   </body>
 </html>

@@ -68,7 +68,8 @@ pub async fn add_mail(
             template,
             "Invalid operation",
             "Can't add another email, please remove the current one.",
-            &back_url,
+            Some(&back_url),
+            None,
         );
     }
 
@@ -102,7 +103,8 @@ pub async fn add_mail(
                 template,
                 "Invalid email address",
                 "Your email address seems to be invalid.",
-                &back_url,
+                Some(&back_url),
+                None,
             );
         }
     };
@@ -135,7 +137,8 @@ pub async fn add_mail(
                 template,
                 "Failed to send email",
                 "Couldn't send email.",
-                &back_url,
+                Some(&back_url),
+                None,
             );
         }
     }
@@ -182,7 +185,8 @@ pub async fn activate_mail_view(
                 template,
                 "Invalid Activation Token",
                 "Activation link outdated or invalid.",
-                url_path_overview(),
+                None,
+                Some(url_path_overview()),
             )
         }
     };
@@ -217,7 +221,8 @@ pub async fn activate_mail(
                 template,
                 "Invalid Activation Token",
                 "Activation link outdated or invalid.",
-                url_path_overview(),
+                None,
+                Some(url_path_overview()),
             )
         }
         Some(v) => v,
@@ -228,7 +233,8 @@ pub async fn activate_mail(
             template,
             "Expired Activation Token",
             "Activation link expired.",
-            url_path_overview(),
+            None,
+            Some(url_path_overview()),
         );
     }
 
@@ -237,7 +243,8 @@ pub async fn activate_mail(
             template,
             "Invalid secret token",
             "Secret part is invalid.",
-            url_path_overview(),
+            None,
+            Some(url_path_overview()),
         );
     }
 

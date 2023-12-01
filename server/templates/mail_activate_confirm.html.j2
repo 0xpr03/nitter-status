@@ -14,10 +14,11 @@
       <h1>Activate Email Address</h1>
       <p>Please click the button below to activate <b>{{MAIL}}</b> for alerts on </b>{{SITE_URL}}</b>.</p>
       <p>This is necessary to prevent drive-by activation.</p>
+      <p>You can change alert settings afterwards.</p>
       <form class="p-3" method="post">
         <input type="hidden" id="public" name="public" value="{{MAIL_PUBLIC_TOKEN}}" />
         <input type="hidden" id="secret" name="secret" value="{{MAIL_SECRET_TOKEN}}" />
-        <button type="submit" class="btn btn-primary">Confirm Activation</button>
+        <button type="submit" class="btn btn-primary">Confirm Mail</button>
       </form>
     </div>
   </body>

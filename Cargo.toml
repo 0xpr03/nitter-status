@@ -24,6 +24,7 @@ error-stack = "0.4.1"
 miette = "5.10"
 regex = "1.9"
 time = "0.3.0"
+axum = "0.6.4"
 
 tracing-test = "0.2"
 

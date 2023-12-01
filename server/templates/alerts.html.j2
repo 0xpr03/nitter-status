@@ -1,38 +1,116 @@
 {# SPDX-License-Identifier: AGPL-3.0-only #}
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
-  <head>
-    <meta charset="utf-8">
-    <link href="/static/bootstrap.min.css" rel="stylesheet">
-    <meta name="robots" content="noindex,nofollow" />
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="author" content="" />
-    <title>Alerts {{HOST_DOMAIN}}</title>
-  </head>
-  <body>
-    <div class="container">
-        <h1>Alerts {{HOST_DOMAIN}}</h1>
-        <p><a href="/admin">Overview</a> <a href="/admin/logout">Logout</a> <a href="/admin/login">Add more instances</a></p>
-        <div class="container mt-5">
-        {% if MAIL and MAIL.verified %}
-        <div>Alert email {{MAIL.mail}}</div>
-        
-        {% else %}
-        <p>You can get email alerts by adding an address for this host and verifying it.</p>
-        <p>We won't publish or otherwise use your email.
-        If you want to stay anonymous it is recommended to use an email you have no problem associating with your host in case of leaks.</p>
-        <form method="post" action="/admin/mail/add" >
-            <div class="row">
-                <div class="col">
-                    <label for="email">E-Mail:</label>
-                    <input type="email" class="form-control" id="email" name="mail">
-                </div>
-            </div>
-            <input type="hidden" name="instance" value="{{HOST_ID}}" />
-            <button type="submit" class="btn btn-primary">Submit</button>
-        </form>
-        {% endif %}
+
+<head>
+  <meta charset="utf-8">
+  <link href="/static/bootstrap.min.css" rel="stylesheet">
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="" />
+  <title>Alerts {{HOST_DOMAIN}}</title>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Alerts for {{HOST_DOMAIN}}</h1>
+    <p><a href="/admin">Overview</a> <a href="/admin/logout">Logout</a> <a href="/admin/login">Add more instances</a>
+    </p>
+    <div class="container mt-5">
+      {% if MAIL %}
+      <p>Alert email: {{MAIL.mail}}</p>
+      <form method="post" action="/admin/mail/remove">
+        <input type="hidden" name="instance" value="{{HOST_ID}}" />
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+      <form autocomplete="off" method="post">
+        <legend>Alerts</legend>
+        <label for="alive_accs_min_percent" class="form-label">Alert when less than specified percent of guest accounts
+          are
+          healthy.</label>
+        <div class="input-group mb-3">
+          <div class="input-group-text">
+            <input class="form-check-input mt-0 me-1" id="alive_accs_min_percent_enable"
+              name="alive_accs_min_percent_enable" type="checkbox" value="true"
+              aria-label="Checkbox for alerting on less than percentage of alive accounts" {% if
+              ALERTS.avg_account_age_days_enable %}checked{%endif%}>
+            <label class="form-check-label" for="alive_accs_min_percent_enable">enable</label>
+          </div>
+          <input value="{{ALERTS.alive_accs_min_percent}}" type="number" placeholder="50" id="alive_accs_min_percent"
+            name="alive_accs_min_percent" min="1" max="{{MAX_PERCENT_HEALTHY}}" class="form-control" aria-label="Number input to alert when less than specified percent of guest accounts are
+          healthy.">
+          <span class="input-group-text">%</span>
         </div>
+
+        <label for="alive_accs_min_threshold" class="form-label">Alert when less than specified healthy guest accounts
+          are reported.</label>
+        <div class="input-group mb-3">
+          <div class="input-group-text">
+            <input class="form-check-input mt-0 me-1" id="alive_accs_min_threshold_enable"
+              name="alive_accs_min_threshold_enable" type="checkbox" value="true"
+              aria-label="Checkbox for alerting on less than amount of healthy account" {% if
+              ALERTS.alive_accs_min_threshold_enable %}checked{%endif%}>
+            <label class="form-check-label" for="alive_accs_min_threshold_enable">enable</label>
+          </div>
+          <input value="{{ALERTS.alive_accs_min_threshold}}" type="number" placeholder="5000"
+            id="alive_accs_min_threshold" name="alive_accs_min_threshold" min="1" max="{{MIN_HEALTHY_ACCOUNTS}}"
+            class="form-control" aria-label="Number input to alert when less than specified healthy guest accounts
+          are reported.">
+          <span class="input-group-text">Accounts</span>
+        </div>
+
+        <label for="avg_account_age_days" class="form-label">Alert when the average account age is reported as greater
+          than the set days.</label>
+        <div class="input-group mb-3">
+          <div class="input-group-text">
+            <input class="form-check-input mt-0 me-1" id="avg_account_age_days_enable"
+              name="avg_account_age_days_enable" type="checkbox" value="true"
+              aria-label="Checkbox for alerting when average account is older than set days" {% if
+              ALERTS.avg_account_age_days_enable %}checked{%endif%}>
+            <label class="form-check-label" for="avg_account_age_days_enable">enable</label>
+          </div>
+          <input value="{{ALERTS.avg_account_age_days}}" type="number" placeholder="28" id="avg_account_age_days"
+            name="avg_account_age_days" min="{{MIN_ACCOUNT_AGE_AVG}}" class="form-control" aria-label="Number input to alert when the average account age is reported as greater
+          than the set days.">
+          <span class="input-group-text">Days</span>
+        </div>
+
+        <label for="host_down_amount" class="form-label">Alert instance is down more than specified times in a
+          row.</label>
+        <div class="input-group mb-3">
+          <div class="input-group-text">
+            <input class="form-check-input mt-0 me-1" id="host_down_amount_enable" name="host_down_amount_enable"
+              type="checkbox" value="true" aria-label="Checkbox for alerting when average account is older than set days" {%
+              if ALERTS.host_down_amount_enable %}checked{%endif%}>
+            <label class="form-check-label" for="host_down_amount_enable">enable</label>
+          </div>
+          <input value="{{ALERTS.host_down_amount}}" type="number" placeholder="3" id="host_down_amount"
+            name="host_down_amount" min="{{MIN_HOST_UNHEALTHY_AMOUNT}}" class="form-control"
+            aria-label="Number input to alert instance is down more than specified times in a row.">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+
+      {% else %}
+      <p>You can get email alerts by adding an address for this host and verifying it.</p>
+      <p>We won't publish or otherwise use your email.
+        If you want to stay anonymous it is recommended to use an email you have no problem associating with your host
+        in case of leaks.</p>
+      <form method="post" action="/admin/mail/add">
+        <div class="row">
+          <div class="col">
+            <label for="email">E-Mail:</label>
+            <input type="email" class="form-control" id="email" name="mail">
+          </div>
+        </div>
+        <input type="hidden" name="instance" value="{{HOST_ID}}" />
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+      {% endif %}
     </div>
-  </body>
+  </div>
+</body>
+
 </html>
