@@ -36,6 +36,7 @@ mod list_update;
 mod profile_parser;
 mod version_check;
 mod update_stats;
+mod alerts;
 
 const CAPTCHA_TEXT: &'static str = "Enable JavaScript and cookies to continue";
 const CAPTCHA_CODE: u16 = 403;
@@ -74,7 +75,10 @@ pub enum ScannerError {
     InstanceUrlParse,
     /// Failed to join a tokio thread in a JoinSet
     #[error("Failed to join worker task {0}")]
-    JoinError(#[from] tokio::task::JoinError)
+    JoinError(#[from] tokio::task::JoinError),
+    /// Expected to find data for host, but did not
+    #[error("No data for host {0}")]
+    MissingData(i32)
 }
 
 #[derive(Error, Debug)]

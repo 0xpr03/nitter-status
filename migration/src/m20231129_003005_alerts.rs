@@ -37,6 +37,9 @@ impl MigrationTrait for Migration {
             "time" integer NOT NULL,
             PRIMARY KEY("mail","kind")
         ) WITHOUT ROWID, STRICT;"#;
+        let cmd_host_account_age_col = r#"
+            ALTER TABLE "host" ADD COLUMN "account_age_average" INTEGER;
+        "#;
         let db = manager.get_connection();
         db.execute_unprepared("BEGIN EXCLUSIVE").await?;
         tracing::info!("adding instance_mail table..");
@@ -47,8 +50,11 @@ impl MigrationTrait for Migration {
         db.execute_unprepared(cmd_verification).await?;
         tracing::info!("adding last_mail_send table..");
         db.execute_unprepared(cmd_last_mail).await?;
+        tracing::info!("adding column account_age_average to host table..");
+        db.execute_unprepared(cmd_host_account_age_col).await?;
         db.execute_unprepared("COMMIT TRANSACTION").await?;
         db.execute_unprepared("VACUUM").await?;
+        tracing::info!(pragma_optimize=?db.execute_unprepared("PRAGMA optimize").await?);
         Ok(())
     }
 

@@ -45,6 +45,8 @@ pub struct Config {
     pub error_retention_per_host: usize,
     /// Path for connectivity checks
     pub connectivity_path: String,
+    /// Disables all alert emails
+    pub disable_alert_mails: bool,
 }
 
 impl Config {
@@ -71,6 +73,7 @@ impl Config {
             cleanup_interval: Duration::from_secs(24 * 60 * 60),
             error_retention_per_host: 100,
             connectivity_path: String::from("/"),
+            disable_alert_mails: true,
         })
     }
 }

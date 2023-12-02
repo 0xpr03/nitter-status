@@ -138,6 +138,7 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
     let instance_stats_interval: u64 = require_env_str("STATS_INTERVAL_S")?
         .parse()
         .expect("STATS_INTERVAL_S must be a positive number");
+    let disable_alert_mails = require_env_str("DISABLE_ALERT_MAILS")? == "true";
 
     Ok(Arc::new(entities::state::scanner::Config {
         instance_stats_interval: Duration::from_secs(instance_stats_interval),
@@ -161,6 +162,7 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
         cleanup_interval: Duration::from_secs(cleanup_interval),
         error_retention_per_host,
         connectivity_path: String::from("/"),
+        disable_alert_mails,
     }))
 }
 

@@ -113,6 +113,7 @@ impl Scanner {
                     rss: ActiveValue::Set(rss),
                     updated: ActiveValue::Set(time.timestamp()),
                     connectivity: ActiveValue::Set(connectivity),
+                    account_age_average: ActiveValue::NotSet,
                 }
             });
         }

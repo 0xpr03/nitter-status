@@ -9,7 +9,8 @@ use entities::{host, instance_stats};
 use entities::prelude::Host;
 use reqwest::Url;
 use sea_orm::prelude::DateTimeUtc;
-use sea_orm::{QueryFilter, ColumnTrait, EntityTrait, ActiveValue};
+use sea_orm::{QueryFilter, ColumnTrait, EntityTrait, ActiveValue, TransactionTrait};
+use sea_query::OnConflict;
 use serde::Deserialize;
 use tokio::task::JoinSet;
 
@@ -74,16 +75,25 @@ impl Scanner {
         }
 
         let mut stat_data = Vec::with_capacity(join_set.len());
+        let mut host_data = Vec::with_capacity(join_set.len());
         while let Some(join_res) = join_set.join_next().await {
-            if let Some(data) = join_res? {
-                stat_data.push(data);
+            if let Some((stats_model, host_model)) = join_res? {
+                stat_data.push(stats_model);
+                host_data.push(host_model);
             }
         }
         tracing::debug!(db_stats_entries=stat_data.len());
+        let transaction = self.inner.db.begin().await?;
         if !stat_data.is_empty() {
             instance_stats::Entity::insert_many(stat_data)
-                .exec(&self.inner.db).await?;
+                .exec(&transaction).await?;
         }
+        if !host_data.is_empty() {
+            for entry in host_data {
+                host::Entity::update(entry).exec(&transaction).await?;
+            }
+        }
+        transaction.commit().await?;
 
         let end = Instant::now();
         let duration = end - start;
@@ -94,7 +104,7 @@ impl Scanner {
         Ok(())
     }
 
-    async fn fetch_instance_stats(&self, time: DateTimeUtc, host: &host::Model) -> Result<instance_stats::ActiveModel> {
+    async fn fetch_instance_stats(&self, time: DateTimeUtc, host: &host::Model) -> Result<(instance_stats::ActiveModel, host::ActiveModel)> {
         let mut url = Url::parse(&host.url)
             .map_err(|e|ScannerError::InstanceUrlParse)?;
         url.set_path(".health");
@@ -121,6 +131,12 @@ impl Scanner {
             req_user_tweets_and_replies: ActiveValue::Set(stats_data.requests.apis.userTweetsAndReplies),
         };
 
-        Ok(stats_model)
+        let host_model = host::ActiveModel {
+            id: ActiveValue::Set(host.id),
+            account_age_average: ActiveValue::Set(Some(stats_data.accounts.average.timestamp())),
+            ..Default::default()
+        };
+
+        Ok((stats_model,host_model))
     }
 }
