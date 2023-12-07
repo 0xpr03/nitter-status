@@ -170,6 +170,7 @@ struct InnerScanner {
     profile_parser: ProfileParser,
     last_list_fetch: Mutex<DateTime<Utc>>,
     last_stats_fetch: Mutex<DateTime<Utc>>,
+    last_alert_check: Mutex<DateTime<Utc>>,
     last_uptime_check: Mutex<DateTime<Utc>>,
     rss_check_regex: Regex,
     client_ipv4: Client,
@@ -237,6 +238,7 @@ impl Scanner {
                 last_list_fetch: Mutex::new(last_uptime_check),
                 last_uptime_check: Mutex::new(last_uptime_check),
                 last_stats_fetch: Mutex::new(last_stats_check),
+                last_alert_check: Mutex::new(last_uptime_check), // just use the same timestamp for initialization
                 rss_check_regex: builder_regex_rss
                     .build()
                     .into_diagnostic()
@@ -312,6 +314,11 @@ impl Scanner {
                     tracing::error!(error=?e,"Failed checking instances for stats");
                 }
             }
+            if self.is_instance_alerts_outdated() {
+                if let Err(e) = self.check_for_alerts().await {
+                    tracing::error!(error=?e,"Failed checking for instance alerts");
+                }
+            }
             if let Err(e) = self.update_cache().await {
                 tracing::error!(error=?e,"Failed to update cache!");
             }
@@ -323,9 +330,10 @@ impl Scanner {
         let delay_instance_check = self.last_uptime_check() + self.inner.config.instance_check_interval;
         let delay_list_update = self.last_list_fetch() + self.inner.config.list_fetch_interval;
         let delay_stats_update = self.last_stats_fetch() + self.inner.config.instance_stats_interval;
-        tracing::debug!(?delay_list_update, ?delay_instance_check, ?delay_stats_update);
+        let delay_alert_check = self.last_alert_check() + self.inner.config.alert_check_interval;
+        tracing::debug!(?delay_list_update, ?delay_instance_check, ?delay_stats_update, ?delay_alert_check);
 
-        let next_deadline = delay_instance_check.min(delay_list_update).min(delay_stats_update);
+        let next_deadline = delay_instance_check.min(delay_list_update).min(delay_stats_update).min(delay_alert_check);
         let now = Utc::now();
         let sleep_time = next_deadline.signed_duration_since(now);
         if sleep_time <= Duration::zero() {
@@ -349,6 +357,10 @@ impl Scanner {
         *self.inner.last_stats_fetch.lock().unwrap()
     }
 
+    fn last_alert_check(&self) -> DateTime<Utc> {
+        *self.inner.last_alert_check.lock().unwrap()
+    }
+
     fn is_instance_check_outdated(&self) -> bool {
         let val = self.last_uptime_check();
         Utc::now().signed_duration_since(val).to_std().unwrap()
@@ -365,6 +377,12 @@ impl Scanner {
         let val = self.last_stats_fetch();
         Utc::now().signed_duration_since(val).to_std().unwrap()
             >= self.inner.config.instance_stats_interval
+    }
+
+    fn is_instance_alerts_outdated(&self) -> bool {
+        let val = self.last_alert_check();
+        Utc::now().signed_duration_since(val).to_std().unwrap()
+            >= self.inner.config.alert_check_interval
     }
 
     async fn fetch_instance_list(&self) -> Result<String> {

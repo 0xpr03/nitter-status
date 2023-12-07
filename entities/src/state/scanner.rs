@@ -47,6 +47,8 @@ pub struct Config {
     pub connectivity_path: String,
     /// Disables all alert emails
     pub disable_alert_mails: bool,
+    /// Interval for perform alert checks in
+    pub alert_check_interval: Duration,
 }
 
 impl Config {
@@ -74,6 +76,7 @@ impl Config {
             error_retention_per_host: 100,
             connectivity_path: String::from("/"),
             disable_alert_mails: true,
+            alert_check_interval: Duration::from_secs(60*15*3)
         })
     }
 }

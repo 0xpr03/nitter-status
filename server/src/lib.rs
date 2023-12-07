@@ -87,7 +87,7 @@ pub async fn start(
     tokio::task::spawn(
         session_store
             .clone()
-            .continuously_delete_expired(tokio::time::Duration::from_secs(60)),
+            .continuously_delete_expired(tokio::time::Duration::from_secs(60*60)),
     );
 
     let session_service = ServiceBuilder::new()
