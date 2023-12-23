@@ -141,6 +141,9 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
     let alert_check_interval: u64 = require_env_str("ALERT_CHECK_INTERVAL_S")?
         .parse()
         .expect("ALERT_CHECK_INTERVAL_S must be a positive number");
+    let mail_alert_timeout_s: u64 = require_env_str("MAIL_ALERT_TIMEOUT_S")?
+        .parse()
+        .expect("MAIL_ALERT_TIMEOUT_S must be a positive number");
     let disable_alert_mails = require_env_str("DISABLE_ALERT_MAILS")? == "true";
 
     Ok(Arc::new(entities::state::scanner::Config {
@@ -167,6 +170,7 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
         connectivity_path: String::from("/"),
         disable_alert_mails,
         alert_check_interval: Duration::from_secs(alert_check_interval),
+        mail_alert_timeout_s,
     }))
 }
 

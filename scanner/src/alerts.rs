@@ -1,24 +1,19 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //! Handles alert notifications
-use std::cmp;
 use std::collections::HashMap;
-use std::fmt::format;
 use std::time::Instant;
 
-use chrono::{Days, Utc};
+use chrono::Utc;
 use chrono::{Duration, TimeZone};
-use entities::state::CacheData;
-use entities::state::CacheHost;
-use entities::{health_check, prelude::*};
-use entities::{host, instance_alerts, instance_stats};
+use entities::{health_check, prelude::*, instance_mail, last_mail_send};
+use entities::{instance_alerts, instance_stats};
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::QueryOrder;
-use sea_orm::{prelude::DateTimeUtc, DbBackend, FromQueryResult, Statement};
 use sea_orm::{ColumnTrait, QuerySelect};
 use sea_query::Order;
 
-use crate::{instance_check, Result, Scanner, ScannerError};
+use crate::{Result, Scanner, ScannerError};
 
 impl Scanner {
     pub(crate) async fn check_for_alerts(&self) -> Result<()> {
@@ -88,6 +83,16 @@ impl Scanner {
             *self.inner.last_alert_check.lock().unwrap() = Utc::now();
         }
         tracing::debug!(took_ms = diff.as_secs(), "alert check finished");
+        Ok(())
+    }
+
+    async fn mail_host(&self, mail: &instance_mail::Model, content: String) -> Result<()> {
+        if last_mail_send::Model::can_send(&self.inner.db, &mail.mail, last_mail_send::KIND_ALERT, self.inner.config.mail_alert_timeout_s).await? {
+            
+        } else {
+            tracing::debug!(mail=?mail,"still in alert mail timeout");
+        }
+
         Ok(())
     }
 

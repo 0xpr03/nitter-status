@@ -49,6 +49,8 @@ pub struct Config {
     pub disable_alert_mails: bool,
     /// Interval for perform alert checks in
     pub alert_check_interval: Duration,
+    /// Timeout for next alert mail notification
+    pub mail_alert_timeout_s: i64,
 }
 
 impl Config {
@@ -76,7 +78,8 @@ impl Config {
             error_retention_per_host: 100,
             connectivity_path: String::from("/"),
             disable_alert_mails: true,
-            alert_check_interval: Duration::from_secs(60*15*3)
+            alert_check_interval: Duration::from_secs(60*15*3),
+            mail_alert_timeout_s: 2700,
         })
     }
 }
