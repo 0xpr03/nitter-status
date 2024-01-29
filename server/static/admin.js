@@ -178,8 +178,8 @@ function createChartOverview(data) {
             datasets: datasets,
         },
         options: {
-            responsive: false,
-            maintainAspectRatio: false,
+            //responsive: false,
+            //maintainAspectRatio: false,
             plugins: {
                 colors: {
                     enabled: true
