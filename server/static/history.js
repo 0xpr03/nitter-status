@@ -32,13 +32,13 @@ async function loadGraph() {
             g.setAnnotations([
             {
               series: "Healthy",
-              x: "2023-05-18",
+              x: "2023-05-18T00:00:01Z",
               shortText: "G",
               text: "First API Change"
             },
             {
                 series: "Healthy",
-                x: "2024-01-24",
+                x: "2024-01-2400:00:01Z",
                 shortText: "D",
                 text: "API Shutdown"
               }
