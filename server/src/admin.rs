@@ -324,8 +324,8 @@ pub async fn history_json(
     }
     let (_login, hosts) = get_all_login_hosts(&session, db, false).await?;
     let host_ids: Vec<_> = hosts.iter().map(|host|host.id).collect();
-    let data_owned = health_check::HealthyAmount::fetch(db, input.start, input.end,Some(&host_ids)).await?;
-    let data_global = health_check::HealthyAmount::fetch(db, input.start, input.end,None).await?;
+    let data_owned = health_check::HealthyAmount::fetch(db, Some(input.start), Some(input.end),Some(&host_ids)).await?;
+    let data_global = health_check::HealthyAmount::fetch(db, Some(input.start), Some(input.end),None).await?;
     let data_stats = instance_stats::StatsAmount::fetch(db, input.start, input.end,None).await?;
 
     Ok(Json(ReturnData {

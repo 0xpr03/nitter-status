@@ -45,23 +45,52 @@ pub struct HealthyAmount {
     pub dead: i64,
 }
 
+#[derive(Debug, FromQueryResult, Serialize)]
+pub struct InstanceGraphEntry {
+    pub time: i64,
+    pub alive: i64,
+    pub dead: i64,
+}
+
 impl HealthyAmount {
     /// Fetch health check graph data for all or selected hosts in the selected time range. 
-    pub async fn fetch(db: &DatabaseConnection, from: DateTimeUtc, to: DateTimeUtc, hosts: Option<&[i32]>) -> Result<Vec<HealthyAmount>,DbErr> {
+    pub async fn fetch(db: &DatabaseConnection, from: Option<DateTimeUtc>, to: Option<DateTimeUtc>, hosts: Option<&[i32]>) -> Result<Vec<Self>,DbErr> {
         let builder = db.get_database_backend();
         let mut stmt: sea_query::SelectStatement = Query::select();
         stmt.column(self::Column::Time)
             .expr_as(SimpleExpr::Custom("SUM(healthy)".to_string()), Alias::new("alive"))
             .expr_as(SimpleExpr::Custom("SUM(1-healthy)".to_string()), Alias::new("dead"))
             .group_by_col(self::Column::Time)
-            .from(self::Entity)
-            .and_where(self::Column::Time.between(from.timestamp(), to.timestamp()));
+            .from(self::Entity);
+        if let (Some(from),Some(to)) = (from,to) {
+            stmt.and_where(self::Column::Time.between(from.timestamp(), to.timestamp()));
+        }
         if let Some(hosts)  = hosts {
             stmt.and_where(self::Column::Host.is_in(hosts.iter().map(|v| *v)));
         }
         stmt.group_by_col(self::Column::Time)
             .order_by(self::Column::Time, Order::Asc);
-        HealthyAmount::find_by_statement(builder.build(&stmt)).all(db).await
+        Self::find_by_statement(builder.build(&stmt)).all(db).await
+    }
+}
+
+impl InstanceGraphEntry {
+    /// Fetch health check graph data for all or selected hosts in the selected time range. 
+    pub async fn fetch(db: &DatabaseConnection, to: Option<DateTimeUtc>) -> Result<Vec<Self>,DbErr> {
+        let builder = db.get_database_backend();
+        let mut stmt: sea_query::SelectStatement = Query::select();
+        stmt//.expr_as(SimpleExpr::Custom("strftime('%Y/%m/%d %H:%M:%S', datetime(time, 'unixepoch', 'utc'))".to_string()), Alias::new("time"))
+            .column(self::Column::Time)
+            .expr_as(SimpleExpr::Custom("SUM(healthy)".to_string()), Alias::new("alive"))
+            .expr_as(SimpleExpr::Custom("SUM(1-healthy)".to_string()), Alias::new("dead"))
+            .group_by_col(self::Column::Time)
+            .from(self::Entity);
+        if let Some(to) = to {
+            stmt.and_where(self::Column::Time.lte(to.timestamp()));
+        }
+        stmt.group_by_col(self::Column::Time)
+            .order_by(self::Column::Time, Order::Asc);
+        Self::find_by_statement(builder.build(&stmt)).all(db).await
     }
 }
 
@@ -91,6 +120,6 @@ mod test {
             .checked_sub_signed(chrono::Duration::days(14))
             .unwrap();
         let hosts = vec![1,2,3];
-        HealthyAmount::fetch(&db, time_3h, time_now,Some(&hosts)).await.unwrap();
+        HealthyAmount::fetch(&db, Some(time_3h), Some(time_now),Some(&hosts)).await.unwrap();
     }
 }

@@ -78,3 +78,26 @@ pub async fn about(
     );
     Ok(res)
 }
+
+pub async fn rip(
+    State(ref app_state): State<AppState>,
+    State(ref template): State<Arc<tera::Tera>>,
+    State(ref scanner_config): State<ScannerConfig>,
+) -> Result<axum::response::Response> {
+    let mut context = tera::Context::new();
+    {
+        let guard = app_state
+            .cache
+            .read()
+            .map_err(|_| ServerError::MutexFailure)?;
+        let time = guard.last_update.format("%Y.%m.%d %H:%M").to_string();
+        context.insert("last_updated", &time);
+    }
+
+    let mut res = Html(template.render("rip.html.j2", &context)?).into_response();
+    res.headers_mut().insert(
+        "cache-control",
+        HeaderValue::from_static("public, max-age=900"),
+    );
+    Ok(res)
+}

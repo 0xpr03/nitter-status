@@ -145,6 +145,7 @@ pub async fn start(
             ServeDir::new("server/static").append_index_html_on_directories(false),
         )
         .route("/api/v1/instances", get(api::instances))
+        .route("/api/graph", get(api::graph))
         .nest(ADMIN_OVERVIEW_URL, Router::new()
             .route("/", get(admin::overview))
             .route("/instance/:instance", get(admin::instance_view))
@@ -158,10 +159,12 @@ pub async fn start(
         )
         // .route("/admin", get(admin::view))
         .route("/about", get(website::about))
+        .route("/rip", get(website::rip))
         .route(
             "/robots.txt",
             get_service(ServeFile::new("server/static/robots.txt")),
         )
+        .route("/instances", get(website::instances))
         .route("/", get(website::instances))
         .layer(
             ServiceBuilder::new()
@@ -211,6 +214,8 @@ pub enum ServerError {
     HostNotFound(i32),
     #[error("No permission to access this resource")]
     MissingPermission,
+    #[error("Failed to create CSV")]
+    CSV(String),
 }
 
 impl axum::response::IntoResponse for ServerError {
@@ -226,7 +231,7 @@ impl axum::response::IntoResponse for ServerError {
                 StatusCode::FORBIDDEN,
                 Cow::Borrowed("Missing permission to access this resource"),
             ),
-            MutexFailure | Templating(_) | DBError(_) | SessionError(_) | HostNotFound(_) => (
+            CSV(_ )| MutexFailure | Templating(_) | DBError(_) | SessionError(_) | HostNotFound(_) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Cow::Borrowed("Internal Server Error"),
             ),

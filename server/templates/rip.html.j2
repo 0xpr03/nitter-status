@@ -1,0 +1,48 @@
+{# SPDX-License-Identifier: AGPL-3.0-only #}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="nitter, status, uptime" />
+    <meta name="description" content="Nitter instance uptime and status tracker." />
+    <meta name="author" content="" />
+    <link rel="stylesheet" type="text/css" href="/static/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/dygraph.min.css" />
+    <style>
+    #history .dygraph-axis-label { color: white; }
+    #history .dygraph-legend { background-color: #101015; }
+    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nitter Is Dead</title>
+  </head>
+  <body>
+  <div class="container">
+    <h1>All Nitter public instances shut down.</h1>
+    <p>There are no public instances left for you to use.</p>
+
+    <h2>Why ?</h2>
+    <p>Nitter has already been struggling to keep up with the changes Twitter made on their side after 2022.</p>
+
+    <p>In January 2024, the Twitter API used by Nitter to fetch data from Twitter got shut down.</p>
+
+    <p>Without this, there is no way to run instances on the scale needed for the public instances that got listed here.</p>
+
+    <h2>That's unfortunate. But I still want to use Nitter !</h2>
+    <p>If you want to continue running Nitter, you can do so using a normal Twitter account.</p>
+
+    <p>Do note however, that this cannot and will not scale, and is in a legal grey-area. Proceed at your own risk.</p>
+
+    <p>See <a href="https://github.com/zedeus/nitter/wiki/Guest-Account-Branch-Deployment">here</a> for setting up nitter if you feel brave enough and don't fear the command line.</p>
+    <div class="container">
+      <div class="row">
+          <div class="col">
+              <div id="history" style="height: 400px;"></div>
+          </div>
+      </div>
+      <p>Last Updated {{last_updated}} <a rel="nofollow" href="https://time.is/UTC">UTC</a>.</p>
+      <p><a href="/instances">Instances</a> <a href="/about">About</a></p>
+    </div>
+      <script type="text/javascript" src="/static/dygraph.min.js"></script>
+      <script type="text/javascript" src="/static/history.js"></script>
+  </body>
+</html>
