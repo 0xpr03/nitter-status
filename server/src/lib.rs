@@ -145,11 +145,11 @@ pub async fn start(
             ServeDir::new("server/static").append_index_html_on_directories(false),
         )
         .route("/api/v1/instances", get(api::instances))
-        .route("/api/graph", get(api::graph))
+        .route("/api/csv/health", get(api::graph_csv_health))
+        .route("/api/csv/stats", get(api::graph_csv_stats))
         .nest(ADMIN_OVERVIEW_URL, Router::new()
             .route("/", get(admin::overview))
             .route("/instance/:instance", get(admin::instance_view))
-            // .route("/history/:host", get(admin::history_view))
             .route("/api/history/:instance", post(admin::history_json_specific))
             .route("/api/history", post(admin::history_json))
             .route("/login", get(admin::login_view).post(admin::login).route_layer(rate_limit_layer))
@@ -157,7 +157,6 @@ pub async fn start(
             // .layer(ServiceBuilder::new().layer(SetResponseHeaderLayer::overriding(header::CACHE_CONTROL, "must-revalidate")))
             .layer(session_service)
         )
-        // .route("/admin", get(admin::view))
         .route("/about", get(website::about))
         .route("/rip", get(website::rip))
         .route(
@@ -231,7 +230,8 @@ impl axum::response::IntoResponse for ServerError {
                 StatusCode::FORBIDDEN,
                 Cow::Borrowed("Missing permission to access this resource"),
             ),
-            CSV(_ )| MutexFailure | Templating(_) | DBError(_) | SessionError(_) | HostNotFound(_) => (
+            CSV(_) | MutexFailure | Templating(_) | DBError(_) | SessionError(_)
+            | HostNotFound(_) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Cow::Borrowed("Internal Server Error"),
             ),

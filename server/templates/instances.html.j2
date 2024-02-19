@@ -1,124 +1,136 @@
 {# SPDX-License-Identifier: AGPL-3.0-only #}
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
-  <head>
-    <meta charset="utf-8">
-    <meta name="keywords" content="nitter, status, uptime" />
-    <meta name="description" content="Nitter instance uptime and status tracker." />
-    <meta name="author" content="" />
-    <link href="/static/bootstrap.min.css" rel="stylesheet">
-    <style>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="keywords" content="nitter, status, uptime" />
+  <meta name="description" content="Nitter instance uptime and status tracker." />
+  <meta name="author" content="" />
+  <link href="/static/bootstrap.min.css" rel="stylesheet">
+  <style>
     .uptime-graph rect {
       cursor: pointer;
     }
+
     .uptime-graph rect:hover {
       fill: #5e6c84;
     }
-    </style>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Nitter Instance Health</title>
-  </head>
-  <body>
+  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nitter Instance Health</title>
+</head>
+
+<body>
   <div class="container">
     <h1>Nitter Instance Uptime & Health</h1>
+    <div class="alert alert-warning" role="alert">
+      Nitter is Dead! <a href="/rip">&gt;&gt;Read More&lt;&lt;</a>
+    </div>
     <p><a href="/about">About</a></p>
-    <p>Please use the <a rel="nofollow" href="/about#api">API</a> for bots. Please <b>do NOT use these instances for scraping</b>, host nitter yourself.</p>
+    <p>Please use the <a rel="nofollow" href="/about#api">API</a> for bots. Please <b>do NOT use these instances for
+        scraping</b>, host nitter yourself.</p>
     <p>Last Updated {{last_updated}} <a rel="nofollow" href="https://time.is/UTC">UTC</a>.</p>
     <p>Customize the visible columns <a href="#column-settings">down below</a>.</p>
     <div class="table-responsive">
       <table id="status-tbl" class="table sortable table-hover table-sm">
-      <thead>
+        <thead>
           <tr>
-          <th scope="col">Instance</th>
-          <th data-name="country" scope="col">Country</th>
-          <th scope="col">Healthy</th>
-          <th scope="col">Health History</th>
-          <th data-name="average" scope="col">Average Time</th>
-          <th scope="col">All Time %</th>
-          <th data-name="rss" scope="col">RSS</th>
-          <th data-name="version" scope="col">Nitter Version</th>
-          <th data-name="connectivity" scope="col">Connectivity</th>
-          <th scope="col">Points</th>
+            <th scope="col">Instance</th>
+            <th data-name="country" scope="col">Country</th>
+            <th scope="col">Healthy</th>
+            <th scope="col">Health History</th>
+            <th data-name="average" scope="col">Average Time</th>
+            <th scope="col">All Time %</th>
+            <th data-name="rss" scope="col">RSS</th>
+            <th data-name="version" scope="col">Nitter Version</th>
+            <th data-name="connectivity" scope="col">Connectivity</th>
+            <th scope="col">Points</th>
           </tr>
-      </thead>
-      <tbody>
+        </thead>
+        <tbody>
           {% for host in instances -%}
           <tr>
-          <td><a rel="nofollow external" href="{{host.url}}">{{host.domain}}</a></td>
-          <td data-name="country">{{host.country}}</td>
-          <td>
-          {%- if host.is_bad_host -%}
-            <div title="Host known for blocking healthchecks">❓</div>
-          {%- elif host.healthy -%}
-            ✅
-          {%- else -%}
-            ❌
-          {%- endif -%}</td>
-          <td>
-            {%- set height = 28 -%}
-            {%- set width = 110 -%}
-            {%- set width_bar = 5  -%}
-            {%- set offset = 5  -%}
-            {%- if not host.__show_last_seen -%}
+            <td><a rel="nofollow external" href="{{host.url}}">{{host.domain}}</a></td>
+            <td data-name="country">{{host.country}}</td>
+            <td>
+              {%- if host.is_bad_host -%}
+              <div title="Host known for blocking healthchecks">❓</div>
+              {%- elif host.healthy -%}
+              ✅
+              {%- else -%}
+              ❌
+              {%- endif -%}
+            </td>
+            <td>
+              {%- set height = 28 -%}
+              {%- set width = 110 -%}
+              {%- set width_bar = 5 -%}
+              {%- set offset = 5 -%}
+              {%- if not host.__show_last_seen -%}
               <svg class="uptime-graph" viewBox="0 0 {{width}} {{height}}" height="{{height}}">
                 {%- for check in host.recent_checks -%}
-                  {%- if check.1 -%}
-                    {%- set title = "Healthy " ~ check.0 -%}
-                    {%- set color_bar = "#2fcc66" -%}
-                  {%- else -%}
-                    {%- set title = "Unhealthy " ~ check.0 -%}
-                    {%- set color_bar = "#ff6225" -%}
-                  {%- endif -%}
-                  <rect x="{{(loop.index-1) * width_bar}}" y="0" width="{{width_bar - 1}}" height="{{height}}" fill="{{color_bar}}" fill-opacity="0.95" shape-rendering="auto" ><title>{{title}}</title></rect>
+                {%- if check.1 -%}
+                {%- set title = "Healthy " ~ check.0 -%}
+                {%- set color_bar = "#2fcc66" -%}
+                {%- else -%}
+                {%- set title = "Unhealthy " ~ check.0 -%}
+                {%- set color_bar = "#ff6225" -%}
+                {%- endif -%}
+                <rect x="{{(loop.index-1) * width_bar}}" y="0" width="{{width_bar - 1}}" height="{{height}}"
+                  fill="{{color_bar}}" fill-opacity="0.95" shape-rendering="auto">
+                  <title>{{title}}</title>
+                </rect>
                 {%- endfor -%}
               </svg>
-            {%- else -%}
+              {%- else -%}
               {# <!-- no healthy entries, show last time host was seen healthy --> #}
               {%- if host.last_healthy -%}
-              LSH: {{host.last_healthy | truncate(length=16, end="") | replace(from="-", to=".") | replace(from="T", to=" ")}}
+              LSH: {{host.last_healthy | truncate(length=16, end="") | replace(from="-", to=".") | replace(from="T",
+              to=" ")}}
               <a rel="nofollow" href="https://time.is/UTC">UTC</a>
               {%- else -%}
               Never seen healthy.
               {%- endif -%}
-            {%- endif -%}
-          </td>
-          <td data-name="average">{%- if not host.__show_last_seen -%}{{host.ping_avg}}ms{% endif %}</td>
-          <td>{{host.healthy_percentage_overall}}%</td>
-          <td data-name="rss">{% if host.rss -%} ✅ {%- else -%} ❌ {%- endif -%}</td>
-          {%- if host.healthy and not host.version -%}
-            {%- set version = "Dmissing" -%}
-          {%- elif host.version and not host.is_upstream -%}
-            {%- set version = "Aforeign" -%}
-          {%- elif host.is_latest_version -%}
-            {%- set version = "Blatest" -%}
-          {%- elif host.version and not host.is_latest_version -%}
-            {%- set version = "Coutdated" -%}
-          {%- else -%}
-            {%- set version = "Eunknown" -%}
-          {%- endif -%}
-          <td data-name="version" data-sort="{{version}}{{host.version | default(value='')}}">
-          {%- if host.version_url -%}
-            <a rel="nofollow external" title="{{host.version}}" href="{{host.version_url}}">
-            {{host.version | truncate(length=18) | default(value="missing version")}}
-            </a>
-          {%- else -%}
-            <a rel="nofollow external" href="{{host.url ~ '/about'}}">missing version</a>
-          {%- endif -%}
-            {%- if version == "Dmissing" -%}
-                <span class="ms-1 badge bg-warning">missing</span>
-              {%- elif version == "Aforeign" -%}
-                <span class="ms-1 badge bg-secondary">foreign repo</span>
-              {%- elif version == "Blatest" -%}
-                <span class="ms-1 badge bg-success">latest</span>
-              {%- elif version == "Coutdated" -%}
-                <span class="ms-1 badge bg-info">outdated</span>
               {%- endif -%}
-          </td>
-          <td data-name="connectivity">{{host.connectivity}}</td>
-          <td>{{host.points}}</td>
+            </td>
+            <td data-name="average">{%- if not host.__show_last_seen -%}{{host.ping_avg}}ms{% endif %}</td>
+            <td>{{host.healthy_percentage_overall}}%</td>
+            <td data-name="rss">{% if host.rss -%} ✅ {%- else -%} ❌ {%- endif -%}</td>
+            {%- if host.healthy and not host.version -%}
+            {%- set version = "Dmissing" -%}
+            {%- elif host.version and not host.is_upstream -%}
+            {%- set version = "Aforeign" -%}
+            {%- elif host.is_latest_version -%}
+            {%- set version = "Blatest" -%}
+            {%- elif host.version and not host.is_latest_version -%}
+            {%- set version = "Coutdated" -%}
+            {%- else -%}
+            {%- set version = "Eunknown" -%}
+            {%- endif -%}
+            <td data-name="version" data-sort="{{version}}{{host.version | default(value='')}}">
+              {%- if host.version_url -%}
+              <a rel="nofollow external" title="{{host.version}}" href="{{host.version_url}}">
+                {{host.version | truncate(length=18) | default(value="missing version")}}
+              </a>
+              {%- else -%}
+              <a rel="nofollow external" href="{{host.url ~ '/about'}}">missing version</a>
+              {%- endif -%}
+              {%- if version == "Dmissing" -%}
+              <span class="ms-1 badge bg-warning">missing</span>
+              {%- elif version == "Aforeign" -%}
+              <span class="ms-1 badge bg-secondary">foreign repo</span>
+              {%- elif version == "Blatest" -%}
+              <span class="ms-1 badge bg-success">latest</span>
+              {%- elif version == "Coutdated" -%}
+              <span class="ms-1 badge bg-info">outdated</span>
+              {%- endif -%}
+            </td>
+            <td data-name="connectivity">{{host.connectivity}}</td>
+            <td>{{host.points}}</td>
           </tr>
           {%- endfor -%}
-      </tbody>
+        </tbody>
       </table>
     </div>
     <noscript>Toggling table columns and sorting requires JS.</noscript>
@@ -156,9 +168,10 @@
       </div>
     </div>
   </div>
-      <script src="/static/bootstrap.min.js"></script>
-      <link href="/static/sorting.css" rel="stylesheet" />
-      <script src="/static/sortable.min.js"></script>
-      <script src="/static/table_toggle.js"></script>
-  </body>
+  <script src="/static/bootstrap.min.js"></script>
+  <link href="/static/sorting.css" rel="stylesheet" />
+  <script src="/static/sortable.min.js"></script>
+  <script src="/static/table_toggle.js"></script>
+</body>
+
 </html>
