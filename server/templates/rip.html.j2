@@ -11,6 +11,24 @@
     <style>
     #history .dygraph-axis-label { color: white; }
     #history .dygraph-legend { background-color: #101015; }
+    .overlay {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.5); /* Adjusted to a light color for dark mode */
+      z-index: 2;
+      top: 0;
+      left: 0;
+      {# display: none; #}
+      justify-content: center;
+      align-items: center;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .overlay {
+        background-color: rgba(0, 0, 0, 0.5); /* Dark overlay color for dark mode */
+      }
+    }
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Nitter Is Dead</title>
@@ -34,15 +52,23 @@
 
     <p>See <a href="https://github.com/zedeus/nitter/wiki/Guest-Account-Branch-Deployment">here</a> for setting up nitter if you feel brave enough and don't fear the command line.</p>
     <div class="container">
-      <div class="row">
+      <!--<div class="row">
           <div class="col">
               <div id="history" style="height: 400px;"></div>
           </div>
+      </div>-->
+      <div class="row">
+      <div class="col" id="overlay">
+        <button class="btn btn-primary" id="loadGraphBtn">Load & Display Graph</button>
+        </div>
+        <div class="col">
+          <div id="history" style="height: 400px;"></div>
+        </div>
       </div>
       <p>Last Updated {{last_updated}} <a rel="nofollow" href="https://time.is/UTC">UTC</a>.</p>
       <p><a href="/instances">Instances</a> <a href="/about">About</a></p>
     </div>
       <script type="text/javascript" src="/static/dygraph.min.js"></script>
-      <script type="text/javascript" src="/static/history.js"></script>
+      <script type="text/javascript" src="/static/history.2.js"></script>
   </body>
 </html>

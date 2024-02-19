@@ -1,5 +1,14 @@
 document.addEventListener("DOMContentLoaded", function(event) {
-    loadGraph();
+  var loadGraphBtn = document.getElementById("loadGraphBtn");
+  if (loadGraphBtn) {
+    loadGraphBtn.addEventListener("click", function() {
+      var overlay = document.getElementById("overlay");
+      if (overlay) {
+        overlay.style.display = "none";
+        loadGraph();
+      }
+    });
+  }
 });
 
 async function loadGraph() {
@@ -17,29 +26,26 @@ async function loadGraph() {
               colorValue: 0.9,
               fillAlpha: 0.4,
               colors: ['#008000', '#ffa500'],
-                /*rollPeriod: 14,
-                showRoller: true,
-                customBars: true,
-                legend: 'always',
-                
-                rangeSelectorPlotFillColor: 'MediumSlateBlue',
-                rangeSelectorPlotFillGradientColor: 'rgba(123, 104, 238, 0)',
-                colorValue: 0.9,
-                fillAlpha: 0.4*/
             }
         );
         g.ready(function() {
             g.setAnnotations([
             {
               series: "Healthy",
-              x: "2023-05-18",
+              x: "2023-08-15T07:10:17Z",
               shortText: "G",
               text: "First API Change"
             },
             {
+              series: "Dead",
+              x: "2023-10-21T14:37:44Z",
+              shortText: "C",
+              text: "Wiki Cleanup"
+            },
+            {
                 series: "Healthy",
-                x: "2024-01-24",
-                shortText: "D",
+                x: "2024-01-25T15:24:16Z",
+                shortText: "R",
                 text: "API Shutdown"
               }
             ]);
