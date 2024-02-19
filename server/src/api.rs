@@ -44,15 +44,11 @@ pub async fn graph(
     let queried = std::time::Instant::now();
     let mut data = String::with_capacity(8*healthy_data.len());
 
-    data.push_str("Date,Healthy,Dead,Tokens AVG,Requests AVG,Limited Tokens AVG\n");
+    data.push_str("Date,Healthy,Dead\n");
 
     for entry in healthy_data {
         let time = Utc.timestamp_opt(entry.time,0).unwrap().format("%Y-%m-%dT%H:%M:%SZ");
-        if let (Some(total_accs_avg),Some(total_requests_avg),Some(limited_accs_avg)) = (entry.total_accs_avg,entry.total_requests_avg,entry.limited_accs_avg){
-            writeln!(&mut data, "{time},{},{},{},{},{}",entry.alive,entry.dead,total_accs_avg,total_requests_avg,limited_accs_avg)
-        } else {
-            writeln!(&mut data, "{time},{},{},,,",entry.alive,entry.dead)
-        }
+        writeln!(&mut data, "{},{},{}",time,entry.alive,entry.dead)
         .map_err(|e|ServerError::CSV(e.to_string()))?;
     }
     let formatted = std::time::Instant::now();
