@@ -47,7 +47,7 @@ pub async fn graph(
     data.push_str("Date,Healthy,Dead\n");
 
     for entry in healthy_data {
-        let time = Utc.timestamp_opt(entry.time,0).unwrap();
+        let time = Utc.timestamp_opt(entry.time,0).unwrap().format("%Y-%m-%dT%H:%M:%SZ");
         writeln!(&mut data, "{},{},{}",time,entry.alive,entry.dead)
         .map_err(|e|ServerError::CSV(e.to_string()))?;
     }
