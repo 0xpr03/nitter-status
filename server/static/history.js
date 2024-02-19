@@ -16,7 +16,36 @@ async function loadGraph() {
               rangeSelectorPlotFillGradientColor: 'rgba(123, 104, 238, 0)',
               colorValue: 0.9,
               fillAlpha: 0.4,
-              colors: ['#008000', '#ffa500'],
+              colors: ['#008000', '#ffa500','#008500','#058000'],
+              series: {
+                'Date': {
+                  axis: 'y'
+                },
+                'Healthy': {
+                  axis: 'y'
+                },
+                'Tokens AVG': {
+                  axis: 'y2'
+                },
+                'Limited Tokens AVG': {
+                  axis: 'y2'
+                },
+                'Requests AVG': {
+                  axis: 'y2'
+                },
+              },
+              axes: {
+                y: {
+                  axisLabelWidth: 60
+                },
+                y2: {
+                  // set axis-related properties here
+                  // drawGrid: false,
+                  // drawAxis: false,
+                },
+              },
+              ylabel: 'Instances',
+              y2label: 'Tokens',
                 /*rollPeriod: 14,
                 showRoller: true,
                 customBars: true,
@@ -38,7 +67,7 @@ async function loadGraph() {
             },
             {
                 series: "Healthy",
-                x: "2024-01-2400:00:01Z",
+                x: "2024-01-24T00:00:01Z",
                 shortText: "D",
                 text: "API Shutdown"
               }
