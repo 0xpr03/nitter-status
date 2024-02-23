@@ -134,8 +134,7 @@ impl Scanner {
                 .as_ref()
                 .map_or(false, |url| current_version.is_same_repo(&url));
 
-            let is_bad_host =
-                (!last_check.healthy) && self.inner.config.bad_hosts.contains(&host.domain);
+            let is_bad_host = self.inner.config.bad_hosts.contains(&host.domain);
 
             let host_ping_data = ping_data.remove(&host.id);
             let last_healthy = last_healthy_check.remove(&host.id);
