@@ -119,11 +119,11 @@
               {%- if version == "Dmissing" -%}
               <span class="ms-1 badge bg-warning">missing</span>
               {%- elif version == "Aforeign" -%}
-              <span class="ms-1 badge bg-secondary">foreign repo</span>
+              <span class="ms-1 badge bg-secondary">custom</span>
               {%- elif version == "Blatest" -%}
               <span class="ms-1 badge bg-success">latest</span>
-              {%- elif version == "Coutdated" -%}
-              <span class="ms-1 badge bg-info">outdated</span>
+              {# {%- elif version == "Coutdated" -%}
+              <span class="ms-1 badge bg-info">outdated</span> #}
               {%- endif -%}
             </td>
             <td data-name="connectivity">{{host.connectivity}}</td>
@@ -149,7 +149,7 @@
         </label>
       </div>
       <div class="form-check">
-        <input class="form-check-input toggle-column" data-name="rss" type="checkbox" id="checkRSS" checked>
+        <input class="form-check-input toggle-column" data-name="rss" type="checkbox" id="checkRSS">
         <label class="form-check-label" for="checkRSS">
           RSS Column
         </label>
