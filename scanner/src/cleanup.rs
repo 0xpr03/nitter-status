@@ -36,22 +36,33 @@ impl Scanner {
         // I wish this was easier without row ids or giant SQL queries
         let hosts = host::Entity::find().all(&self.inner.db).await?;
         for host in hosts {
-            let res = check_errors::Entity::delete_many()
-                .filter(check_errors::Column::Host.eq(host.id))
-                .filter(
-                    check_errors::Column::Time.not_in_subquery(
-                        Query::select()
-                            .column(check_errors::Column::Time)
-                            .from(check_errors::Entity)
-                            .and_where(check_errors::Column::Host.eq(host.id))
-                            .order_by(check_errors::Column::Time, Order::Desc)
-                            .limit(self.inner.config.error_retention_per_host as _)
-                            .to_owned(),
-                    ),
-                )
-                .exec(&self.inner.db)
-                .await?;
-            tracing::debug!(host = host.id, deleted_errors = res.rows_affected);
+            let res = if host.enabled {
+                check_errors::Entity::delete_many()
+                    .filter(check_errors::Column::Host.eq(host.id))
+                    .filter(
+                        check_errors::Column::Time.not_in_subquery(
+                            Query::select()
+                                .column(check_errors::Column::Time)
+                                .from(check_errors::Entity)
+                                .and_where(check_errors::Column::Host.eq(host.id))
+                                .order_by(check_errors::Column::Time, Order::Desc)
+                                .limit(self.inner.config.error_retention_per_host as _)
+                                .to_owned(),
+                        ),
+                    )
+                    .exec(&self.inner.db)
+                    .await?
+            } else {
+                check_errors::Entity::delete_many()
+                    .filter(check_errors::Column::Host.eq(host.id))
+                    .exec(&self.inner.db)
+                    .await?
+            };
+            tracing::debug!(
+                host = host.id,
+                host.enabled,
+                deleted_errors = res.rows_affected
+            );
         }
 
         Ok(())
