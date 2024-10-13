@@ -24,7 +24,7 @@
 <body>
   <div class="container">
     <h1>Nitter Instance Uptime & Health</h1>
-    <div class="alert alert-warning" role="alert">
+    <div class="alert alert-warning text-center" role="alert">
       Nitter is mostly dead! <a href="/rip">&gt;&gt;Read More&lt;&lt;</a>
     </div>
     <p><a href="/about">About</a></p>
@@ -55,11 +55,12 @@
             <td data-name="country">{{host.country}}</td>
             <td>
               {%- if host.is_bad_host -%}
-              <div title="Host known for blocking healthchecks">❓</div>
+              <div title="Host known for blocking healthchecks"><span role="img"
+                  aria-label="unknown if healthy">❓</span></div>
               {%- elif host.healthy -%}
-              ✅
+              <span role="img" aria-label="healthy">✅</span>
               {%- else -%}
-              ❌
+              <span role="img" aria-label="unhealthy">❌</span>
               {%- endif -%}
             </td>
             <td>
@@ -96,7 +97,8 @@
             </td>
             <td data-name="average">{%- if not host.__show_last_seen -%}{{host.ping_avg}}ms{% endif %}</td>
             <td>{{host.healthy_percentage_overall}}%</td>
-            <td data-name="rss">{% if host.rss -%} ✅ {%- else -%} ❌ {%- endif -%}</td>
+            <td data-name="rss">{% if host.rss -%} <span role="img" aria-label="no rss">✅</span> {%- else -%} <span
+                role="img" aria-label="has rss">❌</span> {%- endif -%}</td>
             {%- if host.healthy and not host.version -%}
             {%- set version = "Dmissing" -%}
             {%- elif host.version and not host.is_upstream -%}
