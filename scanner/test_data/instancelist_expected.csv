@@ -1,76 +1,10 @@
 domain,url,online,ssl_provider,country
+xcancel.com,https://xcancel.com,true,Let's Encrypt,🇺🇸
 nitter.privacydev.net,https://nitter.privacydev.net,true,Let's Encrypt,🇫🇷
-nitter.adminforge.de,https://nitter.adminforge.de,true,Let's Encrypt,🇩🇪
-bird.habedieeh.re,https://bird.habedieeh.re,true,Let's Encrypt,🇨🇦
-nitter.platypush.tech,https://nitter.platypush.tech,false,Let's Encrypt,🇩🇪
-nitter.us.projectsegfau.lt,https://nitter.us.projectsegfau.lt,true,Let's Encrypt,🇺🇸
-singapore.unofficialbird.com,https://singapore.unofficialbird.com,true,Let's Encrypt,🇸🇬
-nitter.smnz.de,https://nitter.smnz.de,false,Let's Encrypt,🇩🇪
-nitter.one,https://nitter.one,true,Let's Encrypt,🇸🇪
-nitter.fediflix.org,https://nitter.fediflix.org,true,Let's Encrypt,🇩🇪
-tweet.lambda.dance,https://tweet.lambda.dance,true,Let's Encrypt,🇺🇸
-nitter.mint.lgbt,https://nitter.mint.lgbt,true,Let's Encrypt,🇬🇧
 nitter.poast.org,https://nitter.poast.org,true,Let's Encrypt,🇺🇸
-n.sneed.network,https://n.sneed.network,true,Cloudflare,🇦🇺
-nitter.inpt.fr,https://nitter.inpt.fr,true,Let's Encrypt,🇫🇷
-unofficialbird.com,https://unofficialbird.com,true,ZeroSSL,🇺🇸
-nederland.unofficialbird.com,https://nederland.unofficialbird.com,true,Let's Encrypt,🇳🇱
-nitter.twei.space,https://nitter.twei.space,true,Let's Encrypt,🇦🇹
-nitter.rawbit.ninja,https://nitter.rawbit.ninja,true,Cloudflare,🇺🇸
-nitter.bird.froth.zone,https://nitter.bird.froth.zone,true,Let's Encrypt,🇨🇦
-twitter.moe.ngo,https://twitter.moe.ngo,true,Google Trust Services LLC,🇮🇩
-nitter.fdn.fr,https://nitter.fdn.fr,true,Let's Encrypt,🇫🇷
-nitter.onthescent.xyz,https://nitter.onthescent.xyz,true,Let's Encrypt,🇺🇸
-uk.unofficialbird.com,https://uk.unofficialbird.com,true,Let's Encrypt,🇬🇧
-nitter.perennialte.ch,https://nitter.perennialte.ch,true,Google Trust Services LLC + Cloudflare,🇦🇺
-nitter.eu.projectsegfau.lt,https://nitter.eu.projectsegfau.lt,true,Let's Encrypt,🇱🇺
-nitter.kylrth.com,https://nitter.kylrth.com,true,Let's Encrypt,🇨🇦
-nitter.in.projectsegfau.lt,https://nitter.in.projectsegfau.lt,true,Let's Encrypt,🇮🇳
-nitter.privacy.com.de,https://nitter.privacy.com.de,true,ZeroSSL,🇩🇪
-nitter.unixfox.eu,https://nitter.unixfox.eu,true,Buypass AS-983163327,🇩🇪
-nitter.dafriser.be,https://nitter.dafriser.be,true,Let's Encrypt,🇩🇪
-nt.vern.cc,https://nt.vern.cc,false,Let's Encrypt,🇺🇸
-nitter.io.lol,https://nitter.io.lol,true,Let's Encrypt,🇺🇸
-india.unofficialbird.com,https://india.unofficialbird.com,true,Let's Encrypt,🇮🇳
-t.com.sb,https://t.com.sb,true,ZeroSSL,🇪🇪
-nitter.tux.pizza,https://nitter.tux.pizza,true,Let's Encrypt,🇺🇸
-nitter.weiler.rocks,https://nitter.weiler.rocks,true,Let's Encrypt,🇩🇪
-nitter.nicfab.eu,https://nitter.nicfab.eu,true,Let's Encrypt,🇮🇹
-nitter.tiekoetter.com,https://nitter.tiekoetter.com,true,Let's Encrypt,🇩🇪
-nitter.salastil.com,https://nitter.salastil.com,true,Let's Encrypt,🇺🇸
-nitter.esmailelbob.xyz,https://nitter.esmailelbob.xyz,true,Let's Encrypt,🇨🇦
-nitter.freedit.eu,https://nitter.freedit.eu,true,Let's Encrypt,🇺🇸
-nitter.sethforprivacy.com,https://nitter.sethforprivacy.com,true,Let's Encrypt,🇩🇪
-nitter.kavin.rocks,https://nitter.kavin.rocks,true,Let's Encrypt,🇮🇳
-nitter.services.woodland.cafe,https://nitter.services.woodland.cafe,true,Let's Encrypt,🇩🇪
-nitter.hostux.net,https://nitter.hostux.net,true,Let's Encrypt,🇫🇷
-nitter.1d4.us,https://nitter.1d4.us,true,Let's Encrypt,🇺🇸
-nitter.cz,https://nitter.cz,true,Let's Encrypt,🇨🇿
-nitter.nl,https://nitter.nl,true,Let's Encrypt,🇳🇱
-nitter.altgr.xyz,https://nitter.altgr.xyz,true,Cloudflare,🇨🇱
-nitter.x86-64-unknown-linux-gnu.zip,https://nitter.x86-64-unknown-linux-gnu.zip,true,Let's Encrypt,🇩🇪
-tw.artemislena.eu,https://tw.artemislena.eu,true,Let's Encrypt,🇩🇪
-nitter.private.coffee,https://nitter.private.coffee,true,Let's Encrypt,🇦🇹
-nitter.simpleprivacy.fr,https://nitter.simpleprivacy.fr,true,Let's Encrypt,🇫🇷
-nitter.kling.gg,https://nitter.kling.gg,true,Let's Encrypt,🇳🇱
-nitter.qwik.space,https://nitter.qwik.space,true,Let's Encrypt,🇸🇪
-nitter.soopy.moe,https://nitter.soopy.moe,true,Let's Encrypt,🇭🇰
-nitter.caioalonso.com,https://nitter.caioalonso.com,false,Let's Encrypt,🇺🇸
-nitter.laserdisc.tokyo,https://nitter.laserdisc.tokyo,true,Let's Encrypt,🇸🇪
-tweet.whateveritworks.org,https://tweet.whateveritworks.org,true,Let's Encrypt + Cloudflare,🇩🇪
-jote.lile.cl,https://jote.lile.cl,true,Cloudflare,🇨🇱
-nitter.nixnet.services,https://nitter:nitter@nitter.nixnet.services,true,Let's Encrypt,🇩🇪
-bird.trom.tf,https://bird.trom.tf,false,Let's Encrypt,🇩🇪
-nitter.at,https://nitter.at,true,Let's Encrypt,🇩🇪
-nitter.no-logs.com,https://nitter.no-logs.com,true,Let's Encrypt,🇸🇪
-nitter.it,https://nitter.it,true,Let's Encrypt,🇫🇮
-canada.unofficialbird.com,https://canada.unofficialbird.com,true,Let's Encrypt,🇨🇦
-nitter.lacontrevoie.fr,https://nitter.lacontrevoie.fr,true,Let's Encrypt,🇫🇷
-nitter.moomoo.me,https://nitter.moomoo.me,true,Let's Encrypt,🇺🇸
-nitter.projectsegfau.lt,https://nitter.projectsegfau.lt,true,Let's Encrypt,GeoDNS
-nitter.oksocial.net,https://nitter.oksocial.net,true,Let's Encrypt,🇺🇸
-nitter.catsarch.com,https://nitter.catsarch.com,true,Let's Encrypt,🇺🇸
-nitter.datura.network,https://nitter.datura.network,true,Let's Encrypt,🇩🇪
-nitter.d420.de,https://nitter.d420.de,true,Cloudflare,🇩🇪
+lightbrd.com,https://lightbrd.com,true,Cloudflare,🇹🇷
+nitter.lucabased.xyz,https://nitter.lucabased.xyz,true,Cloudflare,🇩🇪
+nitter.space,https://nitter.space,true,Cloudflare,🇺🇸
 nitter.lunar.icu,https://nitter.lunar.icu,true,Cloudflare,🇩🇪
-nitter.nohost.network,https://nitter.nohost.network,true,Let's Encrypt,🇲🇽
+nitter.kavin.rocks,https://nitter.kavin.rocks,true,Let's Encrypt,🇮🇳
+nitter.moomoo.me,https://nitter.moomoo.me,true,Let's Encrypt,🇺🇸

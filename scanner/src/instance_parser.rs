@@ -190,6 +190,7 @@ mod test {
     #[test]
     #[traced_test]
     fn parse() {
+        // update test html via test_fetch_instance_list
         let html = include_str!("../test_data/instancelist.html");
         let parser = InstanceParser::new();
         let res = parser.parse_instancelist(html, &[], "", true).unwrap();
