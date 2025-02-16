@@ -158,7 +158,8 @@ pub async fn start(
             .layer(session_service)
         )
         .route("/about", get(website::about))
-        // .route("/rip", get(website::rip))
+        // keep redirect for old nitter instances redirecting to it
+        .route("/rip", get(|| async { Redirect::temporary("/") }))
         .route(
             "/robots.txt",
             get_service(ServeFile::new("server/static/robots.txt")),
