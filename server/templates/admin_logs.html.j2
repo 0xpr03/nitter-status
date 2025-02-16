@@ -1,0 +1,44 @@
+{#- SPDX-License-Identifier: AGPL-3.0-only -#}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+  <meta charset="utf-8">
+  <link href="/static/bootstrap.min.css" rel="stylesheet">
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="" />
+  <title>Admin Logs</title>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Override Logs</h1>
+    <p class="text-danger-emphasis">root mode</p>
+    <p><a href="/admin">Home</a></p>
+    <table class="table">
+      <thead>
+        <tr>
+          <td>Date</td>
+          <td>User</td>
+          <td>Host</td>
+          <td>Key</td>
+          <td>New Value</td>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in LOGS %}
+        <tr>
+          <td>{{entry.time}}</td>
+          <td>{{entry.by_user_host}}</td>
+          <td>{{entry.for_host.domain}} {% if entry.for_host%}<a href="/admin/instance/settings/{{entry.for_host.id}}">link</a>{% endif %}</td>
+          <td>{{entry.key}}</td>
+          <td>{% if entry.value %}{{entry.value}}{% else %}<i>null</i>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</body>
+
+</html>

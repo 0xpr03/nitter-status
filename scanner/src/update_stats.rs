@@ -5,11 +5,12 @@
 use std::time::Instant;
 
 use chrono::Utc;
-use entities::{host, instance_stats};
+use entities::host_overrides::keys::HostOverrides;
 use entities::prelude::Host;
+use entities::{host, instance_stats};
 use reqwest::Url;
 use sea_orm::prelude::DateTimeUtc;
-use sea_orm::{QueryFilter, ColumnTrait, EntityTrait, ActiveValue};
+use sea_orm::{ActiveValue, ColumnTrait, EntityTrait, QueryFilter};
 use serde::Deserialize;
 use tokio::task::JoinSet;
 
@@ -79,10 +80,11 @@ impl Scanner {
                 stat_data.push(data);
             }
         }
-        tracing::debug!(db_stats_entries=stat_data.len());
+        tracing::debug!(db_stats_entries = stat_data.len());
         if !stat_data.is_empty() {
             instance_stats::Entity::insert_many(stat_data)
-                .exec(&self.inner.db).await?;
+                .exec(&self.inner.db)
+                .await?;
         }
 
         let end = Instant::now();
@@ -94,15 +96,24 @@ impl Scanner {
         Ok(())
     }
 
-    async fn fetch_instance_stats(&self, time: DateTimeUtc, host: &host::Model) -> Result<instance_stats::ActiveModel> {
-        let mut url = Url::parse(&host.url)
-            .map_err(|e|ScannerError::InstanceUrlParse)?;
+    async fn fetch_instance_stats(
+        &self,
+        time: DateTimeUtc,
+        host: &host::Model,
+    ) -> Result<instance_stats::ActiveModel> {
+        let overrides = HostOverrides::load(&host, &self.inner.db).await?;
+        let mut url = Url::parse(&host.url).map_err(|e| ScannerError::InstanceUrlParse)?;
         url.set_path(".health");
-        let (_code, body) = self.fetch_url(url.as_str()).await?;
+        if let Some(url_override) = overrides.health_path() {
+            url.set_path(url_override);
+        }
+        if let Some(path_override) = overrides.health_query() {
+            url.set_query(Some(path_override));
+        }
+        let (_code, body) = self.fetch_url(url.as_str(), overrides.bearer()).await?;
 
-        let stats_data: InstanceStats = 
-        serde_json::from_str(&body)
-            .map_err(|e|ScannerError::StatsParsing(e,body))?;
+        let stats_data: InstanceStats =
+            serde_json::from_str(&body).map_err(|e| ScannerError::StatsParsing(e, body))?;
 
         let stats_model = instance_stats::ActiveModel {
             time: ActiveValue::Set(time.timestamp()),
@@ -118,7 +129,9 @@ impl Scanner {
             req_tweet_detail: ActiveValue::Set(stats_data.requests.apis.tweetDetail),
             req_list: ActiveValue::Set(stats_data.requests.apis.list),
             req_user_tweets: ActiveValue::Set(stats_data.requests.apis.userTweets),
-            req_user_tweets_and_replies: ActiveValue::Set(stats_data.requests.apis.userTweetsAndReplies),
+            req_user_tweets_and_replies: ActiveValue::Set(
+                stats_data.requests.apis.userTweetsAndReplies,
+            ),
         };
 
         Ok(stats_model)

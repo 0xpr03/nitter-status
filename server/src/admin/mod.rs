@@ -11,7 +11,6 @@ use axum::Json;
 use chrono::DateTime;
 use chrono::Utc;
 use constant_time_eq::constant_time_eq;
-use entities::check_errors;
 use entities::health_check;
 use entities::host;
 use entities::instance_stats;
@@ -26,12 +25,12 @@ use sea_orm::DatabaseConnection;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::QueryOrder;
-use sea_orm::QuerySelect;
 use serde::Deserialize;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 use tower_sessions::Session;
+use tracing::trace;
 use trust_dns_resolver::config::ResolverConfig;
 use trust_dns_resolver::config::ResolverOpts;
 use trust_dns_resolver::AsyncResolver;
@@ -41,6 +40,18 @@ use crate::Result;
 use crate::ServerError;
 use crate::ADMIN_OVERVIEW_URL;
 use crate::LOGIN_URL;
+
+mod errors;
+mod settings;
+mod locks;
+mod logs;
+
+pub use errors::errors_view;
+pub use settings::post_settings;
+pub use settings::settings_view;
+pub use locks::locks_view;
+pub use locks::post_locks;
+pub use logs::log_view;
 
 /// Stored session login information
 #[derive(Serialize, Deserialize, Default)]
@@ -107,7 +118,11 @@ pub async fn login(
         .unwrap_or_default()
     {
         // already logged in
-        return Ok(Redirect::temporary(&input.referrer).into_response());
+        let url = match input.referrer.trim().is_empty() || input.referrer.trim() == LOGIN_URL {
+            true => ADMIN_OVERVIEW_URL,
+            false => &input.referrer,
+        };
+        return Ok(Redirect::to(url).into_response());
     }
 
     match login_inner(config, login_client, &input, host).await {
@@ -128,11 +143,11 @@ pub async fn login(
             };
             session.insert(LOGIN_KEY, session_value)?;
             let referrer = input.referrer.trim();
-            let location = match referrer.trim().is_empty() && referrer != LOGIN_URL {
+            let location = match referrer.is_empty() || referrer == LOGIN_URL {
                 true => ADMIN_OVERVIEW_URL,
                 false => input.referrer.trim(),
             };
-            let mut res = Redirect::temporary(location).into_response();
+            let mut res = Redirect::to(location).into_response();
             *res.status_mut() = StatusCode::FOUND;
             Ok(res)
         }
@@ -165,6 +180,15 @@ async fn login_inner(
     host: Option<host::Model>,
 ) -> LoginResult<host::Model> {
     let host = host.ok_or_else(|| LoginError::HostNotFound(input.domain.clone()))?;
+
+    // check for configured host keys - skip enabled hosts on purpose
+    if let Some(hash) = config.admin_keys.get(&host.domain) {
+        trace!(host = host.domain, "found admin key override");
+        if verify_key(hash.as_str(), &input.key).is_ok() {
+            return Ok(host);
+        }
+    }
+    // fallback to normal auth
 
     if !host.enabled {
         return Err(LoginError::DisabledHost(input.domain.clone()));
@@ -291,7 +315,7 @@ pub async fn overview(
 ) -> Result<axum::response::Response> {
     tracing::info!(?session);
 
-    let (login, hosts) = get_all_login_hosts(&session, db,true).await?;
+    let (login, hosts) = get_all_login_hosts(&session, db, true).await?;
 
     let mut context = tera::Context::new();
     let res = {
@@ -323,16 +347,20 @@ pub async fn history_json(
         pub stats: Vec<instance_stats::StatsAmount>,
     }
     let (_login, hosts) = get_all_login_hosts(&session, db, false).await?;
-    let host_ids: Vec<_> = hosts.iter().map(|host|host.id).collect();
-    let data_owned = health_check::HealthyAmount::fetch(db, Some(input.start), Some(input.end),Some(&host_ids)).await?;
-    let data_global = health_check::HealthyAmount::fetch(db, Some(input.start), Some(input.end),None).await?;
-    let data_stats = instance_stats::StatsAmount::fetch(db, input.start, input.end,None).await?;
+    let host_ids: Vec<_> = hosts.iter().map(|host| host.id).collect();
+    let data_owned =
+        health_check::HealthyAmount::fetch(db, Some(input.start), Some(input.end), Some(&host_ids))
+            .await?;
+    let data_global =
+        health_check::HealthyAmount::fetch(db, Some(input.start), Some(input.end), None).await?;
+    let data_stats = instance_stats::StatsAmount::fetch(db, input.start, input.end, None).await?;
 
     Ok(Json(ReturnData {
         global: data_global,
         user: data_owned,
         stats: data_stats,
-    }).into_response())
+    })
+    .into_response())
 }
 
 pub async fn history_json_specific(
@@ -341,7 +369,7 @@ pub async fn history_json_specific(
     Path(host): Path<i32>,
     Json(input): Json<DateRangeInput>,
 ) -> Result<axum::response::Response> {
-    let host = get_specific_login_host(host, &session, db).await?;
+    let (host, _login) = get_specific_login_host(host, &session, db).await?;
     #[derive(Debug, Serialize)]
     struct ReturnData {
         pub stats: Vec<instance_stats::Model>,
@@ -357,14 +385,17 @@ pub async fn history_json_specific(
     let history_stats: Vec<instance_stats::Model> = instance_stats::Entity::find()
         .filter(instance_stats::Column::Host.eq(host.id))
         .order_by_asc(instance_stats::Column::Time)
-        .filter(instance_stats::Column::Time.between(input.start.timestamp(), input.end.timestamp()))
+        .filter(
+            instance_stats::Column::Time.between(input.start.timestamp(), input.end.timestamp()),
+        )
         .all(db)
         .await?;
 
-    Ok(Json(ReturnData{
+    Ok(Json(ReturnData {
         health: history_health,
-        stats: history_stats
-    }).into_response())
+        stats: history_stats,
+    })
+    .into_response())
 }
 
 pub async fn history_view(
@@ -376,7 +407,7 @@ pub async fn history_view(
 ) -> Result<axum::response::Response> {
     tracing::info!(?session);
 
-    let host = get_specific_login_host(host, &session, db).await?;
+    let (host, _login) = get_specific_login_host(host, &session, db).await?;
 
     let mut context = tera::Context::new();
     let res = {
@@ -389,43 +420,6 @@ pub async fn history_view(
         context.insert("HOST_DOMAIN", &host.domain);
 
         let res = Html(template.render("errors_admin.html.j2", &context)?).into_response();
-        drop(guard);
-        res
-    };
-    Ok(res)
-}
-
-pub async fn instance_view(
-    State(ref app_state): State<AppState>,
-    State(ref template): State<Arc<tera::Tera>>,
-    State(ref db): State<DatabaseConnection>,
-    Path(instance): Path<i32>,
-    session: Session,
-) -> Result<axum::response::Response> {
-    tracing::info!(?session);
-
-    let host = get_specific_login_host(instance, &session, db).await?;
-
-    let errors = check_errors::Entity::find()
-        .filter(check_errors::Column::Host.eq(host.id))
-        .order_by_desc(check_errors::Column::Time)
-        .limit(20)
-        .all(db)
-        .await?;
-
-    let mut context = tera::Context::new();
-    let res = {
-        let guard = app_state
-            .cache
-            .read()
-            .map_err(|_| ServerError::MutexFailure)?;
-        let time = guard.last_update.format("%Y.%m.%d %H:%M").to_string();
-        context.insert("last_updated", &time);
-        context.insert("ERRORS", &errors);
-        context.insert("HOST_DOMAIN", &host.domain);
-        context.insert("HOST_ID", &instance);
-
-        let res = Html(template.render("instance_admin.html.j2", &context)?).into_response();
         drop(guard);
         res
     };
@@ -462,7 +456,7 @@ async fn get_specific_login_host(
     wanted_host_id: i32,
     session: &Session,
     db: &DatabaseConnection,
-) -> Result<host::Model> {
+) -> Result<(host::Model, ActiveLogin)> {
     let login = get_session_login(&session)?;
 
     if !login.hosts.contains(&wanted_host_id) && !login.admin {
@@ -478,7 +472,7 @@ async fn get_specific_login_host(
             session.delete();
             return Err(ServerError::HostNotFound(wanted_host_id));
         }
-        Some(host) => Ok(host),
+        Some(host) => Ok((host, login)),
     }
 }
 

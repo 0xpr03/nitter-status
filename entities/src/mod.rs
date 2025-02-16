@@ -5,7 +5,9 @@ pub mod prelude;
 pub mod check_errors;
 pub mod health_check;
 pub mod host;
+pub mod host_overrides;
 pub mod instance_stats;
+pub mod log;
 
 // has to be re-added on entity regeneration
 pub mod state;

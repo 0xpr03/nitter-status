@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //! Updates the list of available instances, fetching all required fields
 
+use std::collections::HashMap;
 use std::time::Duration;
 use std::time::Instant;
 
 use chrono::Utc;
 use entities::host;
+use entities::host_overrides::keys::HostOverrides;
 use entities::prelude::Host;
 use reqwest::Url;
 use sea_orm::{
@@ -55,7 +57,9 @@ impl Scanner {
                 removed += 1;
             }
         }
+
         // now update/insert the existing ones
+
         let found_instances: usize = parsed_instances.len();
         // find last update checks to detect spam
         let last_status = self.query_latest_check(&transaction).await?;
@@ -65,6 +69,8 @@ impl Scanner {
 
         let mut join_set = JoinSet::new();
         for (_, instance) in parsed_instances {
+            let overrides = HostOverrides::load_by_domain(&instance.domain, &self.inner.db).await?;
+
             // TODO: parallelize this!
             let scanner_c = self.clone();
             // detect already offline host and prevent log spam
@@ -88,9 +94,14 @@ impl Scanner {
                         let connectivity = scanner_c.check_connectivity(&mut url).await;
                         // prevent DoS
                         tokio::time::sleep(Duration::from_secs(1)).await;
-                        let rss = scanner_c.has_rss(&mut url, muted_host).await;
+                        let rss = scanner_c
+                            .has_rss(&mut url, overrides.bearer(), muted_host)
+                            .await;
                         tokio::time::sleep(Duration::from_secs(1)).await;
-                        match scanner_c.nitter_version(&mut url, muted_host).await {
+                        match scanner_c
+                            .nitter_version(&mut url, overrides.bearer(), muted_host)
+                            .await
+                        {
                             Some(version) => (
                                 connectivity,
                                 rss,
@@ -124,22 +135,22 @@ impl Scanner {
         // insert all at once
         let transaction = self.inner.db.begin().await?;
         Host::insert_many(update_models)
-        .on_conflict(
-            OnConflict::column(host::Column::Domain)
-                .update_columns([
-                    host::Column::Enabled,
-                    host::Column::Updated,
-                    host::Column::Url,
-                    host::Column::Rss,
-                    host::Column::Version,
-                    host::Column::VersionUrl,
-                    host::Column::Country,
-                    host::Column::Connectivity,
-                ])
-                .to_owned(),
-        )
-        .exec(&transaction)
-        .await?;
+            .on_conflict(
+                OnConflict::column(host::Column::Domain)
+                    .update_columns([
+                        host::Column::Enabled,
+                        host::Column::Updated,
+                        host::Column::Url,
+                        host::Column::Rss,
+                        host::Column::Version,
+                        host::Column::VersionUrl,
+                        host::Column::Country,
+                        host::Column::Connectivity,
+                    ])
+                    .to_owned(),
+            )
+            .exec(&transaction)
+            .await?;
 
         transaction.commit().await?;
         let end = Instant::now();

@@ -58,11 +58,13 @@ impl Scanner {
                     .exec(&self.inner.db)
                     .await?
             };
-            tracing::debug!(
-                host = host.id,
-                host.enabled,
-                deleted_errors = res.rows_affected
-            );
+            if res.rows_affected > 0 {
+                tracing::debug!(
+                    host = host.id,
+                    host.enabled,
+                    deleted_errors = res.rows_affected
+                );
+            }
         }
 
         Ok(())

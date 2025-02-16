@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 use std::cmp;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use chrono::{Days, Utc};
 use chrono::{Duration, TimeZone};
-use entities::host;
+use entities::host_overrides::keys::{KEY_BAD_HOST, VAL_BOOL_TRUE};
+use entities::{host, host_overrides};
 use entities::prelude::*;
 use entities::state::CacheData;
 use entities::state::CacheHost;
-use sea_orm::ColumnTrait;
+use sea_orm::{ColumnTrait, QuerySelect, QueryTrait};
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::QueryOrder;
@@ -94,6 +95,8 @@ impl Scanner {
 
         let mut healthy_percentage_total = self.query_healthy_percentage().await?;
 
+        let bad_hosts = self.query_bad_hosts().await?;
+
         let mut host_statistics = Vec::with_capacity(hosts.len());
         let default_health_check = LatestCheck::default();
         for host in hosts {
@@ -118,11 +121,6 @@ impl Scanner {
             let points = stats_3h_host * points;
 
             let last_check = latest_check.get(&host.id).unwrap_or(&default_health_check);
-            // // don't rank currently down instances highly
-            // let points = match last_check.healthy {
-            //     true => (points * 100.0) as i32,
-            //     false => 0,
-            // };
             let points = (points * 100.0) as i32;
 
             let latest_version = host
@@ -134,7 +132,7 @@ impl Scanner {
                 .as_ref()
                 .map_or(false, |url| current_version.is_same_repo(&url));
 
-            let is_bad_host = self.inner.config.bad_hosts.contains(&host.domain);
+            let is_bad_host = bad_hosts.contains(&host.id);
 
             let host_ping_data = ping_data.remove(&host.id);
             let last_healthy = last_healthy_check.remove(&host.id);
@@ -191,6 +189,18 @@ impl Scanner {
             last_update: time_now,
             latest_commit: current_version.version,
         })
+    }
+
+    async fn query_bad_hosts(&self) -> Result<Vec<i32>> {
+        let res: Vec<i32> = HostOverrides::find()
+            .filter(host_overrides::Column::Key.eq(KEY_BAD_HOST)
+            .and(host_overrides::Column::Value.eq(VAL_BOOL_TRUE)))
+            .select_only()
+            .column(host_overrides::Column::Host)
+            .into_tuple()
+            .all(&self.inner.db)
+            .await?;
+        Ok(res)
     }
 
     async fn query_hosts_enabled(&self) -> Result<Vec<host::Model>> {

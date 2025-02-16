@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-use std::{env::var, time::Duration};
+use std::{collections::HashMap, env::var, time::Duration};
 
 use entities::state::scanner::ScannerConfig;
-use miette::{Context, IntoDiagnostic};
+use miette::{bail, Context, IntoDiagnostic};
 use migration::MigratorTrait;
 use sea_orm::{ConnectOptions, ConnectionTrait, Database, DatabaseBackend, DatabaseConnection};
 use std::sync::Arc;
+use tracing::info;
 
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -40,7 +41,7 @@ async fn _main() -> miette::Result<()> {
             var("RUST_LOG").unwrap_or_else(|_| {
                 #[cfg(debug_assertions)]
                 return format!(
-                    "warn,tower_http=debug,migration=debug,scanner=trace,server=debug,{}=debug",
+                    "warn,tower_http=debug,migration=debug,scanner=trace,server=trace,{}=trace",
                     env!("CARGO_PKG_NAME")
                 )
                 .into();
@@ -125,7 +126,6 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
     let additional_hosts: Vec<String> = require_env_vec_str("ADDITIONAL_HOSTS")?;
     let additional_host_country = require_env_str("ADDITIONAL_HOSTS_COUNTRY")?;
     let rss_content = require_env_str("RSS_CONTENT")?;
-    let bad_hosts: Vec<String> = require_env_vec_str("BAD_HOSTS")?;
     let auto_mute = require_env_str("AUTO_MUTE")? == "true";
     let source_git_branch = require_env_str("ORIGIN_SOURCE_GIT_BRANCH")?;
     let source_git_url = require_env_str("ORIGIN_SOURCE_GIT_URL")?;
@@ -157,7 +157,6 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
         auto_mute,
         source_git_branch,
         source_git_url,
-        bad_hosts,
         cleanup_interval: Duration::from_secs(cleanup_interval),
         error_retention_per_host,
         connectivity_path: String::from("/"),
@@ -167,7 +166,7 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
 async fn test_init(db: &DatabaseConnection) -> miette::Result<()> {
     let res = db
         .query_one(sea_orm::Statement::from_string(
-            DatabaseBackend::Postgres,
+            DatabaseBackend::Sqlite,
             "SELECT sqlite_version() as version;".to_owned(),
         ))
         .await
@@ -185,11 +184,33 @@ fn read_server_config(instance_ping_interval: usize) -> miette::Result<server::C
         .parse()
         .expect("SESSION_TTL_SECONDS must be a positive number");
     let login_token_name = require_env_str("LOGIN_TOKEN_NAME")?;
-    let admin_domains = require_env_str("ADMIN_DOMAINS")?
+    let admin_domains: Vec<String> = require_env_str("ADMIN_DOMAINS")?
         .split(",")
         .map(|v| v.trim().to_string())
         .collect();
+    let admin_keys: HashMap<String, String> = require_env_str("ADMIN_KEYS")?
+        .split(",")
+        .map(|v| {
+            v.trim()
+                .split_once('=')
+                .map(|(a, b)| (a.to_owned(), b.to_owned()))
+                .expect("ADMIN_KEYS have to be in host=key format!")
+        })
+        .collect();
     let session_db_uri = require_env_str("SESSION_DB_URI")?;
+
+    // sanity check all hosts with an admin key are part of the admin hosts
+    for host in admin_keys.keys() {
+        if !admin_domains.contains(host) {
+            bail!("Found admin key for host {host} that is not in the admin hosts!");
+        }
+    }
+
+    info!(
+        "Loaded admin domains {:?}, loaded additional admin auth keys for {:?}",
+        admin_domains,
+        admin_keys.keys()
+    );
 
     Ok(server::Config {
         site_url,
@@ -197,6 +218,7 @@ fn read_server_config(instance_ping_interval: usize) -> miette::Result<server::C
         session_ttl_seconds,
         login_token_name,
         admin_domains,
+        admin_keys,
         session_db_uri,
     })
 }
