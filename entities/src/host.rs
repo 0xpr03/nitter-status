@@ -69,6 +69,9 @@ impl PrimaryKeyTrait for PrimaryKey {
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
     UpdateCheck,
+    CheckErrors,
+    HostOverrides,
+    InstanceStats,
 }
 
 impl ColumnTrait for Column {
@@ -105,6 +108,9 @@ impl RelationTrait for Relation {
     fn def(&self) -> RelationDef {
         match self {
             Self::UpdateCheck => Entity::has_many(super::health_check::Entity).into(),
+            Self::CheckErrors => Entity::has_many(super::check_errors::Entity).into(),
+            Self::HostOverrides => Entity::has_many(super::host_overrides::Entity).into(),
+            Self::InstanceStats => Entity::has_many(super::instance_stats::Entity).into(),
         }
     }
 }
@@ -112,6 +118,24 @@ impl RelationTrait for Relation {
 impl Related<super::health_check::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::UpdateCheck.def()
+    }
+}
+
+impl Related<super::check_errors::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::CheckErrors.def()
+    }
+}
+
+impl Related<super::host_overrides::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::HostOverrides.def()
+    }
+}
+
+impl Related<super::instance_stats::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::InstanceStats.def()
     }
 }
 

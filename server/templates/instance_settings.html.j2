@@ -1,0 +1,84 @@
+{#- SPDX-License-Identifier: AGPL-3.0-only -#}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+  <meta charset="utf-8">
+  <link href="/static/bootstrap.min.css" rel="stylesheet">
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="" />
+  <title>Settings | {{HOST_DOMAIN}}</title>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Settings for {{HOST_DOMAIN}}</h1>
+    <p><a href="/admin">Home</a> {% if IS_ADMIN %}<a href="/admin/instance/locks/{{HOST_ID}}">Lockdown Settings</a>{% endif %}</p>
+    {% if IS_ADMIN %}<p class="text-danger-emphasis">root mode</p>{% endif %}
+    <form method="post" class="row align-items-center" action="/admin/instance/settings/{{HOST_ID}}">
+      {%- set key = "BAD_HOST" -%}
+      {%- set disabled = OVERRIDES[key].locked and not IS_ADMIN -%}
+      <div class="col-auto">
+        <div class="form-check">
+          <input {% if disabled %} disabled {% endif %} class="form-check-input" value="true" {% if OVERRIDES[key].value
+            -%} checked {%- endif %} id="{{key}}Checkbox" type="checkbox" name="value">
+          <label class="form-check-label" for="{{key}}Checkbox">
+            Bad Host (Marked as ❓)
+          </label>
+        </div>
+      </div>
+      <input type="hidden" name="key" value="{{key}}" />
+      <div class="col-auto">
+        <button type="submit" {% if disabled %} disabled {% endif %} class="btn btn-primary">Update</button>
+      </div>
+    </form>
+    <h2>Overrides</h2>
+    <p>Leave settings blank to stop overriding them from their defaults.</p>
+
+    <form method="post" class="row align-items-center" action="/admin/instance/settings/{{HOST_ID}}">
+      {%- set key = "BEARER_TOKEN" -%}
+      {%- set disabled = OVERRIDES[key].locked and not IS_ADMIN -%}
+      <div class="col-auto">
+        <label for="{{key}}Input" class="form-label">Authorization header token</label>
+        <div class="input-group">
+          <span class="input-group-text" id="addon-{{key}}">Authorization: Bearer </span>
+          <input {% if disabled %} disabled {% endif %} type="text" placeholder="MaKqD7QfmMe" class="form-control"
+            value="{{OVERRIDES[key].value}}" id="{{key}}Input" name="value" aria-describedby="addon-{{key}}">
+        </div>
+      </div>
+      <input type="hidden" name="key" value="{{key}}" />
+      <div class="col-auto">
+        <button type="submit" {% if disabled %} disabled {% endif %} class="btn btn-primary">Update</button>
+      </div>
+    </form>
+    <form method="post" class="row align-items-center" action="/admin/instance/settings/{{HOST_ID}}">
+      {%- set key = "HEALTH_PATH" -%}
+      {%- set disabled = OVERRIDES[key].locked and not IS_ADMIN -%}
+      <div class="col-auto">
+        <label for="{{key}}Input" class="form-label">URL path for statistics</label>
+        <input {% if disabled %} disabled {% endif %} type="text" placeholder="/.health" class="form-control"
+          value="{{OVERRIDES[key].value}}" id="{{key}}Input" name="value" aria-describedby="addon-{{key}}">
+      </div>
+      <input type="hidden" name="key" value="{{key}}" />
+      <div class="col-auto">
+        <button type="submit" {% if disabled %} disabled {% endif %} class="btn btn-primary">Update</button>
+      </div>
+    </form>
+    <form method="post" class="row align-items-center" action="/admin/instance/settings/{{HOST_ID}}">
+      {%- set key = "HEALTH_QUERY" -%}
+      {%- set disabled = OVERRIDES[key].locked and not IS_ADMIN -%}
+      <div class="col-auto">
+        <label for="{{key}}Input" class="form-label">URL query for statistics</label>
+        <input {% if disabled %} disabled {% endif %} type="text" placeholder="foo=bar&baz=true" class="form-control"
+          value="{{OVERRIDES[key].value}}" id="{{key}}Input" name="value" aria-describedby="addon-{{key}}">
+      </div>
+      <input type="hidden" name="key" value="{{key}}" />
+      <div class="col-auto">
+        <button type="submit" {% if disabled %} disabled {% endif %} class="btn btn-primary">Update</button>
+      </div>
+    </form>
+  </div>
+</body>
+
+</html>

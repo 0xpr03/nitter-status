@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-use std::{borrow::Cow, collections::HashMap, net::SocketAddr, sync::Arc};
+use std::{borrow::Cow, collections::HashMap, net::SocketAddr, sync::Arc, time::SystemTimeError};
 
 use axum::{
     error_handling::HandleErrorLayer,
@@ -40,7 +40,10 @@ pub struct Config {
     pub max_age: usize,
     pub session_ttl_seconds: u64,
     pub login_token_name: String,
+    /// Domains for admin hosts
     pub admin_domains: Vec<String>,
+    /// Additional host keys to auth against
+    pub admin_keys: HashMap<String, String>,
     pub session_db_uri: String,
 }
 
@@ -149,12 +152,15 @@ pub async fn start(
         .route("/api/csv/stats", get(api::graph_csv_stats))
         .nest(ADMIN_OVERVIEW_URL, Router::new()
             .route("/", get(admin::overview))
-            .route("/instance/:instance", get(admin::instance_view))
+            .route("/instance/errors/:instance", get(admin::errors_view))
+            .route("/instance/settings/:instance", get(admin::settings_view).post(admin::post_settings))
+            .route("/instance/locks/:instance", get(admin::locks_view).post(admin::post_locks))
             .route("/api/history/:instance", post(admin::history_json_specific))
             .route("/api/history", post(admin::history_json))
             .route("/login", get(admin::login_view).post(admin::login).route_layer(rate_limit_layer))
+            .route("/logs", get(admin::log_view))
             .route("/logout", get(admin::logout))
-            // .layer(ServiceBuilder::new().layer(SetResponseHeaderLayer::overriding(header::CACHE_CONTROL, "must-revalidate")))
+            .layer(ServiceBuilder::new().layer(SetResponseHeaderLayer::overriding(header::CACHE_CONTROL, HeaderValue::from_static("no-cache"))))
             .layer(session_service)
         )
         .route("/about", get(website::about))
@@ -216,6 +222,10 @@ pub enum ServerError {
     MissingPermission,
     #[error("Failed to create CSV")]
     CSV(String),
+    #[error("Invalid override key")]
+    InvalidOverrideKey,
+    #[error("Failed getting system time: {0}")]
+    TimeError(#[from] SystemTimeError),
 }
 
 impl axum::response::IntoResponse for ServerError {
@@ -223,16 +233,19 @@ impl axum::response::IntoResponse for ServerError {
         use ServerError::*;
         let msg = match &self {
             NoLogin => {
-                let mut resp = Redirect::temporary(LOGIN_URL).into_response();
                 // *resp.status_mut() = StatusCode::FOUND; // have to use a 301, [Redirect] 307 won't work for referrer
-                return resp;
+                return Redirect::temporary(LOGIN_URL).into_response();
             }
             MissingPermission => (
                 StatusCode::FORBIDDEN,
                 Cow::Borrowed("Missing permission to access this resource"),
             ),
+            InvalidOverrideKey => (
+                StatusCode::BAD_REQUEST,
+                Cow::Borrowed("Invalid override key"),
+            ),
             CSV(_) | MutexFailure | Templating(_) | DBError(_) | SessionError(_)
-            | HostNotFound(_) => (
+            | HostNotFound(_) | TimeError(_) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Cow::Borrowed("Internal Server Error"),
             ),

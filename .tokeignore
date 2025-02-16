@@ -1,0 +1,4 @@
+scanner/test_data
+server/static/bootstrap*
+server/static/moment*
+server/static/dygraph*

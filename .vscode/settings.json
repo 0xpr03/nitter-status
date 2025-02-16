@@ -3,6 +3,7 @@
         ".\\server\\Cargo.toml"
     ],
     "cSpell.words": [
-        "Deque"
+        "Deque",
+        "tera"
     ]
 }

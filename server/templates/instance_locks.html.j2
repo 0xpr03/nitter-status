@@ -1,0 +1,38 @@
+{#- SPDX-License-Identifier: AGPL-3.0-only -#}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+  <meta charset="utf-8">
+  <link href="/static/bootstrap.min.css" rel="stylesheet">
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="" />
+  <title>Locks | {{HOST_DOMAIN}}</title>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Override Locks | {{HOST_DOMAIN}}</h1>
+    <p class="text-danger-emphasis">root mode</p>
+    <p><a href="/admin/instance/settings/{{HOST_ID}}">Home</a></p>
+    <form method="post" class="row align-items-center" action="/admin/instance/locks/{{HOST_ID}}">
+      {% for key, value in OVERRIDES %}
+      <div class="col-auto">
+        <div class="form-check">
+          <input class="form-check-input" value="true" {% if value.locked
+            -%} checked {%- endif %} id="{{key}}Checkbox" type="checkbox" name="{{key}}">
+          <label class="form-check-label" for="{{key}}Checkbox">
+            {{key}}
+          </label>
+        </div>
+      </div>
+      {% endfor %}
+      <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Update</button>
+      </div>
+    </form>
+  </div>
+</body>
+
+</html>

@@ -4,8 +4,9 @@ use std::time::Instant;
 
 use chrono::Utc;
 use entities::state::error_cache::HostError;
-use entities::{check_errors, health_check};
+use entities::{check_errors, health_check, host_overrides};
 use entities::{host, prelude::*};
+use entities::host_overrides::keys::HostOverrides;
 use reqwest::Url;
 use sea_orm::prelude::DateTimeUtc;
 use sea_orm::ColumnTrait;
@@ -39,8 +40,9 @@ impl Scanner {
                 .find(|v| v.host == model.id)
                 .map_or(false, |check| !check.healthy);
             join_set.spawn(async move {
-                scanner.health_check_host(model, muted_host).await;
-                
+                if let Err(e) = scanner.health_check_host(model, muted_host).await {
+
+                }
             });
         }
         // wait till all of them are finished, preventing DoS
@@ -54,7 +56,7 @@ impl Scanner {
     }
 
     #[instrument]
-    async fn health_check_host(&self, host: host::Model, muted: bool) {
+    async fn health_check_host(&self, host: host::Model, muted: bool) -> Result<()> {
         let now = Utc::now();
         let mut url = match Url::parse(&host.url) {
             Err(e) => {
@@ -68,13 +70,14 @@ impl Scanner {
                     None,
                 )
                 .await;
-                return;
+                return Ok(());
             }
             Ok(v) => v,
         };
         url.set_path(&self.inner.config.profile_path);
+        let overrides = HostOverrides::load(&host, &self.inner.db).await?;
         let start = Instant::now();
-        let fetch_res = self.fetch_url(url.as_str()).await;
+        let fetch_res = self.fetch_url(url.as_str(), overrides.bearer()).await;
         let end = Instant::now();
         let took_ms = end.saturating_duration_since(start).as_millis();
         match fetch_res {
@@ -156,12 +159,13 @@ impl Scanner {
                 }
             }
         }
+        Ok(())
     }
 
     /// Check if rss is available
-    pub(crate) async fn has_rss(&self, url: &mut Url, mute: bool) -> bool {
+    pub(crate) async fn has_rss(&self, url: &mut Url, api_token: Option<&str>, mute: bool) -> bool {
         url.set_path(&self.inner.config.rss_path);
-        match self.fetch_url(url.as_str()).await {
+        match self.fetch_url(url.as_str(), api_token).await {
             Ok((code, content)) => match self.inner.rss_check_regex.is_match(&content) {
                 true => return true,
                 false => {
@@ -187,9 +191,9 @@ impl Scanner {
     }
 
     /// Check nitter version
-    pub(crate) async fn nitter_version(&self, url: &mut Url, mute: bool) -> Option<AboutParsed> {
+    pub(crate) async fn nitter_version(&self, url: &mut Url, api_token: Option<&str>, mute: bool) -> Option<AboutParsed> {
         url.set_path(&self.inner.config.about_path);
-        match self.fetch_url(url.as_str()).await {
+        match self.fetch_url(url.as_str(), api_token).await {
             Ok((code, content)) => match self.inner.about_parser.parse_about_version(&content) {
                 Ok(v) => Some(v),
                 Err(e) => {

@@ -7,8 +7,7 @@ use std::{
 use about_parser::AboutParser;
 use chrono::{DateTime, Duration, TimeZone, Utc};
 use entities::{
-    health_check,
-    state::{error_cache::HostError, scanner::ScannerConfig, AppState},
+    health_check, host, state::{error_cache::HostError, scanner::ScannerConfig, AppState}
 };
 use instance_parser::InstanceParser;
 use miette::{Context, IntoDiagnostic};
@@ -16,7 +15,7 @@ use profile_parser::ProfileParser;
 use regex::{Regex, RegexBuilder};
 use reqwest::{
     header::{HeaderMap, HeaderValue},
-    Client, ClientBuilder,
+    Client, ClientBuilder, Url,
 };
 use sea_orm::{
     ColumnTrait, ConnectionTrait, DatabaseConnection, DbBackend, EntityTrait, FromQueryResult,
@@ -364,12 +363,16 @@ impl Scanner {
     }
 
     async fn fetch_instance_list(&self) -> Result<String> {
-        let (_, body) = self.fetch_url(&self.inner.config.instance_list_url).await?;
+        let (_, body) = self.fetch_url(&self.inner.config.instance_list_url, None).await?;
         Ok(body)
     }
 
-    async fn fetch_url(&self, url: &str) -> std::result::Result<(u16, String), FetchError> {
-        let fetch_res = self.inner.client.get(url).send().await?;
+    async fn fetch_url(&self, url: &str, api_token: Option<&str>) -> std::result::Result<(u16, String), FetchError> {
+        let mut request = self.inner.client.get(url);
+        if let Some(token) = api_token {
+            request = request.bearer_auth(token);
+        }
+        let fetch_res = request.send().await?;
         let code = fetch_res.status().as_u16();
         if !fetch_res.status().is_success() {
             let message = fetch_res
@@ -478,7 +481,7 @@ mod test {
         let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new())
             .await
             .unwrap();
-        let (_, res) = scanner.fetch_url("example.com/jack").await.unwrap();
+        let (_, res) = scanner.fetch_url("example.com/jack",None).await.unwrap();
         let mut file = File::create("test_data/blocked.html").await.unwrap();
         file.write_all(&res.as_bytes()).await.unwrap();
     }

@@ -13,6 +13,7 @@
     <div class="container">
     <h1>Admin Interface</h1>
     <p><a href="/admin/logout">Logout</a> <a href="/admin/login">Add more instances</a></p>
+    {% if is_admin %}<p><a href="/admin/logs">Settings Logs</a></p>{% endif %}
     
     <h4>Instances</h4>
     {% if is_admin %}<p class="text-danger-emphasis">root mode</p>{% endif %}
@@ -44,7 +45,7 @@
         <tr>
           <td>{{instance.domain}}</td>
           {# <td><a href="/admin/history/{{instance.id}}">History</a></td> #}
-          <td><a href="/admin/instance/{{instance.id}}">Errors</a></td>
+          <td><a href="/admin/instance/errors/{{instance.id}}">Errors</a> <a href="/admin/instance/settings/{{instance.id}}">Settings</a></td>
         </tr>
         {%- endfor %}
       </tbody>
