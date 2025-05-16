@@ -148,8 +148,6 @@ pub async fn start(
             ServeDir::new("server/static").append_index_html_on_directories(false),
         )
         .route("/api/v1/instances", get(api::instances))
-        .route("/api/csv/health", get(api::graph_csv_health))
-        .route("/api/csv/stats", get(api::graph_csv_stats))
         .nest(ADMIN_OVERVIEW_URL, Router::new()
             .route("/", get(admin::overview))
             .route("/instance/errors/:instance", get(admin::errors_view))
