@@ -1,0 +1,46 @@
+{# SPDX-License-Identifier: AGPL-3.0-only #}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <link href="/static/bootstrap.min.css" rel="stylesheet">
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="" />
+    <title>Stats | {{HOST_DOMAIN}}</title>
+    <style>
+    .dygraph-annotation {
+      height: auto !important;
+    }
+
+    .dygraph-axis-label {
+      color: white;
+    }
+
+    .dygraph-legend {
+      background-color: #101015;
+    }
+  </style>
+  </head>
+  <body id="body" data-hid="{{HOST_ID}}">
+    <div class="container">
+    <h1>Instance Stats</h1>
+    <p><a href="/admin">Overview</a> <a href="/admin/logout">Logout</a> <a href="/admin/login">Add more instances</a></p>
+    <div><canvas data-host="{{HOST_ID}}" id="graph" width="600" height="200"></canvas><noscript>History feature works only with javascript enabled.</noscript></div>
+    <div class="container">
+      <button class="btn btn-primary" id="loadGraphBtn">Show Historical Data Graph (CPU & Network Intense)</button>
+      <div class="row">
+        <div class="col">
+          <div id="graph-health" class="graph" style="height: 400px; display:none;"></div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <div id="graph-stats" class="graph" style="height: 400px; display:none;"></div>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript" src="/static/dygraph.min.js"></script>
+    <script type="text/javascript" src="/static/stats.js"></script>
+  </body>
+</html>

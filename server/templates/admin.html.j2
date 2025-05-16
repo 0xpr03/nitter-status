@@ -44,7 +44,7 @@
         {% for instance in instances -%}
         <tr>
           <td>{{instance.domain}}</td>
-          {# <td><a href="/admin/history/{{instance.id}}">History</a></td> #}
+          <td><a href="/admin/instance/stats/{{instance.id}}">Stats</a></td>
           <td><a href="/admin/instance/errors/{{instance.id}}">Errors</a> <a href="/admin/instance/settings/{{instance.id}}">Settings</a></td>
         </tr>
         {%- endfor %}

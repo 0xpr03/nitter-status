@@ -45,6 +45,7 @@ mod errors;
 mod settings;
 mod locks;
 mod logs;
+mod stats;
 
 pub use errors::errors_view;
 pub use settings::post_settings;
@@ -52,6 +53,9 @@ pub use settings::settings_view;
 pub use locks::locks_view;
 pub use locks::post_locks;
 pub use logs::log_view;
+pub use stats::stats_view;
+pub use stats::health_csv_api;
+pub use stats::stats_csv_api;
 
 /// Stored session login information
 #[derive(Serialize, Deserialize, Default)]

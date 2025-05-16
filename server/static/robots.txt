@@ -5,7 +5,7 @@ Disallow: /admin/
 
 Allow: /
 
-Crawl-delay: 5
+Crawl-delay: 10
 
 User-agent: AI2Bot
 User-agent: Ai2Bot-Dolma
