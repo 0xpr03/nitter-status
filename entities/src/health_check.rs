@@ -4,8 +4,6 @@ use sea_orm::{entity::prelude::*, FromQueryResult};
 use sea_query::{Alias, Order, Query, SimpleExpr};
 use serde::Serialize;
 
-use crate::check_errors;
-
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize)]
 #[sea_orm(table_name = "health_check")]
 pub struct Model {
@@ -74,6 +72,35 @@ impl HealthyAmount {
         }
         stmt.group_by_col(self::Column::Time)
             .order_by(self::Column::Time, Order::Asc);
+        Self::find_by_statement(builder.build(&stmt)).all(db).await
+    }
+}
+
+#[derive(Debug, FromQueryResult, Serialize)]
+pub struct ResponseTimeStat {
+    pub time: i64,
+    pub resp_time: Option<i64>,
+    pub healthy: bool,
+}
+
+impl ResponseTimeStat {
+    /// Fetch the response time + alive for a host in the specified from - to region or over all time
+    pub async fn fetch(
+        db: &DatabaseConnection,
+        from: Option<DateTimeUtc>,
+        to: Option<DateTimeUtc>,
+        host: i32,
+    ) -> Result<Vec<Self>, DbErr> {
+        let builder = db.get_database_backend();
+        let mut stmt: sea_query::SelectStatement = Query::select();
+        stmt.column(self::Column::Time)
+            .column(self::Column::Healthy)
+            .column(self::Column::RespTime)
+            .and_where(self::Column::Host.eq(host))
+            .from(self::Entity);
+        if let (Some(from), Some(to)) = (from, to) {
+            stmt.and_where(self::Column::Time.between(from.timestamp(), to.timestamp()));
+        }
         Self::find_by_statement(builder.build(&stmt)).all(db).await
     }
 }

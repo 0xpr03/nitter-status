@@ -8,7 +8,7 @@ use axum::{
 };
 use chrono::{TimeZone, Utc};
 use entities::{
-    health_check,
+    health_check::{self, ResponseTimeStat},
     host_overrides::{
         self,
         keys::{HostOverrides, LOCKED_FALSE, LOCKED_TRUE},
@@ -45,20 +45,28 @@ pub async fn health_csv_api(
     session: Session,
 ) -> Result<axum::response::Response> {
     let (host, _login) = get_specific_login_host(instance, &session, db).await?;
-    // TODO: Fetch request times and show an additional(?) red dot for failed requests"
+    // Nächstes mal:
+    // Fetch request times and show an additional(?) red dot for failed requests"
+    // Siehe globale? API mit response times
     let start = std::time::Instant::now();
-    let healthy_data = health_check::HealthyAmount::fetch(db, None, None, Some(&[host.id])).await?;
+    let healthy_data = ResponseTimeStat::fetch(db, None, None, host.id).await?;
     let queried = std::time::Instant::now();
     let mut data = String::with_capacity((4 + 3 + 3 + 3 + 3 + 3 + 4) * healthy_data.len());
 
-    data.push_str("Date,Healthy,Dead\n");
+    data.push_str("Date,Healthy Rsp Time,Dead Rsp Time\n");
 
     for entry in healthy_data {
         let time = Utc
             .timestamp_opt(entry.time, 0)
             .unwrap()
             .format("%Y-%m-%dT%H:%M:%SZ");
-        writeln!(&mut data, "{time},{},{}", entry.alive, entry.dead)
+        let (rsp_healthy, rsp_dead) = match (entry.resp_time, entry.healthy) {
+            (None, true) => (-1, 0),  //  no respons etime but healthy/unhealthy
+            (None, false) => (0, -1), // we don't really expect thse two cases and return -1
+            (Some(time), true) => (time, 0),
+            (Some(time), false) => (0, time),
+        };
+        writeln!(&mut data, "{time},{},{}", rsp_healthy, rsp_dead)
             .map_err(|e| ServerError::CSV(e.to_string()))?;
     }
     let formatted = std::time::Instant::now();
