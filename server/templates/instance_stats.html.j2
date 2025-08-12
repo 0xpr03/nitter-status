@@ -26,7 +26,7 @@
     <div class="container">
     <h1>Instance Stats</h1>
     <p><a href="/admin">Overview</a> <a href="/admin/logout">Logout</a> <a href="/admin/login">Add more instances</a></p>
-    <div><canvas data-host="{{HOST_ID}}" id="graph" width="600" height="200"></canvas><noscript>History feature works only with javascript enabled.</noscript></div>
+    <noscript>History feature works only with javascript enabled.</noscript>
     <div class="container">
       <button class="btn btn-primary" id="loadGraphBtn">Show Historical Data Graph (CPU & Network Intense)</button>
       <div class="row">
@@ -39,6 +39,7 @@
           <div id="graph-stats" class="graph" style="height: 400px; display:none;"></div>
         </div>
       </div>
+    </div>
     </div>
     <script type="text/javascript" src="/static/dygraph.min.js"></script>
     <script type="text/javascript" src="/static/stats.js"></script>

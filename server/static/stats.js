@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
       });
       loadGraphBtn.style.display = "none";
       loadHealthGraph(host_id);
-      //loadStatsGraph();
+      loadStatsGraph(host_id);
     });
   }
 });
