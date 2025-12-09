@@ -4,27 +4,16 @@
   <head>
     <meta charset="utf-8">
     <link href="/static/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/dygraph.min.css" rel="stylesheet">
+    {% include "dygraph_fix.html.j2" %}
     <meta name="robots" content="noindex,nofollow" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="author" content="" />
     <title>Stats | {{HOST_DOMAIN}}</title>
-    <style>
-    .dygraph-annotation {
-      height: auto !important;
-    }
-
-    .dygraph-axis-label {
-      color: white;
-    }
-
-    .dygraph-legend {
-      background-color: #101015;
-    }
-  </style>
   </head>
   <body id="body" data-hid="{{HOST_ID}}">
     <div class="container">
-    <h1>Instance Stats</h1>
+    <h2>Statistics | {{HOST_DOMAIN}}</h2>
     <p><a href="/admin">Overview</a> <a href="/admin/logout">Logout</a> <a href="/admin/login">Add more instances</a></p>
     <noscript>History feature works only with javascript enabled.</noscript>
     <div class="container">
