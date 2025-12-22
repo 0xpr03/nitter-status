@@ -25,24 +25,6 @@ document.addEventListener("DOMContentLoaded", function() {
     fetchDataAndCreateChart(initialStartDate,initialEndDate);
 });
 
-function mapKey(key) {
-    const keyMappings = {
-        "limited_accs": "Limited Accs",
-        "total_accs": "Total Accs",
-        "total_requests": "Total Requests",
-        "req_photo_rail": "PhotoRail Requests",
-        "req_user_screen_name": "UserScreeName Req.",
-        "req_search": "Search Requests",
-        "req_list_tweets": "ListTeweets Req.",
-        "req_user_media": "UserMedia Req.",
-        "req_tweet_detail": "TweetDetail Req.",
-        "req_list": "List Requests",
-        "req_user_tweets": "UserTweets Req.",
-        "req_user_tweets_and_replies": "UserTweetsAndReplies Req.",
-    }
-    return keyMappings[key];
-}
-
 async function fetchDataAndCreateChart(startDate,endDate) {
     let jsonData;
     try {

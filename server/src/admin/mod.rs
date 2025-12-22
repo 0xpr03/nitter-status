@@ -56,6 +56,7 @@ pub use logs::log_view;
 pub use stats::stats_view;
 pub use stats::health_csv_api;
 pub use stats::stats_csv_api;
+pub use stats::overview_csv_api;
 
 /// Stored session login information
 #[derive(Serialize, Deserialize, Default)]
@@ -332,7 +333,7 @@ pub async fn overview(
         context.insert("instances", &hosts);
         context.insert("is_admin", &login.admin);
 
-        let res = Html(template.render("admin.html.j2", &context)?).into_response();
+        let res = Html(template.render("admin_index.html.j2", &context)?).into_response();
         drop(guard);
         res
     };
@@ -363,41 +364,6 @@ pub async fn history_json(
         global: data_global,
         user: data_owned,
         stats: data_stats,
-    })
-    .into_response())
-}
-
-pub async fn history_json_specific(
-    State(ref db): State<DatabaseConnection>,
-    session: Session,
-    Path(host): Path<i32>,
-    Json(input): Json<DateRangeInput>,
-) -> Result<axum::response::Response> {
-    let (host, _login) = get_specific_login_host(host, &session, db).await?;
-    #[derive(Debug, Serialize)]
-    struct ReturnData {
-        pub stats: Vec<instance_stats::Model>,
-        pub health: Vec<health_check::Model>,
-    }
-
-    let history_health: Vec<health_check::Model> = health_check::Entity::find()
-        .filter(health_check::Column::Host.eq(host.id))
-        .order_by_asc(health_check::Column::Time)
-        .filter(health_check::Column::Time.between(input.start.timestamp(), input.end.timestamp()))
-        .all(db)
-        .await?;
-    let history_stats: Vec<instance_stats::Model> = instance_stats::Entity::find()
-        .filter(instance_stats::Column::Host.eq(host.id))
-        .order_by_asc(instance_stats::Column::Time)
-        .filter(
-            instance_stats::Column::Time.between(input.start.timestamp(), input.end.timestamp()),
-        )
-        .all(db)
-        .await?;
-
-    Ok(Json(ReturnData {
-        health: history_health,
-        stats: history_stats,
     })
     .into_response())
 }
