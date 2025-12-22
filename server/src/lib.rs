@@ -156,7 +156,7 @@ pub async fn start(
             .route("/instance/stats/:instance", get(admin::stats_view))
             .route("/api/graphs/stats/:instance", get(admin::stats_csv_api)) // TODO
             .route("/api/graphs/health/:instance", get(admin::health_csv_api)) // TODO
-            .route("/api/history/:instance", post(admin::history_json_specific))
+            .route("/api/graphs/overview", get(admin::overview_csv_api))
             .route("/api/history", post(admin::history_json))
             .route("/login", get(admin::login_view).post(admin::login).route_layer(rate_limit_layer))
             .route("/logs", get(admin::log_view))

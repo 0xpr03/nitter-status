@@ -18,10 +18,14 @@ use entities::{
 use sea_orm::{sea_query::OnConflict, ActiveValue, DatabaseConnection, EntityTrait};
 use tower_sessions::Session;
 
-use crate::{Result, ServerError};
+use crate::{
+    admin::{get_all_login_hosts, get_session_login},
+    Result, ServerError,
+};
 
 use super::get_specific_login_host;
 
+/// Renders instance specific stats HTML
 pub async fn stats_view(
     State(ref template): State<Arc<tera::Tera>>,
     State(ref db): State<DatabaseConnection>,
@@ -33,12 +37,13 @@ pub async fn stats_view(
     let mut context = tera::Context::new();
     context.insert("HOST_DOMAIN", &host.domain);
     context.insert("HOST_ID", &instance);
+    context.insert("HOST_URL", &host.url);
 
     let res = Html(template.render("instance_stats.html.j2", &context)?).into_response();
     Ok(res)
 }
 
-/// Returns the statistics in the CSV format required by dygraph
+/// Returns the instance statistics in the CSV format required by dygraph
 pub async fn health_csv_api(
     State(ref db): State<DatabaseConnection>,
     Path(instance): Path<i32>,
@@ -61,8 +66,8 @@ pub async fn health_csv_api(
             .unwrap()
             .format("%Y-%m-%dT%H:%M:%SZ");
         let (rsp_healthy, rsp_dead) = match (entry.resp_time, entry.healthy) {
-            (None, true) => (-1, 0),  //  no respons etime but healthy/unhealthy
-            (None, false) => (0, -1), // we don't really expect thse two cases and return -1
+            (None, true) => (-1, 0),  // no response time but healthy/unhealthy
+            (None, false) => (0, -1), // we don't really expect these two cases and return -1
             (Some(time), true) => (time, 0),
             (Some(time), false) => (0, time),
         };
@@ -80,7 +85,7 @@ pub async fn health_csv_api(
     Ok(res)
 }
 
-/// Returns the statistics in the CSV format required by dygraph
+/// Returns the instance statistics in the CSV format required by dygraph
 pub async fn stats_csv_api(
     State(ref db): State<DatabaseConnection>,
     Path(instance): Path<i32>,
@@ -90,6 +95,48 @@ pub async fn stats_csv_api(
 
     let start = std::time::Instant::now();
     let healthy_data = instance_stats::StatsCSVEntry::fetch(db, Some(&[host.id])).await?;
+    let queried = std::time::Instant::now();
+    let mut data = String::with_capacity(8 * healthy_data.len());
+
+    data.push_str("Date,Tokens AVG,Limited Tokens AVG,Requests AVG\n");
+
+    for entry in healthy_data {
+        let time = Utc
+            .timestamp_opt(entry.time, 0)
+            .unwrap()
+            .format("%Y-%m-%dT%H:%M:%SZ");
+        writeln!(
+            &mut data,
+            "{time},{},{},{}",
+            entry.total_accs_avg, entry.limited_accs_avg, entry.total_requests_avg
+        )
+        .map_err(|e| ServerError::CSV(e.to_string()))?;
+    }
+    let formatted = std::time::Instant::now();
+    let query_time = queried - start;
+    let format_time = formatted - queried;
+    tracing::debug!(?query_time, ?format_time);
+
+    let mut res = data.into_response();
+    res.headers_mut()
+        .insert("content-type", HeaderValue::from_str("text/csv").unwrap());
+    Ok(res)
+}
+
+pub async fn overview_csv_api(
+    State(ref db): State<DatabaseConnection>,
+    session: Session,
+) -> Result<axum::response::Response> {
+    // ensure this one is associated with at least one host
+    // We could trust the session but this way it will automatically stop
+    // if a host is removed in between during a crawler run.
+    let (_login, hosts) = get_all_login_hosts(&session, db, false).await?;
+    if hosts.is_empty() {
+        return Err(ServerError::NoLogin);
+    }
+
+    let start = std::time::Instant::now();
+    let healthy_data = instance_stats::StatsCSVEntry::fetch(db, None).await?;
     let queried = std::time::Instant::now();
     let mut data = String::with_capacity(8 * healthy_data.len());
 
