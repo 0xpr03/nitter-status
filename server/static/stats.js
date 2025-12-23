@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 document.addEventListener("DOMContentLoaded", function (event) {
   var host_id = document.getElementById("body").getAttribute("data-hid");
   var loadGraphBtn = document.getElementById("loadGraphBtn");
@@ -19,7 +20,7 @@ async function loadHealthGraph(host_id) {
   try {
     let g = new Dygraph(
       graphDiv,
-      "/admin/api/graphs/health/"+host_id,
+      "/admin/api/graphs/health/" + host_id,
       {
         title: 'Historic Instance Healthiness',
         showRangeSelector: true,
@@ -34,6 +35,7 @@ async function loadHealthGraph(host_id) {
         ylabel: 'Nitter Instances',
       }
     );
+    // fixme: find valid annotation dates, regardless of the host
     g.ready(function () {
       g.setAnnotations([
         {
@@ -66,7 +68,7 @@ async function loadStatsGraph(host_id) {
   try {
     let g = new Dygraph(
       graphDiv,
-      "/admin/api/graphs/stats/"+host_id,
+      "/admin/api/graphs/stats/" + host_id,
       {
         title: 'Historic Average Instance Statistics',
         showRangeSelector: true,

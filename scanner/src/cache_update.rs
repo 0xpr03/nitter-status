@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 use std::cmp;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use chrono::{Days, Utc};
 use chrono::{Duration, TimeZone};
 use entities::host_overrides::keys::{KEY_BAD_HOST, VAL_BOOL_TRUE};
-use entities::{host, host_overrides};
 use entities::prelude::*;
 use entities::state::CacheData;
 use entities::state::CacheHost;
-use sea_orm::{ColumnTrait, QuerySelect, QueryTrait};
+use entities::{host, host_overrides};
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::QueryOrder;
 use sea_orm::{prelude::DateTimeUtc, DbBackend, FromQueryResult, Statement};
+use sea_orm::{ColumnTrait, QuerySelect};
 
 use crate::version_check::fetch_git_state;
 use crate::LatestCheck;
@@ -193,8 +193,11 @@ impl Scanner {
 
     async fn query_bad_hosts(&self) -> Result<Vec<i32>> {
         let res: Vec<i32> = HostOverrides::find()
-            .filter(host_overrides::Column::Key.eq(KEY_BAD_HOST)
-            .and(host_overrides::Column::Value.eq(VAL_BOOL_TRUE)))
+            .filter(
+                host_overrides::Column::Key
+                    .eq(KEY_BAD_HOST)
+                    .and(host_overrides::Column::Value.eq(VAL_BOOL_TRUE)),
+            )
             .select_only()
             .column(host_overrides::Column::Host)
             .into_tuple()

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //! Updates the list of available instances, fetching all required fields
 
-use std::collections::HashMap;
 use std::time::Duration;
 use std::time::Instant;
 

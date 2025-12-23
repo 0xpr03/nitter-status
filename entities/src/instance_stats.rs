@@ -135,7 +135,7 @@ pub struct StatsCSVEntry {
 
 impl StatsCSVEntry {
     /// Fetch health check graph data for all or selected hosts in the selected time range.
-    pub async fn fetch(db: &DatabaseConnection,hosts: Option<&[i32]>,) -> Result<Vec<Self>, DbErr> {
+    pub async fn fetch(db: &DatabaseConnection, hosts: Option<&[i32]>) -> Result<Vec<Self>, DbErr> {
         let builder = db.get_database_backend();
         let columns = ["limited_accs", "total_accs", "total_requests"];
         let mut stmt: sea_query::SelectStatement = Query::select();

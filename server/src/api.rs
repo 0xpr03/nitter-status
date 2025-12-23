@@ -2,13 +2,8 @@
 use crate::{Result, ServerError};
 use axum::response::IntoResponse;
 use axum::{extract::State, Json};
-use chrono::{TimeZone, Utc};
 use entities::state::AppState;
-use entities::{health_check, instance_stats};
 use hyper::http::HeaderValue;
-use sea_orm::DatabaseConnection;
-use serde::Serialize;
-use std::fmt::Write;
 use std::sync::Arc;
 
 pub async fn instances(

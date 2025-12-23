@@ -3,16 +3,11 @@
 use sea_orm::entity::prelude::*;
 use serde::Serialize;
 
-use crate::host;
-
 /// Module of override keys
 pub mod keys {
     use std::{collections::HashMap, sync::LazyLock};
 
-    use sea_orm::{
-        ActiveModelTrait, ActiveValue, ColumnTrait, DatabaseConnection, DbErr, EntityTrait,
-        QueryFilter,
-    };
+    use sea_orm::{ActiveValue, ColumnTrait, DatabaseConnection, DbErr, EntityTrait, QueryFilter};
     use sea_query::OnConflict;
     use serde::Serialize;
     use tracing::warn;
@@ -37,8 +32,12 @@ pub mod keys {
     pub static NOT_LOCKED_DEFAULTS: &'static [&'static str] =
         &[KEY_HOST_HEALTH_PATH, KEY_HOST_BEARER, KEY_HOST_HEALTH_QUERY];
 
-    pub static ALL_OVERRIDES: &'static [&'static str] =
-        &[KEY_BAD_HOST, KEY_HOST_BEARER, KEY_HOST_HEALTH_PATH, KEY_HOST_HEALTH_QUERY];
+    pub static ALL_OVERRIDES: &'static [&'static str] = &[
+        KEY_BAD_HOST,
+        KEY_HOST_BEARER,
+        KEY_HOST_HEALTH_PATH,
+        KEY_HOST_HEALTH_QUERY,
+    ];
 
     #[derive(Serialize, Clone, Copy)]
     pub enum ValueType {
@@ -131,7 +130,7 @@ pub mod keys {
         pub fn health_path(&self) -> Option<&str> {
             self.get(KEY_HOST_HEALTH_PATH)
         }
-        
+
         /// Retrieve [KEY_HOST_HEALTH_QUERY]
         pub fn health_query(&self) -> Option<&str> {
             self.get(KEY_HOST_HEALTH_QUERY)
@@ -139,9 +138,7 @@ pub mod keys {
 
         /// Retrieve override value for key
         pub fn get(&self, key: &str) -> Option<&str> {
-            self.entries
-            .get(key)
-            .and_then(|v| v.value.as_deref())
+            self.entries.get(key).and_then(|v| v.value.as_deref())
         }
 
         pub fn entries(&self) -> &HashMap<String, Override> {

@@ -6,21 +6,16 @@ use std::{
 
 use about_parser::AboutParser;
 use chrono::{DateTime, Duration, TimeZone, Utc};
-use entities::{
-    health_check, host, state::{error_cache::HostError, scanner::ScannerConfig, AppState}
-};
+use entities::state::{error_cache::HostError, scanner::ScannerConfig, AppState};
 use instance_parser::InstanceParser;
 use miette::{Context, IntoDiagnostic};
 use profile_parser::ProfileParser;
 use regex::{Regex, RegexBuilder};
 use reqwest::{
     header::{HeaderMap, HeaderValue},
-    Client, ClientBuilder, Url,
+    Client, ClientBuilder,
 };
-use sea_orm::{
-    ColumnTrait, ConnectionTrait, DatabaseConnection, DbBackend, EntityTrait, FromQueryResult,
-    QuerySelect, Statement,
-};
+use sea_orm::{ConnectionTrait, DatabaseConnection, DbBackend, FromQueryResult, Statement};
 use thiserror::Error;
 use tokio::time::sleep;
 
@@ -33,8 +28,8 @@ mod instance_check;
 mod instance_parser;
 mod list_update;
 mod profile_parser;
-mod version_check;
 mod update_stats;
+mod version_check;
 
 const CAPTCHA_TEXT: &'static str = "Enable JavaScript and cookies to continue";
 const CAPTCHA_CODE: u16 = 403;
@@ -73,7 +68,7 @@ pub enum ScannerError {
     InstanceUrlParse,
     /// Failed to join a tokio thread in a JoinSet
     #[error("Failed to join worker task {0}")]
-    JoinError(#[from] tokio::task::JoinError)
+    JoinError(#[from] tokio::task::JoinError),
 }
 
 #[derive(Error, Debug)]
@@ -208,16 +203,16 @@ impl Scanner {
             .build()
             .into_diagnostic()?;
 
-        let last_uptime_check = Self::query_last_entry_for_table(&db,"health_check")
+        let last_uptime_check = Self::query_last_entry_for_table(&db, "health_check")
             .await
             .into_diagnostic()
             .wrap_err("Fetching last uptime check failed!")?;
 
-        let last_stats_check = Self::query_last_entry_for_table(&db,"instance_stats")
+        let last_stats_check = Self::query_last_entry_for_table(&db, "instance_stats")
             .await
             .into_diagnostic()
             .wrap_err("Fetching last stats check failed!")?;
-        tracing::info!(?last_uptime_check, ?last_stats_check);// TODO: wrong timestamp
+        tracing::info!(?last_uptime_check, ?last_stats_check); // TODO: wrong timestamp
         let scanner = Self {
             inner: Arc::new(InnerScanner {
                 db,
@@ -247,7 +242,10 @@ impl Scanner {
     }
 
     /// Retrieves the last stats fetching that happened
-    pub async fn query_last_entry_for_table(db: &DatabaseConnection, table: &str) -> Result<DateTime<Utc>> {
+    pub async fn query_last_entry_for_table(
+        db: &DatabaseConnection,
+        table: &str,
+    ) -> Result<DateTime<Utc>> {
         #[derive(Debug, FromQueryResult, Default)]
         pub(crate) struct TimeMax {
             pub max: Option<i64>,
@@ -315,12 +313,20 @@ impl Scanner {
     }
 
     async fn sleep_till_deadline(&self) {
-        let delay_instance_check = self.last_uptime_check() + self.inner.config.instance_check_interval;
+        let delay_instance_check =
+            self.last_uptime_check() + self.inner.config.instance_check_interval;
         let delay_list_update = self.last_list_fetch() + self.inner.config.list_fetch_interval;
-        let delay_stats_update = self.last_stats_fetch() + self.inner.config.instance_stats_interval;
-        tracing::debug!(?delay_list_update, ?delay_instance_check, ?delay_stats_update);
+        let delay_stats_update =
+            self.last_stats_fetch() + self.inner.config.instance_stats_interval;
+        tracing::debug!(
+            ?delay_list_update,
+            ?delay_instance_check,
+            ?delay_stats_update
+        );
 
-        let next_deadline = delay_instance_check.min(delay_list_update).min(delay_stats_update);
+        let next_deadline = delay_instance_check
+            .min(delay_list_update)
+            .min(delay_stats_update);
         let now = Utc::now();
         let sleep_time = next_deadline.signed_duration_since(now);
         if sleep_time <= Duration::zero() {
@@ -363,11 +369,17 @@ impl Scanner {
     }
 
     async fn fetch_instance_list(&self) -> Result<String> {
-        let (_, body) = self.fetch_url(&self.inner.config.instance_list_url, None).await?;
+        let (_, body) = self
+            .fetch_url(&self.inner.config.instance_list_url, None)
+            .await?;
         Ok(body)
     }
 
-    async fn fetch_url(&self, url: &str, api_token: Option<&str>) -> std::result::Result<(u16, String), FetchError> {
+    async fn fetch_url(
+        &self,
+        url: &str,
+        api_token: Option<&str>,
+    ) -> std::result::Result<(u16, String), FetchError> {
         let mut request = self.inner.client.get(url);
         if let Some(token) = api_token {
             request = request.bearer_auth(token);
@@ -389,24 +401,34 @@ impl Scanner {
             }
             if code == 403 && body_text.contains("You have been blocked") {
                 // cloudflare block
-                return Err(FetchError::KnownHttpResponseStatus(code, message, body_text));
+                return Err(FetchError::KnownHttpResponseStatus(
+                    code, message, body_text,
+                ));
             }
             if code == 429 && body_text.contains("Instance has been rate limited") {
                 // out of non-limited accounts
-                return Err(FetchError::KnownHttpResponseStatus(code, message, body_text));
+                return Err(FetchError::KnownHttpResponseStatus(
+                    code, message, body_text,
+                ));
             }
             if code == 404 {
                 // don't spam the body on 404s
-                return Err(FetchError::KnownHttpResponseStatus(code, message, body_text));
+                return Err(FetchError::KnownHttpResponseStatus(
+                    code, message, body_text,
+                ));
             }
             if code >= 502 && code <= 504 {
                 // don't spam the body on Bad Gateway/Service Unavailable/Gateway Timeout
-                return Err(FetchError::KnownHttpResponseStatus(code, message, body_text));
+                return Err(FetchError::KnownHttpResponseStatus(
+                    code, message, body_text,
+                ));
             }
             if code >= 520 && code <= 527 {
                 // don't spam the body on Cloudflare errors
                 // https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
-                return Err(FetchError::KnownHttpResponseStatus(code, message, body_text));
+                return Err(FetchError::KnownHttpResponseStatus(
+                    code, message, body_text,
+                ));
             }
             return Err(FetchError::HttpResponseStatus(code, message, body_text));
         }
@@ -481,7 +503,7 @@ mod test {
         let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new())
             .await
             .unwrap();
-        let (_, res) = scanner.fetch_url("example.com/jack",None).await.unwrap();
+        let (_, res) = scanner.fetch_url("example.com/jack", None).await.unwrap();
         let mut file = File::create("test_data/blocked.html").await.unwrap();
         file.write_all(&res.as_bytes()).await.unwrap();
     }

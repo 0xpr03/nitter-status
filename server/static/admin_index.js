@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 document.addEventListener("DOMContentLoaded", function (event) {
   const startDateInput = document.getElementById('startDate');
   const endDateInput = document.getElementById('endDate');

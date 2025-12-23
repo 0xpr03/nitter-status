@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 use std::sync::Arc;
 
-use axum::extract::Path;
 use axum::extract::State;
 use axum::response::Html;
 use axum::response::IntoResponse;
@@ -24,7 +23,6 @@ use sea_orm::ColumnTrait;
 use sea_orm::DatabaseConnection;
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
-use sea_orm::QueryOrder;
 use serde::Deserialize;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
@@ -42,21 +40,21 @@ use crate::ADMIN_OVERVIEW_URL;
 use crate::LOGIN_URL;
 
 mod errors;
-mod settings;
 mod locks;
 mod logs;
+mod settings;
 mod stats;
 
 pub use errors::errors_view;
-pub use settings::post_settings;
-pub use settings::settings_view;
 pub use locks::locks_view;
 pub use locks::post_locks;
 pub use logs::log_view;
-pub use stats::stats_view;
+pub use settings::post_settings;
+pub use settings::settings_view;
 pub use stats::health_csv_api;
-pub use stats::stats_csv_api;
 pub use stats::overview_csv_api;
+pub use stats::stats_csv_api;
+pub use stats::stats_view;
 
 /// Stored session login information
 #[derive(Serialize, Deserialize, Default)]
@@ -366,34 +364,6 @@ pub async fn history_json(
         stats: data_stats,
     })
     .into_response())
-}
-
-pub async fn history_view(
-    State(ref app_state): State<AppState>,
-    State(ref template): State<Arc<tera::Tera>>,
-    State(ref db): State<DatabaseConnection>,
-    Path(host): Path<i32>,
-    session: Session,
-) -> Result<axum::response::Response> {
-    tracing::info!(?session);
-
-    let (host, _login) = get_specific_login_host(host, &session, db).await?;
-
-    let mut context = tera::Context::new();
-    let res = {
-        let guard = app_state
-            .cache
-            .read()
-            .map_err(|_| ServerError::MutexFailure)?;
-        let time = guard.last_update.format("%Y.%m.%d %H:%M").to_string();
-        context.insert("last_updated", &time);
-        context.insert("HOST_DOMAIN", &host.domain);
-
-        let res = Html(template.render("errors_admin.html.j2", &context)?).into_response();
-        drop(guard);
-        res
-    };
-    Ok(res)
 }
 
 /// Get all [host::Model] for current [Session], optionally return all hosts for admins

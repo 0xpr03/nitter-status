@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 let chart = undefined;
 document.addEventListener("DOMContentLoaded", function() {
     const startDateInput = document.getElementById('startDate');

@@ -1,7 +1,4 @@
-use std::{
-    collections::HashMap,
-    sync::Arc,
-};
+use std::{collections::HashMap, sync::Arc};
 
 use crate::{Result, ServerError};
 use axum::{
@@ -9,10 +6,7 @@ use axum::{
     response::{Html, IntoResponse},
 };
 use chrono::{TimeZone, Utc};
-use entities::{
-    host,
-    log,
-};
+use entities::{host, log};
 use sea_orm::EntityTrait;
 use sea_orm::{DatabaseConnection, QueryOrder, QuerySelect};
 use serde::Serialize;

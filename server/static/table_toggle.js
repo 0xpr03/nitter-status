@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Get the table and checkboxes
 const dataTable = document.getElementById('status-tbl');
 const toggleColumnCheckboxes = document.querySelectorAll('.toggle-column');

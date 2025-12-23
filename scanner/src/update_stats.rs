@@ -27,8 +27,11 @@ struct InstanceStats {
 struct InstanceStatsAccs {
     total: i32,
     limited: i32,
+    #[allow(unused)]
     oldest: DateTimeUtc,
+    #[allow(unused)]
     newest: DateTimeUtc,
+    #[allow(unused)]
     average: DateTimeUtc,
 }
 
@@ -102,7 +105,7 @@ impl Scanner {
         host: &host::Model,
     ) -> Result<instance_stats::ActiveModel> {
         let overrides = HostOverrides::load(&host, &self.inner.db).await?;
-        let mut url = Url::parse(&host.url).map_err(|e| ScannerError::InstanceUrlParse)?;
+        let mut url = Url::parse(&host.url).map_err(|_e| ScannerError::InstanceUrlParse)?;
         url.set_path(".health");
         if let Some(url_override) = overrides.health_path() {
             url.set_path(url_override);

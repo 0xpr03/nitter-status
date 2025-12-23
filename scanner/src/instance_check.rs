@@ -3,10 +3,10 @@
 use std::time::Instant;
 
 use chrono::Utc;
-use entities::state::error_cache::HostError;
-use entities::{check_errors, health_check, host_overrides};
-use entities::{host, prelude::*};
 use entities::host_overrides::keys::HostOverrides;
+use entities::state::error_cache::HostError;
+use entities::{check_errors, health_check};
+use entities::{host, prelude::*};
 use reqwest::Url;
 use sea_orm::prelude::DateTimeUtc;
 use sea_orm::ColumnTrait;
@@ -40,8 +40,9 @@ impl Scanner {
                 .find(|v| v.host == model.id)
                 .map_or(false, |check| !check.healthy);
             join_set.spawn(async move {
-                if let Err(e) = scanner.health_check_host(model, muted_host).await {
-
+                if let Err(error) = scanner.health_check_host(model, muted_host).await {
+                    // should only happen if for example the DB fails
+                    tracing::error!(%error,"Failed to perform host health check");
                 }
             });
         }
@@ -191,7 +192,12 @@ impl Scanner {
     }
 
     /// Check nitter version
-    pub(crate) async fn nitter_version(&self, url: &mut Url, api_token: Option<&str>, mute: bool) -> Option<AboutParsed> {
+    pub(crate) async fn nitter_version(
+        &self,
+        url: &mut Url,
+        api_token: Option<&str>,
+        mute: bool,
+    ) -> Option<AboutParsed> {
         url.set_path(&self.inner.config.about_path);
         match self.fetch_url(url.as_str(), api_token).await {
             Ok((code, content)) => match self.inner.about_parser.parse_about_version(&content) {

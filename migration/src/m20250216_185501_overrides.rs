@@ -14,7 +14,8 @@ impl MigrationTrait for Migration {
             CONSTRAINT "pk_override_hostkey" PRIMARY KEY ("host", "key"),
             FOREIGN KEY ("host") REFERENCES "host" ("id") ON DELETE CASCADE ON UPDATE CASCADE
         ) STRICT;"#;
-        let cmd_overrides_index = r#"CREATE INDEX "index_overrides_key" ON host_overrides ("key");"#;
+        let cmd_overrides_index =
+            r#"CREATE INDEX "index_overrides_key" ON host_overrides ("key");"#;
         let cmd_log = r#"CREATE TABLE "log" (
             "user_host" integer NOT NULL,
             "host_affected" integer,

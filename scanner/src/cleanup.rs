@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+
 use entities::check_errors;
 use entities::host;
 use sea_orm::ColumnTrait;

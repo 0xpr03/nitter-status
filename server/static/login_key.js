@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 async function sha256(message) {
     const msgBuffer = new TextEncoder().encode(message);                    
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);

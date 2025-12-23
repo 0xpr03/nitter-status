@@ -1,27 +1,16 @@
-use std::{collections::HashMap, fmt::Write, sync::Arc};
+use std::{fmt::Write as _, sync::Arc};
 
 use axum::{
     extract::{Path, State},
     http::HeaderValue,
-    response::{Html, IntoResponse, Redirect},
-    Form,
+    response::{Html, IntoResponse},
 };
 use chrono::{TimeZone, Utc};
-use entities::{
-    health_check::{self, ResponseTimeStat},
-    host_overrides::{
-        self,
-        keys::{HostOverrides, LOCKED_FALSE, LOCKED_TRUE},
-    },
-    instance_stats,
-};
-use sea_orm::{sea_query::OnConflict, ActiveValue, DatabaseConnection, EntityTrait};
+use entities::{health_check::ResponseTimeStat, instance_stats};
+use sea_orm::DatabaseConnection;
 use tower_sessions::Session;
 
-use crate::{
-    admin::{get_all_login_hosts, get_session_login},
-    Result, ServerError,
-};
+use crate::{admin::get_all_login_hosts, Result, ServerError};
 
 use super::get_specific_login_host;
 
