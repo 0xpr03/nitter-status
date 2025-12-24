@@ -95,22 +95,22 @@
               {%- endif -%}
               {%- endif -%}
             </td>
+            {%- if host.version_state == "Missing" -%}
+            {%- set version_order = "E" -%}
+            {%- elif host.version_state == "UnknownCommit" -%}
+            {%- set version_order = "D" -%}
+            {%- elif host.version_state == "CustomBranch" -%}
+            {%- set version_order = "C" -%}
+            {%- elif host.version_state == "Current" -%}
+            {%- set version_order = "A" -%}
+            {%- elif host.version_state == "Outdated" -%}
+            {%- set version_order = "B" -%}
+            {%- endif -%}
             <td data-name="average">{%- if not host.__show_last_seen -%}{{host.ping_avg}}ms{% endif %}</td>
             <td>{{host.healthy_percentage_overall}}%</td>
             <td data-name="rss">{% if host.rss -%} <span role="img" aria-label="no rss">✅</span> {%- else -%} <span
                 role="img" aria-label="has rss">❌</span> {%- endif -%}</td>
-            {%- if host.healthy and not host.version -%}
-            {%- set version = "Dmissing" -%}
-            {%- elif host.version and not host.is_upstream -%}
-            {%- set version = "Aforeign" -%}
-            {%- elif host.is_latest_version -%}
-            {%- set version = "Blatest" -%}
-            {%- elif host.version and not host.is_latest_version -%}
-            {%- set version = "Coutdated" -%}
-            {%- else -%}
-            {%- set version = "Eunknown" -%}
-            {%- endif -%}
-            <td data-name="version" data-sort="{{version}}{{host.version | default(value='')}}">
+            <td data-name="version" data-sort="{{version_order}}{{host.version | default(value='')}}">
               {%- if host.version_url -%}
               <a rel="nofollow external" title="{{host.version}}" href="{{host.version_url}}">
                 {{host.version | truncate(length=18) | default(value="missing version")}}
@@ -118,13 +118,15 @@
               {%- else -%}
               <a rel="nofollow external" href="{{host.url ~ '/about'}}">missing version</a>
               {%- endif -%}
-              {%- if version == "Dmissing" -%}
+              {%- if host.version_state == "Missing" -%}
               <span class="ms-1 badge bg-warning">missing</span>
-              {%- elif version == "Aforeign" -%}
-              <span class="ms-1 badge bg-secondary">custom</span>
-              {%- elif version == "Blatest" -%}
+              {%- elif host.version_state == "UnknownCommit" -%}
+              <span class="ms-1 badge bg-secondary">fork</span>
+              {%- elif host.version_state == "CustomBranch" -%}
+              <span class="ms-1 badge bg-secondary">experimental</span>
+              {%- elif host.version_state == "Current" -%}
               <span class="ms-1 badge bg-success">latest</span>
-              {# {%- elif version == "Coutdated" -%}
+              {%- elif host.version_state == "Outdated" -%}
               <span class="ms-1 badge bg-info">outdated</span> #}
               {%- endif -%}
             </td>

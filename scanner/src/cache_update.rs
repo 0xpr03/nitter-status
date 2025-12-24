@@ -6,16 +6,16 @@ use chrono::{Days, Utc};
 use chrono::{Duration, TimeZone};
 use entities::host_overrides::keys::{KEY_BAD_HOST, VAL_BOOL_TRUE};
 use entities::prelude::*;
-use entities::state::CacheData;
 use entities::state::CacheHost;
+use entities::state::{CacheData, CommitInfo};
 use entities::{host, host_overrides};
 use sea_orm::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::QueryOrder;
 use sea_orm::{prelude::DateTimeUtc, DbBackend, FromQueryResult, Statement};
 use sea_orm::{ColumnTrait, QuerySelect};
+use tokio::task::spawn_blocking;
 
-use crate::version_check::fetch_git_state;
 use crate::LatestCheck;
 use crate::{Result, Scanner};
 
@@ -59,15 +59,28 @@ impl Scanner {
     /// Generate host stats and returns a new CacheData
     pub(crate) async fn generate_cache_data(&self) -> Result<CacheData> {
         let hosts = self.query_hosts_enabled().await?;
-        let config_c = self.inner.config.clone();
-        let current_version = tokio::task::spawn_blocking(move || fetch_git_state(config_c))
-            .await
-            .unwrap()?;
+        let scanner_c = self.clone();
+        if let Err(error) = spawn_blocking(move || {
+            scanner_c
+                .inner
+                .version_checker
+                .lock()
+                .unwrap()
+                .update_remote()
+        })
+        .await
+        .unwrap()
+        {
+            tracing::error!(%error, "Unable to update nitter version, using old version");
+        }
+
+        let latest_commit = self.inner.version_checker.lock().unwrap().latest_commit()?;
+
         if hosts.is_empty() {
             return Ok(CacheData {
                 hosts: Vec::new(),
                 last_update: Utc::now(),
-                latest_commit: current_version.version,
+                latest_commit,
             });
         }
 
@@ -123,17 +136,26 @@ impl Scanner {
             let last_check = latest_check.get(&host.id).unwrap_or(&default_health_check);
             let points = (points * 100.0) as i32;
 
-            let latest_version = host
-                .version_url
-                .as_ref()
-                .map_or(false, |url| current_version.is_same_version(&url));
-            let is_upstream = host
-                .version_url
-                .as_ref()
-                .map_or(false, |url| current_version.is_same_repo(&url));
-
             let is_bad_host = bad_hosts.contains(&host.id);
 
+            let version_state = match host.version_url.clone() {
+                Some(url) => {
+                    let scanner_c = self.clone();
+                    spawn_blocking(move || {
+                        scanner_c
+                            .inner
+                            .version_checker
+                            .lock()
+                            .unwrap()
+                            .check_url(&url)
+                    })
+                    .await
+                    .unwrap()?
+                }
+                None => CommitInfo::UnknownCommit,
+            };
+
+            // TODO: rename all of this from ping to response_time or similar
             let host_ping_data = ping_data.remove(&host.id);
             let last_healthy = last_healthy_check.remove(&host.id);
             let __show_last_seen =
@@ -152,8 +174,11 @@ impl Scanner {
                 ping_min: host_ping_data.as_ref().and_then(|v| v.min),
                 ping_avg: host_ping_data.as_ref().and_then(|v| v.avg),
                 recent_pings: host_ping_data.map(|v| v.pings).unwrap_or_default(),
-                is_latest_version: latest_version,
-                is_upstream,
+                #[allow(deprecated)]
+                is_latest_version: version_state.is_latest_version(),
+                #[allow(deprecated)]
+                is_upstream: version_state.is_upstream(),
+                version_state,
                 version_url: host.version_url,
                 is_bad_host,
                 country: host.country,
@@ -187,7 +212,7 @@ impl Scanner {
         Ok(CacheData {
             hosts: host_statistics,
             last_update: time_now,
-            latest_commit: current_version.version,
+            latest_commit,
         })
     }
 
@@ -372,7 +397,11 @@ impl Scanner {
         Ok(stats)
     }
 
-    /// Query latest health checks for the red/green only graph. Returns latest $amount in ascending order and formatted time.
+    /// Query latest health checks for the red/green only graph.
+    ///   
+    /// amount: last amount of entries to retrieve  
+    ///   
+    /// Returns tuples of `(formatted time,healthy)` in ascending order of time.
     async fn query_latest_health_checks(
         &self,
         // How many to retrieve

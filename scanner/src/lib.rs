@@ -19,6 +19,8 @@ use sea_orm::{ConnectionTrait, DatabaseConnection, DbBackend, FromQueryResult, S
 use thiserror::Error;
 use tokio::time::sleep;
 
+use crate::version_check::VersionCheck;
+
 type Result<T> = std::result::Result<T, ScannerError>;
 
 mod about_parser;
@@ -164,6 +166,7 @@ struct InnerScanner {
     rss_check_regex: Regex,
     client_ipv4: Client,
     client_ipv6: Client,
+    version_checker: Mutex<VersionCheck>,
 }
 
 impl Scanner {
@@ -193,6 +196,9 @@ impl Scanner {
     ) -> miette::Result<Self> {
         let mut builder_regex_rss = RegexBuilder::new(&config.rss_content);
         builder_regex_rss.case_insensitive(true);
+
+        let version_checker = Mutex::new(VersionCheck::new(config.clone()).into_diagnostic()?);
+
         let http_client = Self::client_builder(&config);
         let client_ipv4 = Scanner::client_builder(&config)
             .local_address("0.0.0.0".parse::<IpAddr>().unwrap())
@@ -217,6 +223,7 @@ impl Scanner {
             inner: Arc::new(InnerScanner {
                 db,
                 app_state,
+                version_checker,
                 client: http_client.build().unwrap(),
                 config,
                 client_ipv4,

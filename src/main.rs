@@ -129,6 +129,7 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
     let auto_mute = require_env_str("AUTO_MUTE")? == "true";
     let source_git_branch = require_env_str("ORIGIN_SOURCE_GIT_BRANCH")?;
     let source_git_url = require_env_str("ORIGIN_SOURCE_GIT_URL")?;
+    let git_scratch_folder: String = require_env_str("GIT_SCRATCH_DIR")?;
     let cleanup_interval: u64 = require_env_str("CLEANUP_INTERVAL_S")?
         .parse()
         .expect("CLEANUP_INTERVAL_S must be a number");
@@ -160,6 +161,7 @@ fn read_scanner_cfg() -> miette::Result<ScannerConfig> {
         cleanup_interval: Duration::from_secs(cleanup_interval),
         error_retention_per_host,
         connectivity_path: String::from("/"),
+        git_scratch_folder,
     }))
 }
 

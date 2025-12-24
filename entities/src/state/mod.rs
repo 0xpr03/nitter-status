@@ -22,6 +22,33 @@ pub struct InnerState {
     pub cache: RwLock<CacheData>,
 }
 
+/// Resolved information about an instances nitter source commit
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
+pub enum CommitInfo {
+    /// Commit is behind main
+    Outdated,
+    /// Commit equals current main
+    Current,
+    /// Commit is inside a custom branch on main
+    CustomBranch,
+    /// Commit doesn't exist in the repo
+    UnknownCommit,
+    /// Missing commit (invalid URL etc)
+    Missing,
+}
+
+impl CommitInfo {
+    pub fn is_latest_version(&self) -> bool {
+        *self == Self::Current
+    }
+    pub fn is_upstream(&self) -> bool {
+        match self {
+            CommitInfo::Outdated | CommitInfo::Current => true,
+            CommitInfo::CustomBranch | CommitInfo::UnknownCommit | CommitInfo::Missing => false,
+        }
+    }
+}
+
 pub fn new() -> AppState {
     Arc::new(InnerState {
         cache: RwLock::new(CacheData {
@@ -53,9 +80,13 @@ pub struct CacheHost {
     pub version_url: Option<String>,
     pub healthy: bool,
     pub last_healthy: Option<DateTimeUtc>,
+    /// State of the sources nitter version information
+    pub version_state: CommitInfo,
     /// Whether the source is from the normal upstream repo
+    #[deprecated = "use version_state"]
     pub is_upstream: bool,
     /// Whether the source is from the latest upstream commit
+    #[deprecated = "use version_state"]
     pub is_latest_version: bool,
     /// Whether this host is known to be bad (ip blocking)
     pub is_bad_host: bool,

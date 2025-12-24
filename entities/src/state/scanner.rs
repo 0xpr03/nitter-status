@@ -37,6 +37,8 @@ pub struct Config {
     pub source_git_url: String,
     /// Git branch to fetch the current commit from
     pub source_git_branch: String,
+    /// Folder to use for git operations during nitter version checks
+    pub git_scratch_folder: String,
     /// Interval to run cleanup operations in, to remove old data
     pub cleanup_interval: Duration,
     /// Amount of latest errors to keep per instance/host
@@ -68,6 +70,7 @@ impl Config {
             cleanup_interval: Duration::from_secs(24 * 60 * 60),
             error_retention_per_host: 100,
             connectivity_path: String::from("/"),
+            git_scratch_folder: String::from("."),
         })
     }
 }
