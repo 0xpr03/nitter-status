@@ -85,7 +85,10 @@ impl VersionCheck {
     pub(crate) fn check_url(&mut self, url: &str) -> Result<CommitInfo> {
         match url.split('/').last() {
             Some(commit) => self.check_commit(commit),
-            None => Ok(CommitInfo::UnknownCommit),
+            None => {
+                tracing::debug!(url, "Invalid commit URL");
+                Ok(CommitInfo::Missing)
+            }
         }
     }
 
