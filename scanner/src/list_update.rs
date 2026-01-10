@@ -14,6 +14,7 @@ use sea_orm::{
 };
 use sea_query::OnConflict;
 use tokio::task::JoinSet;
+use tokio::time::sleep;
 use tracing::instrument;
 
 use crate::Result;
@@ -25,7 +26,23 @@ impl Scanner {
     #[instrument]
     pub(crate) async fn update_instacelist(&mut self) -> Result<()> {
         let start = Instant::now();
-        let html: String = self.fetch_instance_list().await?;
+        // retry loop
+        let mut fetch_result;
+        fetch_result = self.fetch_instance_list().await;
+        for attempt in 1..6 {
+            match fetch_result.as_ref() {
+                Err(error) => tracing::warn!(attempt,%error,"Failed fetching instance list"),
+                Ok(_) => {
+                    break;
+                }
+            }
+            sleep(Duration::from_secs(1)).await;
+            fetch_result = self.fetch_instance_list().await;
+        }
+        let html = match fetch_result {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
         let parsed_instances = self.inner.instance_parser.parse_instancelist(
             &html,
             &self.inner.config.additional_hosts,

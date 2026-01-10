@@ -12,8 +12,7 @@ use miette::{Context, IntoDiagnostic};
 use profile_parser::ProfileParser;
 use regex::{Regex, RegexBuilder};
 use reqwest::{
-    header::{HeaderMap, HeaderValue},
-    Client, ClientBuilder,
+    Client, ClientBuilder, header::{HeaderMap, HeaderValue}, retry
 };
 use sea_orm::{ConnectionTrait, DatabaseConnection, DbBackend, FromQueryResult, Statement};
 use thiserror::Error;
@@ -183,9 +182,8 @@ impl Scanner {
             .tls_backend_native()
             .gzip(true)
             .user_agent(user_agent)
-            .connect_timeout(std::time::Duration::from_secs(3))
+            .connect_timeout(std::time::Duration::from_secs(5))
             .timeout(std::time::Duration::from_secs(10))
-            .pool_max_idle_per_host(1)
             .default_headers(headers);
         http_client
     }
@@ -307,11 +305,14 @@ impl Scanner {
                 if let Err(e) = self.check_uptime().await {
                     tracing::error!(error=?e,"Failed checking instances for health");
                 }
-            }
-            if self.is_instance_stats_outdated() {
-                tracing::info!("Checking instance stats");
-                if let Err(e) = self.check_health().await {
-                    tracing::error!(error=?e,"Failed checking instances for stats");
+                // schedule instance stats always post health checks
+                // and wait enough time
+                if self.is_instance_stats_outdated() {
+                    sleep(std::time::Duration::from_secs(1)).await;
+                    tracing::info!("Checking instance stats");
+                    if let Err(e) = self.check_health().await {
+                        tracing::error!(error=?e,"Failed checking instances for stats");
+                    }
                 }
             }
             if let Err(e) = self.update_cache().await {

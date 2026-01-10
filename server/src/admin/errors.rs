@@ -23,8 +23,6 @@ pub async fn errors_view(
     Path(instance): Path<i32>,
     session: Session,
 ) -> Result<axum::response::Response> {
-    tracing::info!(?session);
-
     let (host, _login) = get_specific_login_host(instance, &session, db).await?;
 
     let errors = check_errors::Entity::find()
