@@ -9,7 +9,7 @@ license = "AGPL-3.0-only"
 members = ["migration","entities", "server", "scanner"]
 
 [workspace.dependencies]
-tokio = "1.20.1"
+tokio = "1.49"
 thiserror = "1.0.39"
 chrono = "0.4.22"
 serde = "1.0.144"
