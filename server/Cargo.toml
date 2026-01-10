@@ -18,7 +18,7 @@ chrono = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 serde = { workspace = true, features = ["derive"] }
-reqwest = { workspace = true, features = ["deflate","gzip","brotli","cookies", "rustls-tls"] }
+reqwest.workspace = true
 sha2 = "0.10"
 constant_time_eq = "0.3"
 base16ct = "0.2"

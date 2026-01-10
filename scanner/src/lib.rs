@@ -180,11 +180,12 @@ impl Scanner {
             .cookie_store(true)
             .brotli(true)
             .deflate(true)
+            .tls_backend_native()
             .gzip(true)
-            .use_rustls_tls()
             .user_agent(user_agent)
             .connect_timeout(std::time::Duration::from_secs(3))
             .timeout(std::time::Duration::from_secs(10))
+            .pool_max_idle_per_host(1)
             .default_headers(headers);
         http_client
     }
@@ -308,6 +309,7 @@ impl Scanner {
                 }
             }
             if self.is_instance_stats_outdated() {
+                tracing::info!("Checking instance stats");
                 if let Err(e) = self.check_health().await {
                     tracing::error!(error=?e,"Failed checking instances for stats");
                 }

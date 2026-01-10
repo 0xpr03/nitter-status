@@ -19,7 +19,7 @@ sea-query = "0.30" # keep in step with sea-orm
 futures = "0.3"
 tracing = "0.1"
 tracing-subscriber = "0.3"
-reqwest = "0.11"
+reqwest = {version ="0.13", default-features = false, features = ["charset", "http2", "system-proxy","deflate","gzip","brotli","cookies", "native-tls"]}
 error-stack = "0.4.1"
 miette = "5.10"
 regex = "1.9"

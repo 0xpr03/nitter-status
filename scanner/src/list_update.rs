@@ -205,6 +205,17 @@ mod test {
     #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
     #[traced_test]
     #[ignore]
+    async fn list_update_test() {
+        let db = db_init().await;
+        let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new())
+            .await
+            .unwrap();
+        scanner.fetch_instance_list().await.unwrap();
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
+    #[traced_test]
+    #[ignore]
     async fn connectivity_test() {
         let db = db_init().await;
         let scanner = Scanner::new(db, Config::test_defaults(), entities::state::new())
