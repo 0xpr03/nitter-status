@@ -9,6 +9,7 @@ mod m20230914_231514_connectivity;
 mod m20231011_231223_errors;
 mod m20231112_142206_stats;
 mod m20250216_185501_overrides;
+mod m20260221_011701_stats_simplified;
 
 pub struct Migrator;
 
@@ -25,6 +26,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20231011_231223_errors::Migration),
             Box::new(m20231112_142206_stats::Migration),
             Box::new(m20250216_185501_overrides::Migration),
+            Box::new(m20260221_011701_stats_simplified::Migration),
         ]
     }
 }

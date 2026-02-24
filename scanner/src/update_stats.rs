@@ -19,6 +19,7 @@ use crate::{Result, Scanner, ScannerError};
 /// Instance stats reported by .health
 #[derive(Debug, Deserialize)]
 struct InstanceStats {
+    #[serde(alias = "sessions")]
     accounts: InstanceStatsAccs,
     requests: RequestStats,
 }
@@ -27,33 +28,11 @@ struct InstanceStats {
 struct InstanceStatsAccs {
     total: i32,
     limited: i32,
-    #[allow(unused)]
-    oldest: DateTimeUtc,
-    #[allow(unused)]
-    newest: DateTimeUtc,
-    #[allow(unused)]
-    average: DateTimeUtc,
 }
 
 #[derive(Debug, Deserialize)]
 struct RequestStats {
     total: i64,
-    apis: APIStats,
-}
-
-/// Instance api stats reported by .health
-#[derive(Debug, Deserialize)]
-#[allow(non_snake_case)]
-struct APIStats {
-    pub photoRail: i32,
-    pub userScreenName: i32,
-    pub search: i32,
-    pub listTweets: i32,
-    pub userMedia: i32,
-    pub tweetDetail: i32,
-    pub list: i32,
-    pub userTweets: i32,
-    pub userTweetsAndReplies: i32,
 }
 
 impl Scanner {
@@ -124,17 +103,6 @@ impl Scanner {
             limited_accs: ActiveValue::Set(stats_data.accounts.limited),
             total_accs: ActiveValue::Set(stats_data.accounts.total),
             total_requests: ActiveValue::Set(stats_data.requests.total),
-            req_photo_rail: ActiveValue::Set(stats_data.requests.apis.photoRail),
-            req_user_screen_name: ActiveValue::Set(stats_data.requests.apis.userScreenName),
-            req_search: ActiveValue::Set(stats_data.requests.apis.search),
-            req_list_tweets: ActiveValue::Set(stats_data.requests.apis.listTweets),
-            req_user_media: ActiveValue::Set(stats_data.requests.apis.userMedia),
-            req_tweet_detail: ActiveValue::Set(stats_data.requests.apis.tweetDetail),
-            req_list: ActiveValue::Set(stats_data.requests.apis.list),
-            req_user_tweets: ActiveValue::Set(stats_data.requests.apis.userTweets),
-            req_user_tweets_and_replies: ActiveValue::Set(
-                stats_data.requests.apis.userTweetsAndReplies,
-            ),
         };
 
         Ok(stats_model)

@@ -14,15 +14,6 @@ pub struct Model {
     pub limited_accs: i32,
     pub total_accs: i32,
     pub total_requests: i64,
-    pub req_photo_rail: i32,
-    pub req_user_screen_name: i32,
-    pub req_search: i32,
-    pub req_list_tweets: i32,
-    pub req_user_media: i32,
-    pub req_tweet_detail: i32,
-    pub req_list: i32,
-    pub req_user_tweets: i32,
-    pub req_user_tweets_and_replies: i32,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -54,24 +45,6 @@ pub struct StatsAmount {
     pub total_accs_avg: i32,
     pub total_requests_max: i64,
     pub total_requests_avg: i64,
-    pub req_photo_rail_max: i32,
-    pub req_photo_rail_avg: i32,
-    pub req_user_screen_name_max: i32,
-    pub req_user_screen_name_avg: i32,
-    pub req_search_max: i32,
-    pub req_search_avg: i32,
-    pub req_list_tweets_max: i32,
-    pub req_list_tweets_avg: i32,
-    pub req_user_media_max: i32,
-    pub req_user_media_avg: i32,
-    pub req_tweet_detail_max: i32,
-    pub req_tweet_detail_avg: i32,
-    pub req_list_max: i32,
-    pub req_list_avg: i32,
-    pub req_user_tweets_max: i32,
-    pub req_user_tweets_avg: i32,
-    pub req_user_tweets_and_replies_max: i32,
-    pub req_user_tweets_and_replies_avg: i32,
 }
 
 impl StatsAmount {
@@ -83,20 +56,7 @@ impl StatsAmount {
         hosts: Option<&[i32]>,
     ) -> Result<Vec<StatsAmount>, DbErr> {
         let builder = db.get_database_backend();
-        let columns = [
-            "limited_accs",
-            "total_accs",
-            "total_requests",
-            "req_photo_rail",
-            "req_user_screen_name",
-            "req_search",
-            "req_list_tweets",
-            "req_user_media",
-            "req_tweet_detail",
-            "req_list",
-            "req_user_tweets",
-            "req_user_tweets_and_replies",
-        ];
+        let columns = ["limited_accs", "total_accs", "total_requests"];
         let mut stmt: sea_query::SelectStatement = Query::select();
         let col_stmt = stmt.column(self::Column::Time);
         for col in columns {
