@@ -17,20 +17,20 @@ use tokio::task::JoinSet;
 use crate::{Result, Scanner, ScannerError};
 
 /// Instance stats reported by .health
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 struct InstanceStats {
     #[serde(alias = "sessions")]
     accounts: InstanceStatsAccs,
     requests: RequestStats,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 struct InstanceStatsAccs {
     total: i32,
     limited: i32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 struct RequestStats {
     total: i64,
 }
@@ -106,5 +106,26 @@ impl Scanner {
         };
 
         Ok(stats_model)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::update_stats::{InstanceStats, InstanceStatsAccs, RequestStats};
+
+    #[test]
+    fn test_parse_health_json() {
+        let parsed: InstanceStats =
+            serde_json::from_str(include_str!("../test_data/health.json")).unwrap();
+        assert_eq!(
+            parsed,
+            InstanceStats {
+                accounts: InstanceStatsAccs {
+                    total: 516,
+                    limited: 0,
+                },
+                requests: RequestStats { total: 22129 },
+            }
+        );
     }
 }
